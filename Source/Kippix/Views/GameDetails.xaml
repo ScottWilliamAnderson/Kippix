@@ -324,7 +324,21 @@
                                                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                                             </Style>
                                         </StackPanel.Resources>
-                                        <ButtonEx x:Name="PART_ButtonContext" Style="{StaticResource KX_PillButton}" MinWidth="240" />
+                                        <!-- (issue #11) a game Kippix lists as running (Keep browsing on): the button reads "Switch to" (only how Playnite's own
+                                             text is shown: its Content and Command stay Playnite's; the press is the helper's, ThemeApi.Running.cs) -->
+                                        <ButtonEx x:Name="PART_ButtonContext" MinWidth="240">
+                                            <ButtonEx.Style>
+                                                <Style TargetType="ButtonEx" BasedOn="{StaticResource KX_PillButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=DetPlaySwitches}" Value="True">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value><DataTemplate><TextBlock x:Name="KX_DetSwitchText" Text="{DynamicResource LOC_KX_RunSwitch}" /></DataTemplate></Setter.Value>
+                                                            </Setter>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ButtonEx.Style>
+                                        </ButtonEx>
                                         <ButtonEx x:Name="PART_ButtonOptions" Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOCGameOptions}"
                                                   Visibility="{PluginSettings Plugin=Kippix, Path=DetShowOptionsButton, FallbackValue=Visible}">
                                             <Path Data="{StaticResource KX_IconMenu}" Style="{StaticResource KX_IconPath}" Width="24" Height="24" />

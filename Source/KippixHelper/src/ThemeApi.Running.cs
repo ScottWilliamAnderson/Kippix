@@ -37,6 +37,7 @@ namespace KippixHelper
                 settings.RunKeepBrowsing = value;
                 SaveSettings();
                 Notify("RunKeepBrowsing");
+                Notify("DetPlaySwitches");
                 logger.Info("Kippix: running: keep browsing " + (value ? "on" : "off"));
                 if (AnyRunning) { HookRunningWindow(); playniteActive = PlayniteActiveNow(); RunningStateChanged(); }
                 if (!ExtraRowsWanted) LeaveExtraRows(false);
@@ -264,6 +265,7 @@ namespace KippixHelper
         /// <summary>Something started or stopped: the row is filled again (it goes when nothing runs).</summary>
         private void RunningListChanged()
         {
+            Notify("DetPlaySwitches");   // the game page's Play button: "Switch to" for what's running
             if (!IsFullscreen || ui == null) return;
             bool rowOn = settings.RunKeepBrowsing || (settings.ExtraRows && ExtraKeys().Contains("running"));
             if (rowOn && ExtraRowsWanted) ui.BeginInvoke(new Action(RebuildExtraRows), DispatcherPriority.Background);
@@ -287,6 +289,56 @@ namespace KippixHelper
             if (id == Guid.Empty || !Running.IsRunning(id)) return false;
             logger.Info("Kippix: running: play on a game that's already running: switching to it");
             return RunningSwitchTo(id);
+        }
+
+        /// <summary>
+        /// The game page's game is one of those running (Keep browsing on): its Play button reads "Switch to" (Views/GameDetails.xaml)
+        /// and pressing it brings the game's window to the front (DetSwitchKey, and RunningSwitchInstead behind it).
+        /// </summary>
+        public bool DetPlaySwitches
+        {
+            get
+            {
+                if (!settings.RunKeepBrowsing || !Running.Any) return false;
+                var g = SelectedGameNow();
+                return g != null && Running.IsRunning(g.Id);
+            }
+        }
+
+        /// <summary>From GamePageKey: A (or Enter / Space) on the game page's Play button while it reads "Switch to". True: the press was ours.</summary>
+        private bool DetSwitchKey(KeyEventArgs e)
+        {
+            bool pad = e.GetType().Name == "GameControllerInputEventArgs";
+            if (pad ? !IsPadButton(e, "A") : (e.Key != Key.Enter && e.Key != Key.Space)) return false;
+            if (!DetPlaySwitches) return false;
+            var f = Keyboard.FocusedElement as FrameworkElement;
+            if (f == null || f.Name != "PART_ButtonContext") return false;
+            var g = SelectedGameNow();
+            if (g == null) return false;
+            logger.Info("Kippix: running: the game page's button on a game that's already running: switching to it");
+            return RunningSwitchTo(g.Id);
+        }
+
+        /// <summary>
+        /// From OnGameStarting, before anything else: with Keep browsing on, a game Kippix lists as running is being started again
+        /// (Playnite thinks it stopped: an app it marks as stopped at once, pressed again from the game page, X on its card, the
+        /// game menu). Its window is still there: true, the start is cancelled and the window comes to the front. No window to be
+        /// found: false, it starts as usual (so a list that's behind can never keep a game from starting).
+        /// </summary>
+        public bool RunningSwitchInstead(Game g)
+        {
+            if (g == null || !settings.RunKeepBrowsing) return false;
+            var entry = Running.Get(g.Id);
+            if (entry == null) return false;
+            if (Running.FindWindow(entry) == IntPtr.Zero)
+            {
+                logger.Info("Kippix: running: " + entry.Name + " is started again: none of its windows found, so it starts as usual");
+                return false;
+            }
+            logger.Info("Kippix: running: " + entry.Name + " is started again while it's running: start cancelled, switching to it");
+            Guid id = g.Id;
+            OnUi(() => RunningSwitchTo(id));
+            return true;
         }
 
         /// <summary>X on the highlighted tile, when it's a Running now tile (true: the press was ours, also the let-go).</summary>
