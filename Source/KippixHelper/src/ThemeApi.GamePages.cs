@@ -760,7 +760,7 @@ namespace KippixHelper
                 {
                     case "dev": return g.Developers != null && g.Developers.Count > 0;
                     case "pub": return g.Publishers != null && g.Publishers.Count > 0;
-                    case "release": return g.ReleaseDate != null;
+                    case "release": return g.ReleaseDate != null && g.ReleaseDate.Value.Year > 0;   // (an emulated game can come with a date of "0")
                     case "genres": return g.Genres != null && g.Genres.Count > 0;
                     case "platform": return g.Platforms != null && g.Platforms.Count > 0;
                     case "source": return g.Source != null && !string.IsNullOrEmpty(g.Source.Name);
