@@ -353,6 +353,7 @@ namespace KippixHelper
                 int owned = 0, installed = 0, unlocked = 0, perfect = 0;
                 long seconds = 0, yearSeconds = 0;
                 Game last = null, running = null;
+                string runningNames = "";
                 DateTime lastAt = DateTime.MinValue;
                 string bannerPath = null;
                 bool haveAch = false;
@@ -361,7 +362,11 @@ namespace KippixHelper
                     var games = api.Database.Games.Where(g => HubSees(g, ownerView)).ToList();
                     owned = games.Count;
                     installed = games.Count(g => g.IsInstalled);
-                    running = games.FirstOrDefault(g => g.IsRunning);
+                    // (issue #11) several can run at once: the one started last is the one shown, the line names them all
+                    var runningAll = games.Where(g => g.IsRunning).ToList();
+                    var newest = Running.Newest();
+                    running = (newest != null ? runningAll.FirstOrDefault(g => g.Id == newest.Id) : null) ?? runningAll.FirstOrDefault();
+                    if (running != null) runningNames = string.Join(", ", new[] { running.Name }.Concat(runningAll.Where(g => g.Id != running.Id).Select(g => g.Name)).ToArray());
                     int year = DateTime.Now.Year;
                     if (ownerView)
                     {
@@ -421,7 +426,7 @@ namespace KippixHelper
                         stats.Add(new PageStat { Value = perfect.ToString("N0", CultureInfo.CurrentCulture), Label = Loc("LOC_KX_HubPerfect", "perfect games") });
                     }
                     hubStats = stats;
-                    HubNowText = running != null ? string.Format(Loc("LOC_KX_HubPlayingNow", "Playing {0} now"), running.Name)
+                    HubNowText = running != null ? string.Format(Loc("LOC_KX_HubPlayingNow", "Playing {0} now"), runningNames)
                                : last != null ? string.Format(Loc("LOC_KX_HubLastPlayed", "Last played {0}   ·   {1}"), last.Name, AgoText(lastAt))
                                : "";
                     hubBanner = banner;

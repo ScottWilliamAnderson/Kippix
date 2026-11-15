@@ -37,8 +37,8 @@ namespace KippixHelper
             set { if (settings.SessionSummary == value) return; settings.SessionSummary = value; SaveSettings(); Notify("SessionSummary"); }
         }
 
-        private Guid sessionGameId;
-        private ulong sessionStartPlaytime;
+        // (issue #11) each running game's own (several can run at once: the second one starting used to forget the first's)
+        private readonly System.Collections.Generic.Dictionary<Guid, ulong> sessionStartPlaytimes = new System.Collections.Generic.Dictionary<Guid, ulong>();
         private DispatcherTimer toastWait, toastHide;
         private DateTime toastWaitSince;
         private bool toastIsSample;        // Notifications › Show a sample: it shows over the settings on purpose
@@ -104,8 +104,7 @@ namespace KippixHelper
         private void SessionStarting(Game g)
         {
             if (g == null) return;
-            sessionGameId = g.Id;
-            sessionStartPlaytime = g.Playtime;
+            lock (sessionStartPlaytimes) sessionStartPlaytimes[g.Id] = g.Playtime;
         }
 
         /// <summary>A game stopped: once Playnite is back in front, the card shows.</summary>
@@ -119,7 +118,8 @@ namespace KippixHelper
                 {
                     // (0.86: no minimum any more: a quick go that's quit from the overlay gets its card too)
                     if (!settings.SessionSummary) return;
-                    ulong before = game.Id == sessionGameId ? sessionStartPlaytime : 0;
+                    ulong before;
+                    lock (sessionStartPlaytimes) { if (!sessionStartPlaytimes.TryGetValue(game.Id, out before)) before = 0; sessionStartPlaytimes.Remove(game.Id); }
                     ulong total = game.Playtime;
                     try { var fresh = api.Database.Games.Get(game.Id); if (fresh != null) total = fresh.Playtime; } catch (Exception) { }
                     if (before > 0 && total < before + seconds) total = before + seconds;   // (not added up yet)

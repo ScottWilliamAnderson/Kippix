@@ -258,6 +258,22 @@ namespace KippixOverlay
             if (overlay != null) overlay.CloseOverlay(null);
             lock (achievementSummaries) achievementSummaries.Clear();
 
+            // (issue #11) another game is still running: the overlay carries on with the one started last (it used to think nothing ran)
+            try
+            {
+                var still = KippixHelper.Running.Newest();
+                Game other = still != null && (stopped == null || still.Id != stopped.Id) ? PlayniteApi.Database.Games.Get(still.Id) : null;
+                if (other != null)
+                {
+                    RunningGame = other;
+                    GameStartedAt = still.Started;
+                    GameWindow = still.Window;
+                    installDirCache = null;
+                    logger.Info("Kippix: running: the overlay carries on with " + other.Name);
+                }
+            }
+            catch (Exception) { }
+
             if (pendingSwitch != Guid.Empty)
             {
                 Guid next = pendingSwitch;
