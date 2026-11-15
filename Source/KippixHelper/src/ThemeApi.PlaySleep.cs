@@ -23,7 +23,7 @@ namespace KippixHelper
             if (w == null) return;
             playSleepHooked = true;
             w.Activated += (s, e) => WakeFromPlay("Playnite in front");
-            w.Deactivated += (s, e) => { if (gameRunningNow) PlaySleepSoon(); };
+            w.Deactivated += (s, e) => { if (AnyRunning) PlaySleepSoon(); };
         }
 
         /// <summary>A moment after the game has taken over (the launch screen has gone by then).</summary>
@@ -42,7 +42,8 @@ namespace KippixHelper
         {
             try
             {
-                if (playSleeping || !gameRunningNow || !IsFullscreen) return;
+                if (playSleeping || !AnyRunning || !IsFullscreen) return;
+                if (settings.RunKeepBrowsing && playniteActive) return;   // (issue #11: one of Playnite's own menus is in front, not a game)
                 var w = Application.Current != null ? Application.Current.MainWindow : null;
                 var root = w != null ? w.Content as UIElement : null;
                 if (root == null || w.IsActive) return;

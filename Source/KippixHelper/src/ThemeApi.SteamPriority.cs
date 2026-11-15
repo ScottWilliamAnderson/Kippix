@@ -81,7 +81,7 @@ namespace KippixHelper
             logger.Info("Kippix: Steam high priority: " + toFix.Count + " to change: " + string.Join(", ", toFix.Select(t => t.Item2).ToArray()));
 
             // never in the middle of a game
-            if (gameRunningNow || SteamRunningApp() != 0)
+            if (AnyRunning || SteamRunningApp() != 0)
             {
                 ok = false;
                 return Loc("LOC_KX_SpGameRunning", "A game is running, so Steam wasn't closed. Try again once you've finished playing.");
@@ -354,7 +354,7 @@ namespace KippixHelper
 
         private void SteamAutoCheck()
         {
-            if (!settings.SteamPriorityAuto || steamPriorityBusy || gameRunningNow) return;
+            if (!settings.SteamPriorityAuto || steamPriorityBusy || AnyRunning) return;
             KippixShared.SafeWork.Queue(_ =>
             {
                 string steamPath, steamExe;
@@ -366,7 +366,7 @@ namespace KippixHelper
                 if (downloading) { logger.Info("Kippix: Steam high priority (on its own): " + toFix.Count + " to change, but Steam is downloading or installing: left for the next library update"); return; }
                 if (SteamRunningApp() != 0) { logger.Info("Kippix: Steam high priority (on its own): a game is running: left for later"); return; }
                 logger.Info("Kippix: Steam high priority (on its own): new Steam games in the library: " + string.Join(", ", toFix.Select(x => x.Item2).ToArray()));
-                OnUi(() => { if (!steamPriorityBusy && !gameRunningNow) StartSteamPriority(true); });
+                OnUi(() => { if (!steamPriorityBusy && !AnyRunning) StartSteamPriority(true); });
             });
         }
 

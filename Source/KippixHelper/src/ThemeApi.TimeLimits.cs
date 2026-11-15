@@ -179,6 +179,14 @@ namespace KippixHelper
             {
                 var p = profileNow;
                 if (!LimitApplies(p)) { StopLimitTimer(); return; }
+                // (issue #11) something else is running and being counted already: the count carries on as it is (its warnings
+                // aren't forgotten), the messages name this game now
+                if (limitTimer != null && limitTimer.IsEnabled && limitProfileId == p.Id && Running.Count > 1)
+                {
+                    limitGameId = g != null ? g.Id : Guid.Empty;
+                    limitGameName = g != null ? g.Name : "";
+                    return;
+                }
                 limitProfileId = p.Id;
                 limitGameId = g != null ? g.Id : Guid.Empty;
                 limitGameName = g != null ? g.Name : "";
@@ -204,6 +212,15 @@ namespace KippixHelper
             {
                 if (limitTimer == null || !limitTimer.IsEnabled) return;
                 if (g != null && limitGameId != Guid.Empty && g.Id != limitGameId) return;   // (another game: this one carries on)
+                // (issue #11) others are still running: the time keeps counting, for the one started last (asked to close too, if time's up)
+                var still = Running.Newest();
+                if (still != null && (g == null || still.Id != g.Id))
+                {
+                    limitGameId = still.Id;
+                    limitGameName = still.Name;
+                    limitCloseAsked = false;
+                    return;
+                }
                 LimitTick(true);
                 StopLimitTimer();
                 var p = LimitProfileById(limitProfileId);
@@ -306,7 +323,14 @@ namespace KippixHelper
         private void CloseRunningGameGently(Guid gameId)
         {
             IntPtr hwnd = IntPtr.Zero;
-            try { if (plugin.Overlay != null) hwnd = plugin.Overlay.GameWindow; } catch (Exception) { }
+            // (issue #11) this game's own window when it's known; the overlay's (it knows one game) only when nothing else runs
+            try
+            {
+                var entry = Running.Get(gameId);
+                if (entry != null) hwnd = entry.Window;
+                if (hwnd == IntPtr.Zero && Running.Count <= 1 && plugin.Overlay != null) hwnd = plugin.Overlay.GameWindow;
+            }
+            catch (Exception) { }
             string dir = null;
             try
             {

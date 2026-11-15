@@ -53,9 +53,11 @@ namespace KippixHelper
 
         public void GameRunningChanged(bool running)
         {
-            global::KippixHelper.Downloads.GameRunning = running;
-            gameRunningNow = running;
-            OnUi(() => { ReleaseFront(); UpdateMusicState(); if (running) StopTrailer(); FadeLaunchArt(running); ReminderGameRunning(running); if (running) StopAmbient(); ApplyBackgroundMotion(); PlaySleepGameRunning(running); if (!running) CapturesAfterSession(); });
+            bool was = anyRunning;
+            if (running) launchFrontStarted = true;
+            anyRunning = running || Running.Any;   // (issue #11) one of several stopping: the others still run
+            global::KippixHelper.Downloads.GameRunning = anyRunning;
+            OnUi(() => { ReleaseFront(); UpdateMusicState(); if (running) StopTrailer(); FadeLaunchArt(running); if (!was || !anyRunning) ReminderGameRunning(running); if (running) StopAmbient(); ApplyBackgroundMotion(); PlaySleepGameRunning(running); if (!running) CapturesAfterSession(); });
         }
 
         // ---------------- the launch screen (Views/GameStatus.xaml): the game's art fades in, then hands over to the game ----------------
@@ -73,6 +75,7 @@ namespace KippixHelper
             launchGameAt = DateTime.Now;
             try { AutoSavesBackup(game, true); } catch (Exception) { }
             SessionStarting(game);
+            OnUi(() => RunningStarting(game));   // (issue #11) keep browsing: where the highlight was
             OnUi(() =>
             {
                 // the page's picture only when it's this game's, and settled (a tile started straight from home, or a
@@ -106,7 +109,7 @@ namespace KippixHelper
                         // Splash Screen shows its own picture: ours stays plain underneath it
                         if (SplashScreenTakesOver(launchGame)) { art.BeginAnimation(UIElement.OpacityProperty, null); art.Opacity = 0; return; }
                         FillLaunchArt();
-                        if (gameRunningNow) { FadeLaunchArt(true); return; }
+                        if (launchGame != null && Running.IsRunning(launchGame.Id)) { FadeLaunchArt(true); return; }   // (issue #11: this game, not just any)
                         art.BeginAnimation(UIElement.OpacityProperty, null);
                         art.Opacity = 0;
                         art.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(450))));
@@ -508,9 +511,9 @@ namespace KippixHelper
                     t.Stop();
                     try
                     {
-                        if (!detailsOpen || gameRunningNow) return;
+                        if (!detailsOpen || (!settings.RunKeepBrowsing && AnyRunning)) return;
                         var g = SelectedGameNow();
-                        if (g == null) return;
+                        if (g == null || (settings.RunKeepBrowsing && Running.IsRunning(g.Id))) return;   // (issue #11: this game started again, whatever else is open)
                         galleryScannedAt = DateTime.MinValue;
                         FillCaptures(g, detMoreGen);
                     }

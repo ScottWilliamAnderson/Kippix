@@ -24,13 +24,31 @@ namespace KippixHelper
     /// </summary>
     public partial class HelperPlugin
     {
-        private Game hoGame;
-        private ulong hoElapsed;
-        private DateTime hoStoppedAt, hoLastAlive, hoStartedAt;
-        private bool hoCarried;
-        private int hoFronts;
-        private string hoDir, hoAppId;
+        // (issue #11) one per game: several can run at once, and one being held back mustn't end another's (or be ended by it)
+        private class Handover
+        {
+            public Game Game;
+            public ulong Elapsed;
+            public DateTime StoppedAt, LastAlive, StartedAt;
+            public bool Carried;
+            public int Fronts;
+            public string Dir, AppId;
+        }
+        private readonly Dictionary<Guid, Handover> hoSlots = new Dictionary<Guid, Handover>();
         private DispatcherTimer hoTimer;
+
+        /// <summary>The held-back stop of this game ends now (it's being started again). Other games' carry on.</summary>
+        private void HandoverFinishFor(Guid id)
+        {
+            Handover h;
+            if (hoSlots.TryGetValue(id, out h)) HandoverFinish(h);
+        }
+
+        /// <summary>Playnite is closing: every held-back stop ends now.</summary>
+        private void HandoverFinishAll()
+        {
+            foreach (var h in hoSlots.Values.ToList()) HandoverFinish(h);
+        }
 
         private static readonly Guid SteamLibraryId = new Guid("CB91DFC9-B977-43BF-8E70-55F46E410FAB");
 
@@ -44,39 +62,40 @@ namespace KippixHelper
             string appId = g.PluginId == SteamLibraryId && !string.IsNullOrEmpty(g.GameId) ? g.GameId : null;
             if (dir == null && appId == null) return false;
             if (dir != null && dir.Length <= 4) dir = null;   // (a whole drive: no)
-            if (hoGame != null) HandoverFinish();
-            hoGame = g;
-            hoElapsed = a.ElapsedSeconds;
-            hoStoppedAt = hoLastAlive = DateTime.Now;
-            hoStartedAt = DateTime.Now.AddSeconds(-(double)a.ElapsedSeconds - 5);
-            hoCarried = false;
-            hoFronts = 0;
-            hoDir = dir;
-            hoAppId = appId;
+            HandoverFinishFor(g.Id);   // (this game held back already: that one ends first)
+            var h = new Handover { Game = g, Elapsed = a.ElapsedSeconds, StoppedAt = DateTime.Now, LastAlive = DateTime.Now, StartedAt = DateTime.Now.AddSeconds(-(double)a.ElapsedSeconds - 5), Dir = dir, AppId = appId };
+            hoSlots[g.Id] = h;
             if (hoTimer == null)
             {
                 hoTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(2) };
-                hoTimer.Tick += (s, e) => { try { HandoverTick(); } catch (Exception ex) { logger.Warn("Kippix: launcher hand-over: " + ex.Message); HandoverFinish(); } };
+                hoTimer.Tick += (s, e) =>
+                {
+                    if (hoSlots.Count == 0) { hoTimer.Stop(); return; }
+                    foreach (var slot in hoSlots.Values.ToList())
+                    {
+                        try { HandoverTick(slot); } catch (Exception ex) { logger.Warn("Kippix: launcher hand-over: " + ex.Message); HandoverFinish(slot); }
+                    }
+                };
             }
             hoTimer.Start();
             logger.Info("Kippix: " + g.Name + " stopped after " + a.ElapsedSeconds + " s: watching whether a launcher hands over to the game (Steam app " + (appId ?? "-") + ", folder " + (dir ?? "-") + ")");
             return true;
         }
 
-        private bool HandoverAlive()
+        private bool HandoverAlive(Handover h)
         {
-            if (hoAppId != null)
+            if (h.AppId != null)
             {
                 try
                 {
                     object v = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "RunningAppID", 0);
-                    if (v is int && ((int)v).ToString() == hoAppId) return true;
-                    object r = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam\Apps\" + hoAppId, "Running", 0);
+                    if (v is int && ((int)v).ToString() == h.AppId) return true;
+                    object r = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam\Apps\" + h.AppId, "Running", 0);
                     if (r is int && (int)r != 0) return true;
                 }
                 catch (Exception) { }
             }
-            if (hoDir != null)
+            if (h.Dir != null)
             {
                 Process[] all = null;
                 try
@@ -86,7 +105,7 @@ namespace KippixHelper
                     {
                         string path = null;
                         try { path = Native.GetProcessPath((uint)p.Id); } catch (Exception) { }
-                        if (path != null && path.StartsWith(hoDir, StringComparison.OrdinalIgnoreCase)) return true;
+                        if (path != null && path.StartsWith(h.Dir, StringComparison.OrdinalIgnoreCase)) return true;
                     }
                 }
                 catch (Exception) { }
@@ -95,40 +114,40 @@ namespace KippixHelper
             return false;
         }
 
-        private void HandoverTick()
+        private void HandoverTick(Handover h)
         {
-            if (hoGame == null) { hoTimer.Stop(); return; }
             var now = DateTime.Now;
-            bool alive = HandoverAlive();
-            if (alive) hoLastAlive = now;
-            if (!hoCarried)
+            bool alive = HandoverAlive(h);
+            if (alive) h.LastAlive = now;
+            if (!h.Carried)
             {
                 if (alive)
                 {
-                    hoCarried = true;
-                    logger.Info("Kippix: " + hoGame.Name + " carries on after its launcher (still running): kept as the game being played");
+                    h.Carried = true;
+                    logger.Info("Kippix: " + h.Game.Name + " carries on after its launcher (still running): kept as the game being played");
                 }
-                else if ((now - hoStoppedAt).TotalSeconds > 20) { HandoverFinish(); return; }
+                else if ((now - h.StoppedAt).TotalSeconds > 20) { HandoverFinish(h); return; }
             }
-            if (hoCarried)
+            if (h.Carried)
             {
                 // Playnite came back over the launcher when it thought the game had closed: the launcher goes back in front
-                if (hoFronts < 4 && (now - hoStoppedAt).TotalSeconds < 15 && PlayniteInFront()) { hoFronts++; LauncherToFront(); }
-                if (!alive && (now - hoLastAlive).TotalSeconds >= 6) HandoverFinish();
+                if (h.Fronts < 4 && (now - h.StoppedAt).TotalSeconds < 15 && PlayniteInFront()) { h.Fronts++; LauncherToFront(h); }
+                if (!alive && (now - h.LastAlive).TotalSeconds >= 6) HandoverFinish(h);
             }
         }
 
         /// <summary>Ends the held-back stop: the play time Playnite missed is added, then everything a stopped game does.</summary>
-        private void HandoverFinish()
+        private void HandoverFinish(Handover h)
         {
-            if (hoTimer != null) hoTimer.Stop();
-            var g = hoGame;
-            if (g == null) return;
-            hoGame = null;
-            ulong total = hoElapsed;
-            if (hoCarried)
+            Handover held;
+            if (h == null || !hoSlots.TryGetValue(h.Game.Id, out held) || !ReferenceEquals(held, h)) return;   // (ended already)
+            hoSlots.Remove(h.Game.Id);
+            if (hoSlots.Count == 0 && hoTimer != null) hoTimer.Stop();
+            var g = h.Game;
+            ulong total = h.Elapsed;
+            if (h.Carried)
             {
-                double extra = Math.Max(0, (hoLastAlive - hoStoppedAt).TotalSeconds);
+                double extra = Math.Max(0, (h.LastAlive - h.StoppedAt).TotalSeconds);
                 total += (ulong)extra;
                 try
                 {
@@ -142,7 +161,7 @@ namespace KippixHelper
                     }
                 }
                 catch (Exception ex) { logger.Warn("Kippix: adding the play time after the launcher: " + ex.Message); }
-                logger.Info("Kippix: " + g.Name + " closed after its launcher: " + (ulong)extra + " s added to its play time (Playnite counted " + hoElapsed + " s)");
+                logger.Info("Kippix: " + g.Name + " closed after its launcher: " + (ulong)extra + " s added to its play time (Playnite counted " + h.Elapsed + " s)");
             }
             FinishStopped(g, total);
         }
@@ -172,7 +191,7 @@ namespace KippixHelper
         private static readonly string[] NotLaunchers = { "steam", "steamwebhelper", "explorer", "discord", "nvidia", "nvcontainer", "playnite", "textinputhost", "searchhost", "shellexperiencehost", "applicationframehost", "gamebar", "msedge", "chrome", "firefox" };
 
         /// <summary>The newest program's window (started since the game was) goes in front of Playnite: the launcher, or the game.</summary>
-        private void LauncherToFront()
+        private void LauncherToFront(Handover ho)
         {
             uint me = (uint)Process.GetCurrentProcess().Id;
             IntPtr best = IntPtr.Zero;
@@ -196,8 +215,8 @@ namespace KippixHelper
                             {
                                 string n = p.ProcessName.ToLowerInvariant();
                                 string path = Native.GetProcessPath(pid) ?? "";
-                                bool inDir = hoDir != null && path.StartsWith(hoDir, StringComparison.OrdinalIgnoreCase);
-                                ok = inDir || (!NotLaunchers.Any(x => n.Contains(x)) && p.StartTime >= hoStartedAt);
+                                bool inDir = ho.Dir != null && path.StartsWith(ho.Dir, StringComparison.OrdinalIgnoreCase);
+                                ok = inDir || (!NotLaunchers.Any(x => n.Contains(x)) && p.StartTime >= ho.StartedAt);
                             }
                         }
                         catch (Exception) { }
@@ -209,7 +228,7 @@ namespace KippixHelper
                 return true;
             }, IntPtr.Zero);
             if (best == IntPtr.Zero) return;
-            logger.Info("Kippix: Playnite came back over " + (hoGame != null ? hoGame.Name : "the game") + "'s launcher: the launcher put back in front");
+            logger.Info("Kippix: Playnite came back over " + ho.Game.Name + "'s launcher: the launcher put back in front");
             try { KippixOverlay.Native.ForceForeground(best); } catch (Exception) { }
         }
     }

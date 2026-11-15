@@ -84,7 +84,7 @@ namespace KippixHelper
 
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
-            try { if (hoGame != null) HandoverFinish(); } catch (Exception) { }
+            try { HandoverFinishAll(); } catch (Exception) { }
             try { Theme.Stop(); } catch (Exception) { }
             try { Theme.DoctorStopped(); } catch (Exception) { }   // closed properly: this start counts as finished
             try { Overlay.OnApplicationStopped(args); } catch (Exception) { }
@@ -101,7 +101,7 @@ namespace KippixHelper
 
         public override void OnGameStarting(OnGameStartingEventArgs args)
         {
-            try { if (hoGame != null) HandoverFinish(); } catch (Exception) { }   // (0.99.54) another game: the held-back one ends first
+            try { if (args != null && args.Game != null) HandoverFinishFor(args.Game.Id); } catch (Exception) { }   // (0.99.54) held back and started again: it ends first (issue #11: only this game's, another one's carries on)
             try { if (args != null && Theme.TimeLimitBlocksStart(args.Game)) { args.CancelStartup = true; return; } } catch (Exception) { }   // Profiles: no time left today
             try { if (args != null && Theme.SteamSwitchFirst(args.Game)) { args.CancelStartup = true; return; } } catch (Exception) { }   // Steam signs into the profile's account first
             try { if (args != null) Theme.GameStarting(args.Game); } catch (Exception) { }
@@ -109,6 +109,7 @@ namespace KippixHelper
 
         public override void OnGameStarted(OnGameStartedEventArgs args)
         {
+            try { Theme.RunningStarted(args); } catch (Exception ex) { logger.Error(ex, "Kippix: running list (game started)"); }   // (issue #11) what's running, one entry per game
             try { Theme.GameRunningChanged(true); } catch (Exception ex) { logger.Error(ex, "Kippix: game started"); }
             try { Overlay.OnGameStarted(args); } catch (Exception ex) { logger.Error(ex, "Kippix: overlay (game started)"); }
             try { KippixOverlay.AchievementToasts.Apply(); } catch (Exception) { }   // (0.99.37) Playnite Achievements' own pop-ups stay off while ours are on
@@ -131,6 +132,7 @@ namespace KippixHelper
         /// <summary>Everything a stopped game does (straight away, or once a launcher's game has closed too).</summary>
         private void FinishStopped(Game game, ulong elapsed)
         {
+            try { Theme.RunningStopped(game); } catch (Exception ex) { logger.Error(ex, "Kippix: running list (game stopped)"); }
             try { Theme.GameRunningChanged(false); } catch (Exception ex) { logger.Error(ex, "Kippix: game stopped"); }
             try { Overlay.OnGameStopped(game); } catch (Exception ex) { logger.Error(ex, "Kippix: overlay (game stopped)"); }
             try { Theme.RecordSession(game, elapsed); } catch (Exception) { }

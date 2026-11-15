@@ -4802,4 +4802,19 @@
     <sys:String x:Key="LOC_KX_LocalHidden">Hidden</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenNone">Nothing hidden. Select on a poster hides it</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenSub">Movies and shows you've hidden: show them again</sys:String>
+    <sys:String x:Key="LOC_KX_RunKeep">Keep browsing while things run</sys:String>
+    <sys:String x:Key="LOC_KX_RunKeepSub">Playnite's "is running" screen closes itself, so you can start more. Music and sounds stay on while Playnite is in front</sys:String>
+    <sys:String x:Key="LOC_KX_RowRunning">Running now</sys:String>
+    <sys:String x:Key="LOC_KX_RunRowSub">First, while something is running</sys:String>
+    <sys:String x:Key="LOC_KX_RunSwitch">Switch to</sys:String>
+    <sys:String x:Key="LOC_KX_RunClose">Close</sys:String>
+    <sys:String x:Key="LOC_KX_RunClosing">Closing {0}</sys:String>
+    <sys:String x:Key="LOC_KX_RunStillOpen">{0} is still open</sys:String>
+    <sys:String x:Key="LOC_KX_RunForce">Force close</sys:String>
+    <sys:String x:Key="LOC_KX_RunForceText">Forcing it closed loses anything it hasn't saved.</sys:String>
+    <sys:String x:Key="LOC_KX_RunNoWindow">Couldn't find {0}'s window</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunning">Running</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningShort">Running</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningSub">On the games and apps that are running now</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningText">RUNNING</sys:String>
 </ResourceDictionary>
