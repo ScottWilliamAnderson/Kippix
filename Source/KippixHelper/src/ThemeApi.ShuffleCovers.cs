@@ -11,9 +11,9 @@ using Playnite.SDK.Models;
 namespace KippixHelper
 {
     /// <summary>
-    /// Shuffle covers (Settings › Home settings › Background › BackgroundChanger): a game with more than one cover in
-    /// BackgroundChanger shows a different one of them each time Playnite starts, or each day, on the home screen's tiles and
-    /// on its game page. Display only: BackgroundChanger's data and Playnite's library are read, never written.
+    /// Shuffle covers (Settings › Home settings › Background › BackgroundChanger): a game with covers of its own in
+    /// BackgroundChanger shows a different cover each time Playnite starts, or each day, on the home screen's tiles and on its
+    /// game page: its own cover (Playnite's, which isn't one of BackgroundChanger's items) and those take turns. Display only: BackgroundChanger's data and Playnite's library are read, never written.
     ///
     /// BackgroundChanger keeps one record per game, ExtensionsData\(its id)\BackgroundChanger\(game id).json:
     /// { "Items": [ { "Name": "x.jpg", "FolderName": "(game id)", "IsCover": true, "IsDefault": .., "IsIcon": .. } ], "Id": .. },
@@ -21,7 +21,7 @@ namespace KippixHelper
     /// tiles asks; all of them are also read once on a worker (which fills the same table and writes the log line).
     ///
     /// The pick needs no memory of its own: the periods are numbered (the day, or Playnite's starts) and each game goes through
-    /// its covers in a shuffled order, a new order each time round, so every tile of a game agrees and no cover comes twice running.
+    /// its covers (its own one first in the count) in a shuffled order, a new order each time round, so every tile of a game agrees and no cover comes twice running.
     ///
     /// Playnite's own cards (PART_ListGameItems) get the pick in KX_ShuffleCover, an Image over PART_ImageCover in
     /// ListGameItemTemplate.xaml (empty: Playnite's cover shows through); the tiles the helper makes get its file from
@@ -32,7 +32,7 @@ namespace KippixHelper
         private static readonly string[] ShuffleImageTypes = { ".jpg", ".jpeg", ".png", ".bmp" };
 
         private readonly object shuffleGate = new object();
-        private readonly Dictionary<Guid, string[]> shuffleSets = new Dictionary<Guid, string[]>();   // a game's covers (two or more), or null
+        private readonly Dictionary<Guid, string[]> shuffleSets = new Dictionary<Guid, string[]>();   // a game's covers in BackgroundChanger (one or more), or null
         private readonly Dictionary<Guid, string> shufflePicks = new Dictionary<Guid, string>();      // this period's pick (null: its own cover)
         private long shufflePicksPeriod = -1;
         private bool shuffleStarted, shuffleScanned;
@@ -47,7 +47,7 @@ namespace KippixHelper
 
         /// <summary>
         /// The cover picked for this game for now (a full path), or null when it shows its own cover: Shuffle covers is off,
-        /// BackgroundChanger isn't there, or the game has fewer than two cover pictures in it. Safe on any thread.
+        /// BackgroundChanger isn't there, the game has no cover pictures in it, or it's its own cover's turn. Safe on any thread.
         /// </summary>
         internal string ShuffleCoverFile(Guid gameId)
         {
@@ -60,7 +60,9 @@ namespace KippixHelper
                 if (shufflePicks.TryGetValue(gameId, out hit)) return hit;
             }
             string[] set = ShuffleSetOf(gameId);
-            string pick = set == null ? null : set[ShuffleIndex(gameId, set.Length, period)];
+            // (the game's own cover is the first of them: its turn is "no pick")
+            int turn = set == null ? 0 : ShuffleIndex(gameId, set.Length + 1, period);
+            string pick = turn == 0 ? null : set[turn - 1];
             lock (shuffleGate) { if (period == shufflePicksPeriod) shufflePicks[gameId] = pick; }
             return pick;
         }
@@ -115,7 +117,7 @@ namespace KippixHelper
                 foreach (var kv in found) shuffleSets[kv.Key] = kv.Value;
                 shuffleScanned = true;
             }
-            logger.Info("Kippix: shuffle covers: " + many + " games have more than one cover (" + found.Count + " BackgroundChanger records read)");
+            logger.Info("Kippix: shuffle covers: " + many + " games have more than one cover (their own and at least one in BackgroundChanger; " + found.Count + " BackgroundChanger records read)");
         }
 
         private string[] ShuffleSetOf(Guid gameId)
@@ -132,7 +134,7 @@ namespace KippixHelper
             return set;
         }
 
-        /// <summary>A record's cover pictures that are on disk (videos and animated ones left out), in name order; null unless there are two or more.</summary>
+        /// <summary>A record's cover pictures that are on disk (videos and animated ones left out), in name order; null when there are none.</summary>
         private static string[] ShuffleReadSet(string recordFile, string imagesDir)
         {
             try
@@ -160,7 +162,7 @@ namespace KippixHelper
                     string path = Path.Combine(imagesDir, f, n);
                     if (File.Exists(path) && !files.Contains(path)) files.Add(path);
                 }
-                if (files.Count < 2) return null;
+                if (files.Count == 0) return null;
                 files.Sort(StringComparer.OrdinalIgnoreCase);
                 return files.ToArray();
             }
@@ -335,7 +337,7 @@ namespace KippixHelper
         {
             bool on = settings.ShuffleCovers;
             rows.Add(BoardSwitch("refresh", "bcshuffle", Loc("LOC_KX_BcShuffle", "Shuffle covers on the home screen"), on,
-                Loc("LOC_KX_BcShuffleOn", "A game with more than one cover in it shows a different one each time, on its tile and its game page"), Loc("LOC_KX_BcShuffleOff", "Off: each game's own cover"),
+                Loc("LOC_KX_BcShuffleOn", "A game with covers in it shows a different one each time (its own cover takes its turn too), on its tile and its game page"), Loc("LOC_KX_BcShuffleOff", "Off: each game's own cover"),
                 () => { settings.ShuffleCovers = !on; SaveSettings(); PlaySound("move"); BcRowsAgain("bcshuffle"); }));
             if (!on) return;
             bool daily = settings.ShuffleCoversEvery == 1;
