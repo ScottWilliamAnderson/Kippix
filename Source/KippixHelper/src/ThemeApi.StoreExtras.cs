@@ -319,19 +319,51 @@ namespace KippixHelper
             if (row == null || !HasItadKey) return;
             var wishes = settings.StoreWishlist.ToList();
             var ids = wishes.Select(w => w.ItadId).Where(x => !string.IsNullOrEmpty(x)).ToList();
+            // brought in from Steam and never matched on IsThereAnyDeal (the import only matches its first few): matched here, all in one ask
+            var unmatched = wishes.Where(w => string.IsNullOrEmpty(w.ItadId) && !string.IsNullOrEmpty(w.SteamAppId)).Select(w => w.SteamAppId).Distinct().ToList();
             int gen = ++wishGen;
             KippixShared.SafeWork.Queue(_ =>
             {
+                Dictionary<string, string> matched = null;
+                if (unmatched.Count > 0)
+                    try { matched = ItadIdsForSteam(unmatched); } catch (Exception ex) { logger.Warn("Kippix: wishlist ids: " + ex.Message); }
+                if (matched != null) ids.AddRange(matched.Values);
                 Dictionary<string, Tuple<List<ItadDeal>, ItadDeal>> prices = null;
-                try { prices = ItadPrices(ids, ItadShops); } catch (Exception ex) { logger.Warn("Kippix: wishlist prices: " + ex.Message); }
+                try
+                {
+                    var allIds = ids.Distinct().ToList();
+                    prices = new Dictionary<string, Tuple<List<ItadDeal>, ItadDeal>>();
+                    for (int i = 0; i < allIds.Count; i += 200)   // (ItadPrices takes 200 at a time)
+                        foreach (var kv in ItadPrices(allIds.Skip(i).Take(200).ToList(), ItadShops)) prices[kv.Key] = kv.Value;
+                }
+                catch (Exception ex) { prices = null; logger.Warn("Kippix: wishlist prices: " + ex.Message); }
                 OnUi(() =>
                 {
                     if (gen != wishGen) return;   // a newer check is on its way
+                    if (matched != null && matched.Count > 0)
+                    {
+                        int got = 0;
+                        foreach (var w in wishes)
+                        {
+                            string id;
+                            if (!string.IsNullOrEmpty(w.ItadId) || string.IsNullOrEmpty(w.SteamAppId) || !matched.TryGetValue(w.SteamAppId, out id)) continue;
+                            w.ItadId = id;
+                            got++;
+                            foreach (var it in row.Items)
+                                if (it != null && string.IsNullOrEmpty(it.ItadId) && it.SteamAppId == w.SteamAppId) { it.ItadId = id; it.Id = id; }
+                        }
+                        if (got > 0) { logger.Info("Kippix: wishlist: matched " + got + " of " + unmatched.Count + " imported games on IsThereAnyDeal"); SaveSettings(); }
+                    }
                     if (prices == null) { foreach (var it in row.Items) if (it.Note == Loc("LOC_KX_WishChecking", "Checking the price…")) it.Note = ""; return; }
                     int cheaper = 0, alerts = 0;
                     foreach (var item in row.Items)   // updated in place: the highlighted tile stays highlighted
                     {
-                        if (item == null || string.IsNullOrEmpty(item.ItadId)) continue;   // imported wishes not matched on IsThereAnyDeal yet
+                        if (item == null) continue;
+                        if (string.IsNullOrEmpty(item.ItadId))   // not on IsThereAnyDeal: no price to wait for
+                        {
+                            if (item.Note == Loc("LOC_KX_WishChecking", "Checking the price…")) item.Note = "";
+                            continue;
+                        }
                         var w = wishes.FirstOrDefault(x => x.ItadId == item.ItadId);
                         Tuple<List<ItadDeal>, ItadDeal> p;
                         if (w != null && prices.TryGetValue(item.ItadId, out p) && p.Item1.Count > 0)
