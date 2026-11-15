@@ -31,6 +31,12 @@ namespace KippixHelper
         /// <summary>Called for every new panel (the list makes one from its template whenever it's rebuilt): the helper sets it up here.</summary>
         public static Action<JustifiedPanel> Setup;
 
+        // the stopwatch (ThemeApi.JustifiedPerf.cs): off unless Perf is set
+        public static bool Perf;
+        public static Action PerfDump;
+        public static int PerfMeasures, PerfMade, PerfModels, PerfArranges;
+        public static double PerfMeasureMs, PerfMeasureWorst, PerfArrangeMs;
+
         private struct Row
         {
             public int First, Count;
@@ -107,6 +113,7 @@ namespace KippixHelper
             modelCount = n;
             modelWidth = width;
             modelValid = true;
+            if (Perf) PerfModels++;
             double w = Math.Max(40, width - edgePadding * 2);
             double target = Math.Max(marginY + 20, targetRowHeight);
             double inner = target - marginY;                  // the picture's height at the target
@@ -214,11 +221,19 @@ namespace KippixHelper
         protected override Size MeasureOverride(Size availableSize)
         {
             var size = new Size(double.IsInfinity(availableSize.Width) ? 1920 : availableSize.Width, double.IsInfinity(availableSize.Height) ? 1080 : availableSize.Height);
+            long t0 = Perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             try { MeasureRows(size); }
             catch (Exception ex)
             {
                 // (an error here would take Playnite down: logged a few times and the pass given up instead)
                 if (failures++ < 5) logger.Error(ex, "Kippix: mosaic: layout failed");
+            }
+            if (Perf)
+            {
+                double ms = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+                PerfMeasures++;
+                PerfMeasureMs += ms;
+                if (ms > PerfMeasureWorst) PerfMeasureWorst = ms;
             }
             return size;
         }
@@ -300,6 +315,7 @@ namespace KippixHelper
                         AddInternalChild(child);
                         gen.PrepareItemContainer(child);
                         made = true;
+                        if (Perf) PerfMade++;
                     }
                     var r = rows[itemRow[i]];
                     child.Measure(new Size(itemW[i], r.Height));
@@ -373,6 +389,7 @@ namespace KippixHelper
 
         protected override Size ArrangeOverride(Size finalSize)
         {
+            long t0 = Perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             try
             {
                 var owner = Owner;
@@ -390,6 +407,7 @@ namespace KippixHelper
                 }
             }
             catch (Exception ex) { if (failures++ < 5) logger.Error(ex, "Kippix: mosaic: arrange failed"); }
+            if (Perf) { PerfArranges++; PerfArrangeMs += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency; }
             return finalSize;
         }
 
