@@ -364,9 +364,13 @@ namespace KippixHelper
         private void SetSteamSignedIn(bool? inn)
         {
             if (inn == null) return;
+            bool nowIn = inn == true && steamSignedIn != true;
             steamSignedIn = inn;
             steamSignedInAt = DateTime.Now;
             Notify("SteamSignInStatus");
+            // Getting started's Your stores: its sign-in row says so (it only followed the check made when the step opens), and
+            // just signed in: the add-ons are asked again (Playnite's Steam library shares this sign-in)
+            try { TourSignInRowAgain(); if (nowIn && TourOnStores) TourStoresSignedInCheck(); } catch (Exception) { }
         }
 
         /// <summary>Finds out (in the background) whether you're signed in, when Store settings open and it's not known lately.</summary>

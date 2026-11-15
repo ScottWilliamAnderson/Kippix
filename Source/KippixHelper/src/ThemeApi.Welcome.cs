@@ -968,7 +968,13 @@ namespace KippixHelper
             }
             catch (Exception ex) { logger.Warn("Kippix: tour: stores: " + ex.Message); }
             tourStores = list.OrderByDescending(s => s.Games).ThenBy(s => s.Name).ToList();
-            if (tourStoresChecking || tourStores.Count == 0) return;
+            TourStoresSignedInCheck();
+        }
+
+        /// <summary>Asks each library add-on (again) whether it's signed in; its row follows when the answer is in.</summary>
+        private void TourStoresSignedInCheck()
+        {
+            if (tourStoresChecking || tourStores == null || tourStores.Count == 0) return;
             tourStoresChecking = true;
             var todo = tourStores.ToList();
             KippixShared.SafeWork.Queue(_ =>
@@ -987,9 +993,9 @@ namespace KippixHelper
                     var sv = signed;
                     OnUi(() =>
                     {
-                        ss.SignedIn = sv;
+                        if (sv != null || !ss.Checked) ss.SignedIn = sv;   // (asked again and no answer this time: what it said before stays)
                         ss.Checked = true;
-                        if (openPanel == "welcome" && WelcomeSteps[welcomeStep] == "stores") TourStoreRowAgain(ss);
+                        if (TourOnStores) TourStoreRowAgain(ss);
                     });
                 }
                 OnUi(() => tourStoresChecking = false);
@@ -1168,10 +1174,16 @@ namespace KippixHelper
             return null;
         }
 
+        /// <summary>Getting started is on Your stores (also under the browser that Steam's sign-in opens over it: it closes back onto these rows).</summary>
+        private bool TourOnStores
+        {
+            get { return (openPanel == "welcome" || (openPanel == "browser" && browserReturn == "welcome")) && WelcomeSteps[welcomeStep] == "stores"; }
+        }
+
         /// <summary>(0.99.11) The Steam store sign-in row, once the check is back.</summary>
         private void TourSignInRowAgain()
         {
-            if (openPanel != "welcome" || WelcomeSteps[welcomeStep] != "stores") return;
+            if (!TourOnStores) return;
             var row = WelcomeRows.FirstOrDefault(r => r.Key == "signin");
             if (row == null) return;
             var tmp = new ObservableCollection<PickRow>();
