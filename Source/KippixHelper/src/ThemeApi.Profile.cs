@@ -74,15 +74,20 @@ namespace KippixHelper
                         ImageSource img = null;
                         try { img = own.Length > 0 && File.Exists(own) ? Images.LoadUncached(own, 160) : null; } catch (Exception) { }
                         if (img == null && alt != null) { try { if (File.Exists(alt)) { img = Images.LoadUncached(alt, 160); used = alt; } } catch (Exception) { } }
-                        OnUi(() =>
+                        // The theme can ask for the picture before Start() has set "ui"; OnUi() then drops the result without a word
+                        // and, with profilePictureTried already set, the picture never shows until it's picked again. Use the
+                        // application's dispatcher in that case, and let the next read try again if there's none at all.
+                        var back = ui ?? (System.Windows.Application.Current != null ? System.Windows.Application.Current.Dispatcher : null);
+                        if (back == null) { profilePictureTried = false; return; }
+                        back.BeginInvoke((Action)(() =>
                         {
-                            if ((settings.ProfilePicturePath ?? "") != own) return;   // (a profile switch or a new picture meanwhile: this one is out of date)
+                            if ((settings.ProfilePicturePath ?? "") != own) { profilePictureTried = false; Notify("ProfilePicture"); return; }   // (a profile switch or a new picture meanwhile: this one is out of date, read again)
                             if (img == null) { logger.Info("Kippix: profile picture: couldn't read " + (own.Length > 0 ? own : "(none)") + (alt != null ? " or " + alt : "")); return; }
                             if (used != own) { settings.ProfilePicturePath = used; SaveSettings(); }
                             profilePicture = img;
                             Notify("ProfilePicture");
                             Notify("HasProfilePicture");
-                        });
+                        }));
                     });
                 }
                 return profilePicture;
