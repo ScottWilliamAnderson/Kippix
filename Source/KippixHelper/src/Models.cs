@@ -178,22 +178,54 @@ namespace KippixHelper
         /// <summary>
         /// (0.99.61) The game page as it comes (top and lower page): Kipping0's own layout. The lower page has How long to beat,
         /// Save backups, Your captures and More like this, moved up into the room of the parts that are off (their room is kept:
-        /// the "#gap" sizes); the top page has the logo, the buttons and the hints moved, no description or game info.
+        /// the "#gap" sizes); the top page has the logo, the buttons and the hints moved a little to the left, no description or game info
+        /// (how high they stand is the page's own doing: the play info, the logo and the details are one stack on the buttons' line).
         /// Reset (Layouts &amp; reset, or Reset this page) comes back to this.
         /// </summary>
         internal static readonly Dictionary<string, double[]> GameDefaultOffsets = new Dictionary<string, double[]>
         {
-            { "game.buttons", new double[] { -30, 140 } }, { "game.logo", new double[] { -25, 220 } }, { "game.hints", new double[] { -20, 0 } },
+            { "game.buttons", new double[] { -30, 0 } }, { "game.logo", new double[] { -25, 0 } }, { "game.hints", new double[] { -20, 0 } },
             { "game.sec.saves", new double[] { -15, -430 } }, { "game.sec.hltb", new double[] { -583, -10 } },
             { "game.sec.similar", new double[] { -20, -520 } }, { "game.sec.captures", new double[] { -15, -510 } }
         };
         internal static readonly Dictionary<string, double[]> GameDefaultSizes = new Dictionary<string, double[]>
         {
-            { "game.stats#gap", new double[] { 724.5, 93.2, 0, 0 } }, { "game.facts#gap", new double[] { 1221.8, 129.3, 0, 0 } }, { "game.desc#gap", new double[] { 1000, 101.5, 0, 0 } },
+            { "game.desc#gap", new double[] { 1000, 101.5, 0, 0 } },
             { "game.sec.ach#gap", new double[] { 568, 463.3, 0, 0 } }, { "game.sec.scores#gap", new double[] { 568, 212.9, 0, 0 } }, { "game.sec.notes#gap", new double[] { 568, 116.7, 0, 0 } },
             { "game.sec.mods#gap", new double[] { 568, 229.3, 0, 0 } }, { "game.sec.status#gap", new double[] { 568, 187.9, 0, 0 } }, { "game.sec.history#gap", new double[] { 568, 315.3, 0, 0 } },
             { "game.sec.captures", new double[] { 1748, 182, 0, 0 } }
         };
+
+        /// <summary>
+        /// The game page's places from before its left column was one stack: the logo and the buttons were pushed down by a fixed
+        /// amount, over the room kept for the hidden play info and details, so with those switched on they were drawn over each
+        /// other. These exact old defaults (in the settings, a saved layout, a profile, a built-in look) become today's; a place
+        /// you set yourself is left as it is. True when something changed.
+        /// </summary>
+        internal static bool DropFixedGamePlaces(Dictionary<string, double[]> offsets, Dictionary<string, double[]> sizes)
+        {
+            bool changed = false;
+            if (offsets != null)
+            {
+                changed |= SwapPlace(offsets, "game.logo", -25, 220, -25, 0);
+                changed |= SwapPlace(offsets, "game.buttons", -30, 140, -30, 0);
+            }
+            if (sizes != null)
+            {
+                double[] g;
+                if (sizes.TryGetValue("game.stats#gap", out g) && g != null && g.Length >= 2 && Math.Abs(g[1] - 93.2) < 0.05) { sizes.Remove("game.stats#gap"); changed = true; }
+                if (sizes.TryGetValue("game.facts#gap", out g) && g != null && g.Length >= 2 && Math.Abs(g[1] - 129.3) < 0.05) { sizes.Remove("game.facts#gap"); changed = true; }
+            }
+            return changed;
+        }
+
+        private static bool SwapPlace(Dictionary<string, double[]> offsets, string key, double oldX, double oldY, double x, double y)
+        {
+            double[] o;
+            if (!offsets.TryGetValue(key, out o) || o == null || o.Length != 2 || Math.Abs(o[0] - oldX) > 0.01 || Math.Abs(o[1] - oldY) > 0.01) return false;
+            offsets[key] = new[] { x, y };
+            return true;
+        }
 
         internal static Dictionary<string, double[]> CopyOf(Dictionary<string, double[]> d)
         {

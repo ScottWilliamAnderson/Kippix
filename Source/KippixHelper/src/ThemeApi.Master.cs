@@ -169,6 +169,7 @@ namespace KippixHelper
             {
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
                 if (win == null) return;
+                HelperSettings.DropFixedGamePlaces(settings.MasterOffsets, settings.MasterSizes);   // (a built-in look or a saved one from before the game page's left column was one stack)
                 foreach (var el in MasterElements)
                 {
                     bool on = MasterOn(el.Screen);
