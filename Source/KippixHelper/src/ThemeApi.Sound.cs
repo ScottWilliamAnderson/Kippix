@@ -350,7 +350,12 @@ namespace KippixHelper
             }
         }
 
-        private bool gameRunningNow;
+        // (issue #11) "a game is running" used to be one yes / no. anyRunning is that, strictly (something in Running.cs). With
+        // "Keep browsing while things run" on, gameRunningNow is only true while Playnite is NOT the window in front, so the music,
+        // sounds, guide bar, cards... are as usual while you browse with apps open. Off: the two are the same, as before.
+        private volatile bool anyRunning, playniteActive;
+        private bool AnyRunning { get { return anyRunning; } }
+        private bool gameRunningNow { get { return anyRunning && !(settings.RunKeepBrowsing && playniteActive); } }
 
         // ---------------- exit ----------------
 

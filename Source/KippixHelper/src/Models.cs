@@ -157,6 +157,7 @@ namespace KippixHelper
         public int BgChangeDelay = 150;            // (0.99.7) ms after moving to another game before the home background changes (0–400)
         public bool PreviewSound = false;
         public bool SkipGamePage = false;          // A plays the game instead of opening the game page
+        public bool RunKeepBrowsing = false;       // (issue #11) apps and games stay open while you carry on in Playnite: its "X is running" screen closes itself, and music, sounds and the rest come back while Playnite is in front
 
         // Game page extras
         public bool DetShowOptionsButton = true;

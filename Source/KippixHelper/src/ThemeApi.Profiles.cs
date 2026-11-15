@@ -793,7 +793,7 @@ namespace KippixHelper
                     try { Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "AutoLoginUser", p.SteamAccount, RegistryValueKind.String); } catch (Exception) { }
                     return false;
                 }
-                if (gameRunningNow || SteamGameRunning())
+                if (AnyRunning || SteamGameRunning())
                 {
                     OnUi(() => { try { ShowNotice(Loc("LOC_KX_SteamSwitch", "STEAM"), p.SteamPersona ?? p.SteamAccount, Loc("LOC_KX_SwitchGameRunning", "A game is running: Steam can't switch accounts until it's closed"), "", null); } catch (Exception) { } });
                     return true;

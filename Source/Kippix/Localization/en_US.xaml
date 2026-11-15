@@ -4802,4 +4802,6 @@
     <sys:String x:Key="LOC_KX_LocalHidden">Hidden</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenNone">Nothing hidden. Select on a poster hides it</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenSub">Movies and shows you've hidden: show them again</sys:String>
+    <sys:String x:Key="LOC_KX_RunKeep">Keep browsing while things run</sys:String>
+    <sys:String x:Key="LOC_KX_RunKeepSub">Playnite's "is running" screen closes itself, so you can start more. Music and sounds stay on while Playnite is in front</sys:String>
 </ResourceDictionary>

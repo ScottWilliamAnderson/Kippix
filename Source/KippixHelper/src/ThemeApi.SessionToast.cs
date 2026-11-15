@@ -387,6 +387,7 @@ namespace KippixHelper
 
         private DispatcherTimer launchFront;
         private DateTime launchFrontSince;
+        private volatile bool launchFrontStarted;
 
         [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hWnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
@@ -404,10 +405,11 @@ namespace KippixHelper
             if (h == IntPtr.Zero) return;
             SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
             launchFrontSince = DateTime.Now;
+            launchFrontStarted = false;   // (issue #11: this launch, not "anything is running": another app may be open already)
             if (launchFront == null)
             {
                 launchFront = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromMilliseconds(500) };
-                launchFront.Tick += (s, e) => { if (gameRunningNow || (DateTime.Now - launchFrontSince).TotalSeconds > 25) ReleaseFront(); };
+                launchFront.Tick += (s, e) => { if (launchFrontStarted || (DateTime.Now - launchFrontSince).TotalSeconds > 25) ReleaseFront(); };
             }
             launchFront.Start();
             Dbg("launch: Playnite kept in front while the game starts");
