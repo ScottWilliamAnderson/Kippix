@@ -606,6 +606,7 @@ namespace KippixHelper
             if (settings.ShortcutOrder != null) settings.ShortcutOrder.RemoveAll(k => k == "home");
             if (settings.TopBarStayVisible != null) settings.TopBarStayVisible.RemoveAll(k => k == "home");
             settings.HomeTilesMode = Math.Max(0, Math.Min(2, settings.HomeTilesMode));
+            settings.RunCloseConfirm = Math.Max(0, Math.Min(2, settings.RunCloseConfirm));
             settings.FilterPosition = 0;   // (the filter name's place is set with Free move now)
             settings.DetDescPosition = Math.Max(0, Math.Min(2, settings.DetDescPosition));
             settings.DetLogoPosition = Math.Max(0, Math.Min(2, settings.DetLogoPosition));

@@ -344,12 +344,70 @@ namespace KippixHelper
         /// <summary>X on the highlighted tile, when it's a Running now tile (true: the press was ours, also the let-go).</summary>
         private bool RunningRowX(bool pressed)
         {
-            if (extraRowAt == 0) return false;
+            bool ours = runXDown;
+            runXDown = false;
+            if (!pressed && ours) return true;   // (the let-go of the press that brought the question up)
+            if (confirmOpen || extraRowAt == 0) return false;
             var f = Keyboard.FocusedElement as FrameworkElement;
             var tile = f != null ? f.DataContext as RowTile : null;
             if (tile == null || !tile.RunRow) return false;
-            if (pressed) RunningClose(tile.GameId);
+            if (pressed) { runXDown = true; RunningCloseAsk(tile.GameId); }
             return true;
+        }
+
+        // =====================================================================
+        // "Close Firefox?" before X closes anything (issue #22)
+        // =====================================================================
+
+        private bool runXDown;                // X went down on a Running now tile: its let-go is ours too, though the question has the highlight by then
+        private ICommand cycleRunCloseConfirm;
+
+        /// <summary>Home › Ask before closing: 0 never, 1 apps only, 2 always.</summary>
+        public ICommand CycleRunCloseConfirmCommand
+        {
+            get
+            {
+                if (cycleRunCloseConfirm == null) cycleRunCloseConfirm = new RelayCommand(_ =>
+                {
+                    settings.RunCloseConfirm = (settings.RunCloseConfirm + 1) % 3;
+                    SaveSettings();
+                    Notify("RunCloseConfirmText");
+                    logger.Info("Kippix: running: ask before closing: " + (settings.RunCloseConfirm == 2 ? "always" : settings.RunCloseConfirm == 1 ? "apps only" : "never"));
+                });
+                return cycleRunCloseConfirm;
+            }
+        }
+
+        public string RunCloseConfirmText
+        {
+            get { return settings.RunCloseConfirm == 2 ? Loc("LOC_KX_RunConfirmAlways", "Always") : settings.RunCloseConfirm == 1 ? Loc("LOC_KX_RunConfirmApps", "Apps only") : Loc("LOC_KX_RunConfirmNever", "Never"); }
+        }
+
+        /// <summary>
+        /// An app, not a game: it's in a category named "Apps", or it has no platform and no source (added by hand, as a
+        /// browser or a player is). One that's no longer in the library counts as an app (so it's asked about).
+        /// </summary>
+        private bool RunningIsApp(Guid id)
+        {
+            try
+            {
+                var g = api.Database.Games.Get(id);
+                if (g == null) return true;
+                if (g.Categories != null && g.Categories.Any(c => c != null && string.Equals(c.Name, "Apps", StringComparison.OrdinalIgnoreCase))) return true;
+                return (g.PlatformIds == null || g.PlatformIds.Count == 0) && g.SourceId == Guid.Empty;
+            }
+            catch (Exception) { return true; }
+        }
+
+        /// <summary>X on a Running now tile: the question first (Cancel has the highlight, B cancels), unless Ask before closing says not to.</summary>
+        private void RunningCloseAsk(Guid id)
+        {
+            var entry = Running.Get(id);
+            if (entry == null || runClosing.Contains(id)) return;
+            if (settings.RunCloseConfirm == 0 || (settings.RunCloseConfirm == 1 && !RunningIsApp(id))) { RunningClose(id); return; }
+            logger.Info("Kippix: running: close " + entry.Name + ": asking first");
+            Confirm(string.Format(Loc("LOC_KX_RunCloseAsk", "Close {0}?"), entry.Name), Loc("LOC_KX_RunCloseAskText", "All of its windows are asked to close."), Loc("LOC_KX_RunClose", "Close"),
+                () => { if (ReferenceEquals(Running.Get(id), entry)) RunningClose(id); });
         }
 
         private static string RunHeader { get { return Loc("LOC_KX_RowRunning", "Running now").ToUpper(); } }
