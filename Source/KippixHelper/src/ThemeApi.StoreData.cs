@@ -723,6 +723,26 @@ namespace KippixHelper
             return g != null ? FStr(g, "id") : null;
         }
 
+        /// <summary>IsThereAnyDeal's ids for many Steam games in one ask (Steam app id -> its id; the ones it doesn't know are left out).</summary>
+        private Dictionary<string, string> ItadIdsForSteam(IList<string> appIds)
+        {
+            var result = new Dictionary<string, string>();
+            if (!HasItadKey || appIds == null || appIds.Count == 0) return result;
+            var all = appIds.Where(a => !string.IsNullOrEmpty(a)).Distinct().ToList();
+            for (int i = 0; i < all.Count; i += 200)
+            {
+                string body = new JavaScriptSerializer().Serialize(all.Skip(i).Take(200).Select(a => "app/" + a).ToArray());
+                var map = Itad("lookup/id/shop/61/v1", null, body) as Dictionary<string, object>;   // 61: Steam
+                if (map == null) continue;
+                foreach (var kv in map)
+                {
+                    string id = kv.Value as string;
+                    if (!string.IsNullOrEmpty(id) && kv.Key.StartsWith("app/")) result[kv.Key.Substring(4)] = id;
+                }
+            }
+            return result;
+        }
+
         /// <summary>Every shop's current price for these games, plus the lowest price ever, in the chosen country.</summary>
         private Dictionary<string, Tuple<List<ItadDeal>, ItadDeal>> ItadPrices(IList<string> ids, string shops)
         {
