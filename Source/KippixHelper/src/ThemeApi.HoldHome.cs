@@ -147,7 +147,7 @@ namespace KippixHelper
             try
             {
                 if (TourLocked) return;   // (1.0.1)
-                bool any = confirmOpen || openPanel != null || detailsOpen || extraRowAt > 0 || kbOpen || FolderInside;
+                bool any = confirmOpen || openPanel != null || detailsOpen || extraRowAt > 0 || kbOpen || FolderInside || LibraryOpen;
                 if (!any) return;
                 if (kbOpen) CloseKeyboard(false);
                 if (confirmOpen) CloseConfirm(false);
@@ -157,6 +157,7 @@ namespace KippixHelper
                 if (detailsOpen) CloseGameDetails(true);
                 LeaveExtraRows(false);
                 PlaySound("back");
+                if (CloseLibraryView(false)) return;   // the library view: home is the home screen under it, on the same game
                 if (FolderGoHome()) return;   // Folder: home is the folder tiles, on the folder you were in
                 ui.BeginInvoke(new Action(FocusSelectedCard), DispatcherPriority.ContextIdle);
             }

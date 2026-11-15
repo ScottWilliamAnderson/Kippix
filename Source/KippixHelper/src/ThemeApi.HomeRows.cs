@@ -80,6 +80,7 @@ namespace KippixHelper
             CycleHomeLayoutCommand = new RelayCommand(_ =>
             {
                 if (boardEditing) BoardEndEdit(false);
+                libraryOpen = false;   // (the library view was over the old layout)
                 settings.HomeLayoutMode = (settings.HomeLayoutMode + 1) % 7;   // row, grid, list, board, manual, folder, mosaic
                 carWhy = "Games shown as changed";
                 if (settings.HomeLayoutMode != 0) LeaveExtraRows(false);
@@ -507,7 +508,7 @@ namespace KippixHelper
         // Extra rows (one row mode only)
         // =====================================================================
 
-        public bool ShowExtraRows { get { return settings.ExtraRows && settings.HomeLayoutMode == 0 && settings.RowDesign == 0 && ExtraRowsList.Count > 0; } }
+        public bool ShowExtraRows { get { return settings.ExtraRows && settings.HomeLayoutMode == 0 && settings.RowDesign == 0 && ExtraRowsList.Count > 0 && !LibraryOpen; } }
         /// <summary>In one of the extra rows: the filter name above the games shows that row's name instead (same place, same look).</summary>
         private bool InExtraRow { get { return extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count; } }
         /// <summary>The filter name shows a name of its own: the extra row you're in, or (Folder) the folder that's open.</summary>
@@ -843,7 +844,7 @@ namespace KippixHelper
                 GoToExtraRow(extraRowAt - 1, VisibleColumn(row, col));
                 return true;
             }
-            if (extraRowAt >= ExtraRowsList.Count) return true;
+            if (extraRowAt >= ExtraRowsList.Count) { LibraryDown(e); return true; }   // the last row: nothing below it but the library (Settings › Game cards and layout)
             PlaySound("move");
             GoToExtraRow(extraRowAt + 1, VisibleColumn(row, col));
             return true;
