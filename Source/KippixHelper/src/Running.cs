@@ -91,6 +91,7 @@ namespace KippixHelper
 
         private static void RaiseChanged()
         {
+            System.Threading.Interlocked.Increment(ref version);
             var h = Changed;
             if (h != null) try { h(); } catch (Exception ex) { logger.Warn("Kippix: running: " + ex.Message); }
         }
@@ -281,6 +282,10 @@ namespace KippixHelper
         /// remembered as that game's (so "switch to" goes back to the window last used). A game nothing else is known about (no
         /// started program, no folder match) takes the first new program whose window comes to the front after it started.
         /// </summary>
+        private static IntPtr nobodysWindow;
+        private static uint nobodysPid;
+        private static int nobodysVersion = -1, version;   // (version: goes up with every start and stop)
+
         public static void LearnForeground()
         {
             try
@@ -293,6 +298,7 @@ namespace KippixHelper
                 GetWindowThreadProcessId(fg, out pid);
                 if (pid == 0 || pid == ownPid) return;
                 foreach (var e in all) if (e.Window == fg && e.WindowPid == pid) return;   // (known already: the usual case, nothing to work out)
+                if (fg == nobodysWindow && pid == nobodysPid && version == nobodysVersion) return;         // (looked at already: another program's, and nothing has started or stopped since)
                 for (int i = all.Count - 1; i >= 0; i--)
                 {
                     if (!Belongs(all[i], pid, TreeOf(all[i]))) continue;
@@ -300,6 +306,7 @@ namespace KippixHelper
                     return;
                 }
                 // nobody's: the newest game still without a window takes it, if the program is newer than the game
+                nobodysWindow = fg; nobodysPid = pid; nobodysVersion = version;
                 string exe = ExeName(pid).ToLowerInvariant();
                 if (exe.Length == 0 || NeverAdopted.Any(x => exe.Contains(x))) return;
                 long created = CreatedAt(pid);
@@ -309,8 +316,10 @@ namespace KippixHelper
                     var e = all[i];
                     if (e.AdoptedPid != 0 || StillThere(e)) continue;
                     if ((DateTime.Now - e.Started).TotalMinutes > 3) continue;
-                    if (created < e.Started.AddSeconds(-5).ToFileTimeUtc()) continue;
+                    // (a library add-on's game is only reported "started" a while after its program came up)
+                    if (created < e.Started.AddSeconds(e.StartedPid == 0 ? -60 : -5).ToFileTimeUtc()) continue;
                     if (WindowsOf(e, true).Count > 0) continue;   // (it has a window of its own somewhere: this isn't it)
+                    nobodysVersion = -1;
                     e.AdoptedPid = pid;
                     Remember(e, fg, "came to the front after it started");
                     return;
