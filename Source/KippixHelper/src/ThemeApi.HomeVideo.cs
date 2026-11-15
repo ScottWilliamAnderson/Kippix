@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -27,6 +28,9 @@ namespace KippixHelper
     /// and nothing is decoded while a game runs or Playnite is in the background. Never more than one player.
     /// Only over the game's art (HomeBgMode 0) and only in the Row layout for now (HomeVideoLayoutOk). The player sits in
     /// KX_LiveBgHost (inside KX_BgLayers, over the art), named KX_HomeVideo. A 250 ms timer runs only while it's turned on.
+    /// (issue #21) HomeVideoMode 1, picture in picture: the art stays the background and the same one player sits in a small
+    /// framed box instead (KX_HomeVideoPip in Main.xaml, the player in its KX_HomeVideoPipHost), on the right above the games,
+    /// in the clip's own shape. Either way it plays on the landing only (HomeVideoCoveredWhy).
     /// </summary>
     public partial class ThemeApi
     {
@@ -43,6 +47,8 @@ namespace KippixHelper
         private MediaElement hvPlayer;        // the one player (null: none)
         private MediaElement hvLeaving;       // the player fading out (closed when the fade ends, or sooner)
         private bool hvShown;                 // the video has opened and faded in
+        private FrameworkElement hvFrame;     // picture in picture: the box the player sits in (it does the fading); null: full screen
+        private ICommand hvModeCommand;
         private bool hvWindowHooked;
         private DateTime hvLaunchUntil = DateTime.MinValue;   // a game is starting: nothing plays meanwhile
         private readonly HashSet<string> hvLogged = new HashSet<string>();
@@ -89,13 +95,36 @@ namespace KippixHelper
             set { if (settings.HomeVideoDelayMs == value) return; settings.HomeVideoDelayMs = value; SaveSettings(); Notify("HomeVideoDelayMs"); }
         }
 
+        /// <summary>(issue #21) 0: the video fills the background; 1: picture in picture, a small box over the art.</summary>
+        public int HomeVideoMode
+        {
+            get { return settings.HomeVideoMode == 1 ? 1 : 0; }
+            set
+            {
+                int v = value == 1 ? 1 : 0;
+                if (settings.HomeVideoMode == v) return;
+                settings.HomeVideoMode = v;
+                SaveSettings();
+                NotifyHomeVideo();
+                try { HomeVideoStop(false); hvStarted = false; hvGame = Guid.Empty; } catch (Exception ex) { logger.Warn("Kippix: home video: " + ex.Message); }   // (the timer starts it again, in the other place)
+            }
+        }
+        public string HomeVideoModeText
+        {
+            get { return HomeVideoMode == 1 ? Loc("LOC_KX_HomeVideoModePip", "Picture in picture") : Loc("LOC_KX_HomeVideoModeFull", "Full screen"); }
+        }
+        public ICommand CycleHomeVideoModeCommand
+        {
+            get { return hvModeCommand ?? (hvModeCommand = new RelayCommand(_ => { HomeVideoMode = HomeVideoMode == 1 ? 0 : 1; PlaySound("move"); })); }
+        }
+
         /// <summary>The switch shows while the background is the game's art (the other backgrounds have their own trailer / nothing to play over).</summary>
         public bool HomeVideoRowShown { get { return settings.HomeBgMode == 0; } }
         public bool HomeVideoDownloadShown { get { return settings.HomeBgMode == 0 && settings.HomeVideo; } }
 
         private void NotifyHomeVideo()
         {
-            foreach (string n in new[] { "HomeVideo", "HomeVideoDownload", "HomeVideoMediaDir", "HomeVideoDelayMs", "HomeVideoRowShown", "HomeVideoDownloadShown" }) Notify(n);
+            foreach (string n in new[] { "HomeVideo", "HomeVideoDownload", "HomeVideoMediaDir", "HomeVideoDelayMs", "HomeVideoRowShown", "HomeVideoDownloadShown", "HomeVideoMode", "HomeVideoModeText" }) Notify(n);
         }
 
         /// <summary>The layouts it plays in: Row only for now (add the others here once they've been tried).</summary>
@@ -171,6 +200,20 @@ namespace KippixHelper
             });
         }
 
+        /// <summary>
+        /// (issue #21) The video is for the landing only: what's showing over the home screen instead (for the log), or null when
+        /// nothing is. The one place to add another surface that covers the landing.
+        /// </summary>
+        private string HomeVideoCoveredWhy()
+        {
+            if (detailsOpen) return "the game page is open";
+            if (openPanel != null) return "a panel is open";
+            if (confirmOpen || kbOpen) return "a question or the keyboard is open";
+            // ---- THE LIBRARY VIEW (feat/justified-library, ThemeApi.Justified.cs): once both are merged, add this line here ----
+            //     if (LibraryOpen) return "the library view is open";
+            return null;
+        }
+
         /// <summary>Why nothing may play right now (for the log), or null when the home screen's background is in sight.</summary>
         private string HomeVideoHeldWhy(Window win)
         {
@@ -180,8 +223,8 @@ namespace KippixHelper
             if (gameRunningNow) return "a game is running";
             if (DateTime.Now < hvLaunchUntil) return "a game is starting";
             if (win == null || !win.IsActive) return "Playnite isn't in front";
-            if (detailsOpen) return "the game page is open";
-            if (openPanel != null) return "a panel is open";
+            string covered = HomeVideoCoveredWhy();
+            if (covered != null) return covered;
             if (libraryLoading || ambientOn || HomeBgBlack || IntroCovering || stageOpacity < 1) return "the home background is covered";
             if (LiveBatteryPause()) return "handheld mode pauses live backgrounds (on battery)";
             if (NightNoAutoplayNow) return "night mode holds autoplay back";
@@ -452,15 +495,25 @@ namespace KippixHelper
 
         private void HomeVideoPlay(string path)
         {
-            var host = LiveHost();
+            // (issue #21) picture in picture: the same one player, in the box over the art instead of the background's host
+            FrameworkElement frame = null;
+            Panel host = null;
+            if (settings.HomeVideoMode == 1)
+            {
+                var win = Application.Current != null ? Application.Current.MainWindow : null;
+                host = win != null ? UiTools.FindByName(win, "KX_HomeVideoPipHost") as Panel : null;
+                frame = host != null ? host.Parent as FrameworkElement : null;
+                if (frame == null) { host = null; HomeVideoLogOnce("KX_HomeVideoPip wasn't found: the video fills the background instead"); }
+            }
+            if (host == null) host = LiveHost();
             if (host == null) { HomeVideoLogOnce("KX_LiveBgHost wasn't found: nowhere to put the video"); return; }
             HomeVideoStop(false);   // never two players (and a fade-out still running ends here)
             var me = new MediaElement
             {
                 Name = "KX_HomeVideo",
-                LoadedBehavior = MediaState.Manual, UnloadedBehavior = MediaState.Manual, Stretch = Stretch.UniformToFill,
+                LoadedBehavior = MediaState.Manual, UnloadedBehavior = MediaState.Manual, Stretch = frame != null ? Stretch.Uniform : Stretch.UniformToFill,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
-                IsMuted = true, Volume = 0, IsHitTestVisible = false, Opacity = 0, ScrubbingEnabled = false
+                IsMuted = true, Volume = 0, IsHitTestVisible = false, Focusable = false, Opacity = frame != null ? 1 : 0, ScrubbingEnabled = false
             };
             me.MediaOpened += (s, e) =>
             {
@@ -469,8 +522,9 @@ namespace KippixHelper
                 try
                 {
                     hvShown = true;
-                    SetMotionPaused(true);   // the background zoom holds still under it
-                    me.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(HomeVideoFadeInMs)) { EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
+                    if (frame != null) HomeVideoPipLayout(frame, me.NaturalVideoWidth, me.NaturalVideoHeight);   // the clip's own shape, known only now
+                    else SetMotionPaused(true);   // the background zoom holds still under it (picture in picture: the art stays in sight, and moving)
+                    ((UIElement)frame ?? me).BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(HomeVideoFadeInMs)) { EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
                 }
                 catch (Exception) { }
             };
@@ -484,14 +538,67 @@ namespace KippixHelper
                 try { HomeVideoFailed(me, path, e.ErrorException != null ? e.ErrorException.Message : "unknown"); } catch (Exception) { }
             };
             hvPlayer = me;
+            hvFrame = frame;
             hvShown = false;
             try
             {
+                if (frame != null)
+                {
+                    // in place but see-through until the video has opened (then the box fades in, not the player)
+                    frame.BeginAnimation(UIElement.OpacityProperty, null);
+                    frame.Opacity = 0;
+                    HomeVideoPipLayout(frame, 16, 9);
+                    frame.Visibility = Visibility.Visible;
+                }
                 host.Children.Add(me);   // (last: over the art and anything else in there)
                 me.Source = new Uri(path);
                 me.Play();
             }
             catch (Exception ex) { HomeVideoFailed(me, path, ex.Message); }
+        }
+
+        /// <summary>
+        /// (issue #21) Sizes and places the picture in picture box for a clip of this shape: a 16:9 clip is 36% of the screen wide,
+        /// any other shape is as tall as that (4:3 comes out narrower), never wider than the 36% and never up into the top bar.
+        /// It sits on the right with its bottom where the logo / info / hints block ends, just above the games; on the left when
+        /// that block is on the right. The corners are the cards' (KX_CardCorner), cut here because a Border doesn't clip a video.
+        /// </summary>
+        private void HomeVideoPipLayout(FrameworkElement frame, int videoW, int videoH)
+        {
+            var root = frame.Parent as FrameworkElement;
+            var host = UiTools.FindByName(frame, "KX_HomeVideoPipHost") as FrameworkElement;
+            if (root == null || host == null || root.ActualWidth <= 0 || root.ActualHeight <= 0) return;
+            double aspect = videoW > 0 && videoH > 0 ? (double)videoW / videoH : 16.0 / 9;
+            double maxW = Math.Round(root.ActualWidth * 0.36);
+            double bottom = Math.Max(gameInfoMargin.Bottom, Math.Round(root.ActualHeight * 0.4));   // (never down over the games)
+            double h = Math.Min(Math.Round(maxW * 9 / 16), root.ActualHeight - bottom - 104 - 12);   // (104: the top bar's row)
+            if (h < 60) h = 60;
+            double w = Math.Round(h * aspect);
+            if (w > maxW) { w = maxW; h = Math.Round(w / aspect); }
+            bool left = HomeVideoPipOnLeft();
+            frame.Width = w;
+            frame.Height = h;
+            frame.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            frame.Margin = left ? new Thickness(72, 0, 0, bottom) : new Thickness(0, 0, 72, bottom);
+            double r = 10;
+            try { object c = frame.TryFindResource("KX_CardCorner"); if (c is CornerRadius) r = ((CornerRadius)c).TopLeft; } catch (Exception) { }
+            host.Clip = new RectangleGeometry(new Rect(0, 0, w, h), r, r);
+        }
+
+        /// <summary>The box goes left only when the logo / info / hints that show are on the right and none of them is on the left.</summary>
+        private bool HomeVideoPipOnLeft()
+        {
+            bool anyLeft = false, anyRight = false;
+            var shown = new List<HorizontalAlignment>();
+            if (settings.ShowLogo) shown.Add(LogoAlignment);
+            if (settings.ShowGameInfo) shown.Add(InfoAlignment);
+            if (settings.ShowButtonHints) shown.Add(HintsAlignment);
+            foreach (var a in shown)
+            {
+                if (a == HorizontalAlignment.Left) anyLeft = true;
+                else if (a == HorizontalAlignment.Right) anyRight = true;
+            }
+            return anyRight && !anyLeft;
         }
 
         /// <summary>A file the player can't play: said once, not tried again this session, and the game's next video (if it has another) is looked for.</summary>
@@ -515,9 +622,11 @@ namespace KippixHelper
             var me = hvPlayer;
             if (me == null) return;
             hvPlayer = null;
+            var frame = hvFrame;   // (picture in picture: the box fades, and HomeVideoRelease hides it)
+            hvFrame = null;
             bool shown = hvShown;
             hvShown = false;
-            if (shown) SetMotionPaused(previewShown);
+            if (shown && frame == null) SetMotionPaused(previewShown);
             if (fade && shown && !settings.ReduceMotion)
             {
                 hvLeaving = me;
@@ -529,7 +638,7 @@ namespace KippixHelper
                         if (ReferenceEquals(hvLeaving, me)) hvLeaving = null;
                         HomeVideoRelease(me);
                     };
-                    me.BeginAnimation(UIElement.OpacityProperty, a);
+                    ((UIElement)frame ?? me).BeginAnimation(UIElement.OpacityProperty, a);
                     return;
                 }
                 catch (Exception) { hvLeaving = null; }
@@ -537,7 +646,7 @@ namespace KippixHelper
             HomeVideoRelease(me);
         }
 
-        /// <summary>Closes a player (its file handle and decoder go) and takes it out of the window. Safe to call twice.</summary>
+        /// <summary>Closes a player (its file handle and decoder go) and takes it out of the window; the picture in picture box it was in is hidden. Safe to call twice.</summary>
         private static void HomeVideoRelease(MediaElement me)
         {
             if (me == null) return;
@@ -548,7 +657,15 @@ namespace KippixHelper
             try
             {
                 var parent = VisualTreeHelper.GetParent(me) as Panel;
-                if (parent != null) parent.Children.Remove(me);
+                if (parent == null) return;
+                parent.Children.Remove(me);
+                var frame = parent.Name == "KX_HomeVideoPipHost" && parent.Children.Count == 0 ? parent.Parent as FrameworkElement : null;
+                if (frame != null)
+                {
+                    frame.BeginAnimation(UIElement.OpacityProperty, null);
+                    frame.Opacity = 0;
+                    frame.Visibility = Visibility.Collapsed;
+                }
             }
             catch (Exception) { }
         }

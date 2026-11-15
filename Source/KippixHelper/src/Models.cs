@@ -226,6 +226,7 @@ namespace KippixHelper
         public bool LiveSlideWeb = true;             // Slideshow: also the store's screenshots (Steam games)
         // (issue #13) Background > Gameplay video behind the games (ThemeApi.HomeVideo.cs): a muted clip of the highlighted game over its art
         public bool HomeVideo = false;               // off unless you turn it on
+        public int HomeVideoMode = 0;                // (issue #21) 0 fills the background, 1 picture in picture: a small box over the art, above the games
         public int HomeVideoDelayMs = 1500;          // how long the highlight rests on a game before its video starts
         public bool HomeVideoDownload = true;        // no video of its own: the Steam store trailer may be downloaded
         public string HomeVideoMediaDir = "";        // ES-DE's media folder (downloaded_media); empty: found by itself
