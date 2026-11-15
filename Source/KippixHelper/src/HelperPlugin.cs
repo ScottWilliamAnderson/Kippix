@@ -109,6 +109,7 @@ namespace KippixHelper
 
         public override void OnGameStarted(OnGameStartedEventArgs args)
         {
+            try { Theme.RunningStarted(args); } catch (Exception ex) { logger.Error(ex, "Kippix: running list (game started)"); }   // (issue #11) what's running, one entry per game
             try { Theme.GameRunningChanged(true); } catch (Exception ex) { logger.Error(ex, "Kippix: game started"); }
             try { Overlay.OnGameStarted(args); } catch (Exception ex) { logger.Error(ex, "Kippix: overlay (game started)"); }
             try { KippixOverlay.AchievementToasts.Apply(); } catch (Exception) { }   // (0.99.37) Playnite Achievements' own pop-ups stay off while ours are on
@@ -131,6 +132,7 @@ namespace KippixHelper
         /// <summary>Everything a stopped game does (straight away, or once a launcher's game has closed too).</summary>
         private void FinishStopped(Game game, ulong elapsed)
         {
+            try { Theme.RunningStopped(game); } catch (Exception ex) { logger.Error(ex, "Kippix: running list (game stopped)"); }
             try { Theme.GameRunningChanged(false); } catch (Exception ex) { logger.Error(ex, "Kippix: game stopped"); }
             try { Overlay.OnGameStopped(game); } catch (Exception ex) { logger.Error(ex, "Kippix: overlay (game stopped)"); }
             try { Theme.RecordSession(game, elapsed); } catch (Exception) { }
