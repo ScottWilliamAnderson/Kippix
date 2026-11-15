@@ -122,7 +122,8 @@ namespace KippixHelper
         {
             foreach (string n in new[] { "HomeArtShown", "BcBgOnHome", "HomeTileShown", "IsHomeBgTile", "HomeTileBgHeight", "HomeTileBgScaleText", "HomeSolidShown", "HomeCustomShown", "HomeCustomBg", "IsHomeBgCustom", "HomeBgImageText", "HomeSolidBrush", "HomeFadeBrush", "HomeBgText", "HomeBgColorText", "HomeBgColorSwatch",
                                          "HomeFadeDirText", "HomeFadeReachText", "IsHomeBgColor", "IsHomeFadeOn", "HomeBgSummary", "IsHomeBgLive", "IsHomeBgLiveTrailer", "IsHomeBgSlides", "LiveSlideWeb", "BgZoomShown",
-                                         "BgMoveShown", "HomeBgOffsetText", "PreviewModeText", "IsPreviewBackground", "PreviewEnabled", "HomeBgSettingsShown", "HomeBgOffNoteShown" })
+                                         "BgMoveShown", "HomeBgOffsetText", "PreviewModeText", "IsPreviewBackground", "PreviewEnabled", "HomeBgSettingsShown", "HomeBgOffNoteShown",
+                                         "HomeVideoRowShown", "HomeVideoDownloadShown" })
                 Notify(n);
             UpdateSliders();
             try { ApplyHomeBgOffset(); } catch (Exception) { }   // (r15: Move the picture: none over a plain colour)

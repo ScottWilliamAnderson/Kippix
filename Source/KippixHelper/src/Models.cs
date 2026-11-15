@@ -225,6 +225,11 @@ namespace KippixHelper
         public string HomeBgColor = "#0E1014";
         // ---- round 12 (agent C): HomeBgMode 4 = the game's trailer, muted (live background), 5 = slideshow of the game's pictures ----
         public bool LiveSlideWeb = true;             // Slideshow: also the store's screenshots (Steam games)
+        // (issue #13) Background > Gameplay video behind the games (ThemeApi.HomeVideo.cs): a muted clip of the highlighted game over its art
+        public bool HomeVideo = false;               // off unless you turn it on
+        public int HomeVideoDelayMs = 1500;          // how long the highlight rests on a game before its video starts
+        public bool HomeVideoDownload = true;        // no video of its own: the Steam store trailer may be downloaded
+        public string HomeVideoMediaDir = "";        // ES-DE's media folder (downloaded_media); empty: found by itself
         // Look and feel › Intro and outro: 0 none, 2 your own video (IntroVideo / OutroVideo: a copy in ExtensionsData\intro\), (0.99.66) 1 (the old animated logo) and 3 (Kippix's own video) are gone: read as 0
         public int IntroMode = 0;                    // (0.99.66: none unless you choose a video of your own)
         public string IntroVideo = "";
