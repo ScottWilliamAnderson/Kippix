@@ -266,6 +266,71 @@ namespace KippixHelper
             catch (Exception ex) { logger.Warn("Kippix: mosaic: Playnite's list and its panel: " + ex.Message); }
         }
 
+        // ---------------- moving in it ----------------
+
+        private double justStickyX = double.NaN;   // where a run of Up / Down presses started across the screen
+        private int justMovedTo = -1;
+        private DateTime justMovedAt;
+
+        /// <summary>
+        /// The arrow keys / D-pad in the mosaic (Page Up / Page Down, LT / RT: a screenful). The rows don't line up in columns, so
+        /// Up / Down go to the game under or over where you started across the screen (kept while you keep going up or down),
+        /// Left / Right to the next game in the list, off the end of a row onto the next. False (the key goes on to the rest):
+        /// Up from the first row (the top bar takes it) and Left on the first game.
+        /// </summary>
+        private bool JustKey(KeyEventArgs e)
+        {
+            if (!JustifiedMode || justPanel == null || justList == null || confirmOpen || kbOpen || freeMove || IsMasterMoving) return false;
+            bool page = e.Key == Key.PageUp || e.Key == Key.PageDown;
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right && !page) return false;
+            var list = justList;
+            if (!list.IsVisible || !list.IsKeyboardFocusWithin || list.Items.Count == 0) return false;
+            if (IsPadRelease(e)) return true;   // a let-go: nothing (and not through to the list either)
+            // from the highlighted game (the selected one, unless the highlight was put elsewhere)
+            int cur = -1;
+            var on = Keyboard.FocusedElement as Visual;
+            var item = on as ListBoxItem ?? (on != null ? FindAncestor<ListBoxItem>(on, list) : null);
+            if (item != null) cur = list.ItemContainerGenerator.IndexFromContainer(item);
+            if (cur < 0) cur = list.SelectedIndex;
+            if (cur != justMovedTo) justStickyX = double.NaN;   // (the highlight got here some other way: a new start)
+            // a held button: a steady pace (Playnite's list does this for its own panel; these presses never reach it)
+            if ((DateTime.Now - justMovedAt).TotalMilliseconds < 100) return true;
+            int next;
+            if (page)
+            {
+                next = cur;
+                for (int i = 0; i < JustRowsNow; i++)
+                {
+                    int n = justPanel.IndexFrom(next, e.Key == Key.PageDown ? Key.Down : Key.Up, ref justStickyX);
+                    if (n < 0) break;
+                    next = n;
+                }
+                if (next == cur) return true;
+            }
+            else next = justPanel.IndexFrom(cur, e.Key, ref justStickyX);
+            if (next < 0)
+            {
+                if (e.Key == Key.Up) { justStickyX = double.NaN; return false; }   // the first row: up to the top bar
+                if (e.Key == Key.Left) return false;                               // the first game: nothing before it
+                return true;                                                       // the last row / the last game: stay
+            }
+            justMovedAt = DateTime.Now;
+            justMovedTo = next;
+            JustGoTo(list, next);
+            return true;
+        }
+
+        /// <summary>Selects a game in the mosaic, scrolls its row in and puts the highlight on its tile.</summary>
+        private void JustGoTo(ListBox list, int index)
+        {
+            if (index < 0 || index >= list.Items.Count) return;
+            list.SelectedIndex = index;
+            if (justPanel != null) justPanel.ScrollToIndex(index);
+            list.UpdateLayout();   // (the panel makes the selected game's tile, wherever it is)
+            var c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
+            if (c != null) Keyboard.Focus(c);
+        }
+
         /// <summary>New tiles in the mosaic: dressed like any other card (badges; shapes and wide art taken off reused ones).</summary>
         private void OnJustContainers(object sender, EventArgs e)
         {

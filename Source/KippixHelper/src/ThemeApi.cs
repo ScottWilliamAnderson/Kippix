@@ -1161,6 +1161,7 @@ namespace KippixHelper
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && BoardKey(e)) { e.Handled = true; return; }   // the Board
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && CarouselKey(e)) { e.Handled = true; return; }   // Row's carousel: round the ends, the tiles
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && ExtraRowKey(e)) { e.Handled = true; return; }   // the rows under the games
+                if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && JustKey(e)) { e.Handled = true; return; }   // the mosaic: its rows are ragged, so it moves the highlight itself
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && detailsOpen && (e.Key == Key.Up || e.Key == Key.Down) && DetailsMoreKey(e)) { e.Handled = true; return; }
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && WidgetNavKey(e)) return;   // Up from the games to the widgets
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && UpToTopBar(e)) { e.Handled = true; return; }   // Up from the top of the games: the top bar
