@@ -618,7 +618,8 @@ namespace KippixHelper
                 if (filter != null && !ReferenceEquals(filter, boardFilterHooked))
                 {
                     boardFilterHooked = filter;
-                    filter.PropertyChanged += (s, e) => { if (IsBoardMode) BoardRefreshLater(); };
+                    filter.PropertyChanged += (s, e) => { if (IsBoardMode) BoardRefreshLater(); if (e.PropertyName == "Name") OnUi(HomeSearchChanged); };
+                    HomeSearchChanged();
                 }
                 if (!widgetsHooked && Widgets != null)
                 {

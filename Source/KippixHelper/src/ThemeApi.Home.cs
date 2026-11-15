@@ -236,7 +236,8 @@ namespace KippixHelper
             set { if (SetSetting(ref settings.ShowFilterLabel, value)) { ApplyHomeLayoutSoon(); if (value) HomePartBackOnTop("home.filter"); } }
         }
         // the filter name sits above the games; it's moved with Free move like everything else
-        public bool FilterAbove { get { return settings.ShowFilterLabel && !IsBoardMode; } }
+        // (a search shows there even with the filter name switched off: what is searched for, and B to clear it)
+        public bool FilterAbove { get { return (settings.ShowFilterLabel || HomeSearchShown) && !IsBoardMode; } }
         public HorizontalAlignment FilterAlignment
         {
             get

@@ -328,6 +328,40 @@ namespace KippixHelper
                 if (p != null && p.CanWrite) p.SetValue(filter, string.IsNullOrEmpty(text) ? null : text, null);
             }
             catch (Exception ex) { logger.Warn("Kippix: search filter: " + ex.Message); }
+            HomeSearchChanged();
+        }
+
+        // ---------------- the search on the home screen (Show in my games, or Playnite's own search) ----------------
+
+        /// <summary>What the home screen's games are searched for right now (Playnite's name filter); "" when nothing is.</summary>
+        public string HomeSearchText
+        {
+            get
+            {
+                try { var f = PlayniteFilterSettings(); return (f != null ? Prop(f, "Name") as string : null) ?? ""; }
+                catch (Exception) { return ""; }
+            }
+        }
+
+        // shown with the filter name above the games, with how to clear it (not in Folder: a folder shows its own games, Playnite's filter set aside)
+        public bool HomeSearchShown { get { return !FolderMode && HomeSearchText.Length > 0; } }
+
+        /// <summary>The name filter changed (here, or in Playnite's own filters panel): the line above the games follows.</summary>
+        private void HomeSearchChanged()
+        {
+            Notify("HomeSearchText");
+            Notify("HomeSearchShown");
+            Notify("FilterAbove");
+        }
+
+        /// <summary>B on the home screen while the games are searched: the search is cleared, every game is back. True: there was one.</summary>
+        private bool HomeSearchClear()
+        {
+            if (!HomeSearchShown) return false;
+            PlaySound("select");
+            SetPlayniteSearch(null);
+            ui.BeginInvoke(new Action(FocusSelectedCard), DispatcherPriority.ContextIdle);
+            return true;
         }
 
         /// <summary>Playnite's filter (fullscreen) back to nothing: every game shows. Its own "clear" when it has one, else each part.</summary>

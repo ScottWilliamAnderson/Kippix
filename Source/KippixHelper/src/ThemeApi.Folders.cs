@@ -278,7 +278,7 @@ namespace KippixHelper
         private void NotifyFolderSettings()
         {
             foreach (string n in new[] { "IsFolderMode", "RowSettingsShown", "RowDesignTopShown", "RowDesignFolderShown", "GridSettingsShown", "ListSettingsShown", "FolderDesignText", "FolderDesignSub", "FolderDuplicates",
-                                         "FolderSortText", "PlayniteFilterMarksShown",
+                                         "FolderSortText", "PlayniteFilterMarksShown", "HomeSearchShown", "FilterAbove",
                                          "FoldersSummary", "HomeLabelOwn", "HomeLabelText", "HomeLayoutText", "HomeRowsSummary", "IsRowLower", "FolderTileCountText",
                                          "BoardSettingsShown", "IsNotBoardMode", "ShowCardLook", "ShowCardSpacing", "ShowTriArrange", "ShowTriSpacing" })
                 Notify(n);

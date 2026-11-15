@@ -33,10 +33,13 @@ namespace KippixHelper
         /// <summary>From the window's key handler (the home screen, nothing open). True: handled.</summary>
         private bool HomeBackKey(KeyEventArgs e)
         {
-            if (settings.HomeBackTo == 2) return false;
             if (e.IsRepeat || !IsBackKey(e) || IsPadRelease(e)) return false;
             if (confirmOpen || kbOpen || freeMove || IsMasterMoving || descReaderOpen || masterMoving != null || widgetMoving != null || movingItem != null
                 || boardEditing || bgMoveOn || splashEditOn || lpOpen || guideBarOpen || FolderInside) return false;
+            // the games are searched (Search › Show in my games): B clears the search first, whatever B is set to do here
+            try { if (HomeSearchClear()) return true; }
+            catch (Exception ex) { logger.Warn("Kippix: B clears the search: " + ex.Message); }
+            if (settings.HomeBackTo == 2) return false;
             try
             {
                 bool done = settings.HomeBackTo == 1 ? HomeBackToBar() : HomeBackToFirstGame();
