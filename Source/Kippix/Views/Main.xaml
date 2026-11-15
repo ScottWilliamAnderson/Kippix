@@ -1164,7 +1164,10 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Opacity="{Binding RowOpacity}" Margin="0,0,0,26">
-                                                    <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource FontTitilliumWebBold}" FontSize="24" Height="46">
+                                                    <!-- (issue #11) the highlighted tile grows 1.06x upwards from its bottom edge, over the title: the title is drawn
+                                                         10 higher (a transform: the row's layout, RowTitleH = 46 in ThemeApi.HomeRows.cs, stays as it was) and over the tiles -->
+                                                    <TextBlock x:Name="KX_RowTitle" Text="{Binding Title}" FontFamily="{DynamicResource FontTitilliumWebBold}" FontSize="24" Height="46" Panel.ZIndex="1" IsHitTestVisible="False">
+                                                        <TextBlock.RenderTransform><TranslateTransform Y="-10" /></TextBlock.RenderTransform>
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock" BasedOn="{StaticResource KX_Text}">
                                                                 <Style.Triggers>
