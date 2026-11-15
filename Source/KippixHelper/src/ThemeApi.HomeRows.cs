@@ -1153,7 +1153,7 @@ namespace KippixHelper
         /// <summary>(0.99.17) From the tick: the badge settings changed some other way (a preset, a layout, Getting started): the tiles again.</summary>
         private void BadgeSettingsTick()
         {
-            string sig = string.Join("|", settings.BadgeNew, settings.BadgeAch, settings.BadgeHltb, settings.BadgeFeatures, settings.BadgeFeatHide, settings.BadgeStore, settings.SlotPinBadge, settings.HomeLayoutMode);
+            string sig = string.Join("|", settings.BadgeNew, settings.BadgeAch, settings.BadgeHltb, settings.BadgeFeatures, settings.BadgeFeatHide, settings.BadgeStore, settings.SlotPinBadge, settings.HomeLayoutMode, settings.BadgeRunning);
             if (sig == badgeSigWas) return;
             bool first = badgeSigWas == null;
             badgeSigWas = sig;
@@ -1198,10 +1198,15 @@ namespace KippixHelper
             string h = any && settings.BadgeHltb && g != null ? HltbBadgeText(id, true) : null;
             SetBadge(c, "KX_BadgeHltb", h != null, "KX_BadgeHltbText", h);
             SetBadge(c, "KX_BadgeSlot", settings.SlotPinBadge && id != Guid.Empty && SlotOf(id) > 0, null, null);
+            // (issue #11) "Running": Playnite's own IsRunning shows it in the theme; what only Kippix's list knows is running (an app
+            // Playnite marks as stopped at once) is said here, on the pill's Tag (a card used again for another game: taken off)
+            var run = UiTools.FindByName(c, "KX_BadgeRunning");
+            object runTag = settings.BadgeRunning && id != Guid.Empty && Running.IsRunning(id) ? "on" : null;
+            if (run != null && !Equals(run.Tag, runTag)) run.Tag = runTag;
             BadgeCardExtras(c, any ? g : null);   // (r12) feature icons and store pill (ThemeApi.Badges.cs)
         }
 
-        private bool AnyBadges { get { return settings.BadgeNew || settings.BadgeAch || settings.BadgeHltb || settings.BadgeFeatures || settings.BadgeStore || (settings.SlotPinBadge && settings.SlotPins != null && settings.SlotPins.Count > 0); } }
+        private bool AnyBadges { get { return (settings.BadgeRunning && Running.Any) || settings.BadgeNew || settings.BadgeAch || settings.BadgeHltb || settings.BadgeFeatures || settings.BadgeStore || (settings.SlotPinBadge && settings.SlotPins != null && settings.SlotPins.Count > 0); } }
 
         private static void SetBadge(FrameworkElement container, string name, bool show, string textName, string text)
         {

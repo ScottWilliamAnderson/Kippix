@@ -270,11 +270,12 @@ namespace KippixHelper
             RunningBadgesChanged();
         }
 
-        /// <summary>The green dot on the extra rows' tiles of what's running (the game cards' own "Running" pill follows Playnite's IsRunning in the theme).</summary>
+        /// <summary>The green dot on the extra rows' tiles of what's running, and the game cards' "Running" pill (BadgeCard, ThemeApi.HomeRows.cs).</summary>
         private void RunningBadgesChanged()
         {
             foreach (var row in ExtraRowsList)
                 foreach (var t in row.Tiles) t.ShowRunning = settings.BadgeRunning && Running.IsRunning(t.GameId);
+            RefreshBadgesSoon();
         }
 
         /// <summary>
