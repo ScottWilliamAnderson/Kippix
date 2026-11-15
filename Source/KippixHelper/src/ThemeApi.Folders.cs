@@ -47,11 +47,13 @@ namespace KippixHelper
         /// <summary>
         /// The layout the home screen is drawn in now: the setting, except Folder, whose tiles are drawn by Row's carousel (always
         /// like Full Screen) and whose opened folder uses the folder design (0 Row, 1 Grid, 2 List, 3 Board, 4 Manual Board).
+        /// And the library view (ThemeApi.Justified.cs): a mosaic of every game over the layout that's set, until B.
         /// </summary>
         private int LayoutNow
         {
             get
             {
+                if (LibraryOpen) return 6;
                 if (settings.HomeLayoutMode != 5) return settings.HomeLayoutMode;
                 return folderOpenId == null ? 0 : Math.Max(0, Math.Min(4, settings.FolderGameDesign));
             }

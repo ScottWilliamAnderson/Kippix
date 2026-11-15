@@ -237,6 +237,7 @@ namespace KippixHelper
                                      settings.CarTallFill > 0 ? Math.Round(settings.CarTallFill * 100) + "%" : Loc("LOC_KX_SizeTallAuto", "as the covers"));
             if (el.Key == "home.cards" && LayoutNow == 0) return string.Format(Loc("LOC_KX_SizeCards", "Card size {0}   ·   Up / Right bigger, Down / Left smaller"), CardSizeText);
             if (el.Key == "home.cards" && LayoutNow == 1) return string.Format(Loc("LOC_KX_SizeGrid", "{0} columns   ·   Up / Right bigger, Down / Left smaller"), settings.GridColumns);
+            if (el.Key == "home.cards" && LayoutNow == 6) return string.Format(Loc("LOC_KX_SizeJust", "{0} rows   ·   Up / Right bigger, Down / Left smaller"), JustRowsNow);
             if (el.Key == "home.cards") return ListStretchText + "   ·   " + edge;
             if (el.Key == SimilarKey)
                 return string.Format(Loc("LOC_KX_SizeSimilarCovers2", "Covers {0} × {1}, {2}   ·   Up / Right bigger, Down / Left smaller   ·   X: shape"), Math.Round(DetSimilarTileW), Math.Round(DetSimilarTileH), SimilarShapeText());
@@ -419,6 +420,15 @@ namespace KippixHelper
                     int before = EffectiveCardSize;
                     NudgeCardSize(d);
                     if (EffectiveCardSize == before) { PlaySound("back"); return; }
+                }
+                else if (LayoutNow == 6)
+                {
+                    // the mosaic: fewer rows on screen = bigger covers
+                    int rows = Math.Max(2, Math.Min(5, JustRowsNow - d));
+                    if (rows == JustRowsNow) { PlaySound("back"); return; }
+                    settings.JustRows = rows;
+                    SaveSettings();
+                    HomeModeChanged();
                 }
                 else
                 {
@@ -670,6 +680,7 @@ namespace KippixHelper
         {
             if (LayoutNow == 0) settings.CardSize = -1;
             else if (LayoutNow == 1) settings.GridColumns = new HelperSettings().GridColumns;
+            else if (LayoutNow == 6) settings.JustRows = new HelperSettings().JustRows;
             SaveSettings();
             NotifyCardSettings();
             ApplyCardLayoutSoon();

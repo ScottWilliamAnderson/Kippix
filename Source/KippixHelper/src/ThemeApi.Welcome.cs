@@ -411,7 +411,7 @@ namespace KippixHelper
         {
             int m = settings.HomeLayoutMode;
             if (m == 0) return settings.RowDesign == 1 ? "tall" : settings.RowDesign == 2 ? "full" : "row";
-            return m == 1 ? "grid" : m == 2 ? "list" : m == 5 ? "folders" : "board";
+            return m == 1 || m == 6 ? "grid" : m == 2 ? "list" : m == 5 ? "folders" : "board";   // (the mosaic has no picture of its own yet: the grid's)
         }
 
         private void ShowTourLook(string key)   // (0.89: key = the picture's file name)
@@ -869,6 +869,7 @@ namespace KippixHelper
         {
             if (settings.HomeLayoutMode == mode && (mode != 0 || settings.RowDesign == design)) { PlaySound("move"); return; }
             if (boardEditing) BoardEndEdit(false);
+            libraryOpen = false;
             settings.HomeLayoutMode = mode;
             if (mode == 0) settings.RowDesign = design;
             carWhy = "Starting look (tour)";

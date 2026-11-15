@@ -217,6 +217,7 @@ namespace KippixHelper
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
                 var list = win != null ? PreviewList(win) : null;
                 if (list == null) return;
+                if (JustifiedLayout(list)) return;   // Mosaic: its own panel in the list (ThemeApi.Justified.cs); any other layout: Playnite's back first
                 var panel = UiTools.FindChild<VirtualizingPanel>(list);
                 if (panel == null || panel.GetType().Name != "FullscreenTilePanel") return;
                 Type t = panel.GetType();

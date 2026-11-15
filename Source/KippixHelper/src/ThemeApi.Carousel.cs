@@ -430,8 +430,8 @@ namespace KippixHelper
         {
             string[] designs = { "Lower", "Tall", "Full Screen" };
             string row = "Row " + designs[Math.Max(0, Math.Min(2, settings.RowDesign))] + (settings.RowDesign == 1 || settings.RowLoop ? " with Loop" : "");
-            string[] layouts = { row, "Grid", "List", "Board", "Manual Board" };
-            int now = Math.Max(0, Math.Min(4, LayoutNow));
+            string[] layouts = { row, "Grid", "List", "Board", "Manual Board", "Mosaic" };
+            int now = LayoutNow == 6 ? 5 : Math.Max(0, Math.Min(4, LayoutNow));
             string what = layouts[now];
             if (now == 0 && !CarouselOn) what += " (Playnite's row)";
             if (FolderTilesShown) return "Folder, the folder tiles (Full Screen, " + CarFullCount + " across)";
