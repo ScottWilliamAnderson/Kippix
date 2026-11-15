@@ -37,7 +37,7 @@ namespace KippixHelper
             HomeProgressRefresh();
             Notify("HomeShowProgress");
         }
-        public bool HomeShowProgress { get { return settings.HomeProgress && IsFullscreen; } }   // (0.99.65: always there while it's on; the figure fills in)
+        public bool HomeShowProgress { get { return settings.HomeProgress && IsFullscreen && !homeProgressNone; } }   // (0.99.65: there while it's on, the figure fills in; gone for a game with nothing to go by)
         public string HomeProgressText { get { return homeProgressText.Length > 0 ? homeProgressText : StoryWaitText; } }
         public double HomeProgressBar { get { return homeProgressPct; } }
 
@@ -101,9 +101,12 @@ namespace KippixHelper
         private void HomeProgressRefresh()
         {
             // (0.99.65) the line is always up (it used to wait for the first figure, then pop in): "Story ~…%" while the
-            // figure's being worked out, then the figure; "Story ~?%" for a game with nothing to go by
+            // figure's being worked out, then the figure. A game with nothing to go by (an app, no achievements, no
+            // HowLongToBeat time) has no line at all; while the next game's figure is worked out the line stays as it was
+            // (shown or not), so it doesn't flash up for a game that turns out to have none
             string t = homeProgressText;
             int pct = homeProgressPct;
+            bool none = homeProgressNone;
             try
             {
                 var g = settings.HomeProgress && IsFullscreen ? SelectedGameNow() : null;
@@ -113,20 +116,21 @@ namespace KippixHelper
                     bool known;
                     lock (progressCache) known = progressCache.ContainsKey(g.Id) && !progressLoading.Contains(g.Id);
                     var r = ProgressFor(g, HomeProgressRefresh);
-                    if (r != null) { t = r.Short; pct = r.Percent; }
-                    else if (known) { t = string.Format(Loc("LOC_KX_StpStory", "Story ~{0}%"), "?"); pct = 0; }
+                    if (r != null) { t = r.Short; pct = r.Percent; none = false; }
+                    else if (known) { t = StoryWaitText; pct = 0; none = true; }
                     else { t = StoryWaitText; pct = 0; }
                 }
             }
             catch (Exception) { }
-            if (t == homeProgressText && homeProgressHas) return;
+            if (t == homeProgressText && none == homeProgressNone && homeProgressHas) return;
             homeProgressText = t;
             homeProgressPct = pct;
+            homeProgressNone = none;
             homeProgressHas = true;
             foreach (string n in new[] { "HomeProgressText", "HomeShowProgress", "HomeProgressBar", "HomeProgressOpacity" }) Notify(n);
         }
         private string StoryWaitText { get { return string.Format(Loc("LOC_KX_StpStory", "Story ~{0}%"), "…"); } }
-        private bool homeProgressHas;
+        private bool homeProgressHas, homeProgressNone;
         public double HomeProgressOpacity { get { return 1.0; } }   // (0.99.65: never faded away now)
 
         /// <summary>The game page's line (the page opened, or another game on it).</summary>
