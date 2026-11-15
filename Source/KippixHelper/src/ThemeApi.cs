@@ -120,6 +120,7 @@ namespace KippixHelper
             InitPicker();
             InitGallery();
             InitHomeRows();
+            InitJustified();
             InitLook();
             InitGamePageMore();
             InitConfirm();
@@ -493,7 +494,8 @@ namespace KippixHelper
             if (!settings.TriAlternate) { if (settings.CardShape == CardShapes.TriUp) settings.TriArrange = 1; settings.TriAlternate = true; }
             settings.TriArrange = Math.Max(0, Math.Min(2, settings.TriArrange));
             settings.TriSpacing = Math.Max(0, Math.Min(40, settings.TriSpacing));
-            settings.HomeLayoutMode = Math.Max(0, Math.Min(5, settings.HomeLayoutMode));
+            settings.HomeLayoutMode = Math.Max(0, Math.Min(6, settings.HomeLayoutMode));
+            settings.JustRows = Math.Max(2, Math.Min(5, settings.JustRows));
             settings.FolderGameDesign = Math.Max(0, Math.Min(4, settings.FolderGameDesign));
             settings.FolderInstalled = Math.Max(0, Math.Min(2, settings.FolderInstalled));
             settings.FolderSort = Math.Max(0, Math.Min(4, settings.FolderSort));

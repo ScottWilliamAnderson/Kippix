@@ -269,7 +269,7 @@ namespace KippixHelper
         // =====================================================================
 
         /// <summary>Wide tiles, or the list: the tiles show their own art (and the list its words).</summary>
-        private bool TileArtOn { get { return LayoutNow == 2 || settings.CardShape == 2 || CardShapes.IsTriangle(settings.CardShape); } }
+        private bool TileArtOn { get { return LayoutNow != 6 && (LayoutNow == 2 || settings.CardShape == 2 || CardShapes.IsTriangle(settings.CardShape)); } }   // (never in the mosaic: the covers themselves)
         private readonly Dictionary<string, ImageSource> wideArt = new Dictionary<string, ImageSource>();
         private readonly HashSet<string> wideArtLoading = new HashSet<string>();
         private DispatcherTimer tileArtTimer;

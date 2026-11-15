@@ -1579,6 +1579,12 @@
     <sys:String x:Key="LOC_KX_SecRowMode">ROW</sys:String>
     <sys:String x:Key="LOC_KX_SecGridMode">GRID</sys:String>
     <sys:String x:Key="LOC_KX_SecListMode">LIST</sys:String>
+    <sys:String x:Key="LOC_KX_SecJustMode">MOSAIC</sys:String>
+    <sys:String x:Key="LOC_KX_LayoutJustified">Mosaic</sys:String>
+    <sys:String x:Key="LOC_KX_JustRows">Rows on screen</sys:String>
+    <sys:String x:Key="LOC_KX_JustRowsSub">Fewer rows, bigger covers. Every cover keeps its own shape</sys:String>
+    <sys:String x:Key="LOC_KX_JustSummary">Mosaic, {0} rows</sys:String>
+    <sys:String x:Key="LOC_KX_SizeJust">{0} rows   ·   Up / Right bigger, Down / Left smaller</sys:String>
     <sys:String x:Key="LOC_KX_SecCardsAll">PLACE AND RESET</sys:String>
     <sys:String x:Key="LOC_KX_ListHeightRow">List height</sys:String>
     <sys:String x:Key="LOC_KX_FewerGames">Less</sys:String>
@@ -2485,7 +2491,7 @@
     <sys:String x:Key="LOC_KX_NotifySecondsSub">How long a card stays on screen</sys:String>
     <sys:String x:Key="LOC_KX_TilesModeSub">Store and Achievements tiles before your games</sys:String>
     <sys:String x:Key="LOC_KX_SkipGamePageSub"></sys:String>
-    <sys:String x:Key="LOC_KX_HomeLayoutSub">A row, a grid, a list or a board</sys:String>
+    <sys:String x:Key="LOC_KX_HomeLayoutSub">A row, a grid, a list, a board or a mosaic</sys:String>
     <sys:String x:Key="LOC_KX_CardsResetSub">Puts card sizes and shapes back to default</sys:String>
     <sys:String x:Key="LOC_KX_SecFollowPlaynite">FOLLOW PLAYNITE</sys:String>
     <sys:String x:Key="LOC_KX_SecThisGame">THIS GAME</sys:String>

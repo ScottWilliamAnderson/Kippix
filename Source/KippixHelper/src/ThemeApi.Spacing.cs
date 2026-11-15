@@ -49,7 +49,7 @@ namespace KippixHelper
             if (list == null) return;
             if (TrianglesPacked) { PackTriangles(list); return; }
             if (trianglesWerePacked) { trianglesWerePacked = false; spacingWasSet = true; }   // (back from triangles: every card's margin again)
-            bool on = settings.CardSpacing >= 0;
+            bool on = settings.CardSpacing >= 0 && LayoutNow != 6;   // (the mosaic keeps Playnite's own gap: its rows are worked out from it)
             if (!on && !spacingWasSet)
             {
                 // just learn Playnite's own gap (for the slider's starting point)
