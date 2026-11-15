@@ -382,7 +382,7 @@ namespace KippixHelper
                     object app = cur != null ? cur.GetValue(null, null) : null;
                     PropertyInfo ap = app != null ? app.GetType().GetProperty("Audio", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) : null;
                     object audio = ap != null ? ap.GetValue(app, null) : null;
-                    if (audio == null) break;
+                    if (audio == null) { playniteAudioLooked = false; return false; }   // Playnite has not made it yet (asked early at start-up): looked for again next time
                     Type at = audio.GetType();
                     pnMusicPlaying = at.GetMethod("GetIsMusicPlaying", Type.EmptyTypes);
                     pnMusicPaused = at.GetMethod("GetIsMusicPaused", Type.EmptyTypes);
