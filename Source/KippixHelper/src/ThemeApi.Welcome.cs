@@ -866,6 +866,7 @@ namespace KippixHelper
         {
             if (settings.HomeLayoutMode == mode && (mode != 0 || settings.RowDesign == design)) { PlaySound("move"); return; }
             if (boardEditing) BoardEndEdit(false);
+            libraryOpen = false;
             settings.HomeLayoutMode = mode;
             if (mode == 0) settings.RowDesign = design;
             carWhy = "Starting look (tour)";

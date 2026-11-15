@@ -40,6 +40,9 @@ namespace KippixHelper
         {
             CycleJustRowsCommand = new RelayCommand(_ => { settings.JustRows = JustRowsNow >= 5 ? 2 : JustRowsNow + 1; SaveSettings(); PlaySound("move"); HomeModeChanged(); });
             JustifiedPanel.Setup = SetupJustPanel;
+            OpenLibraryViewCommand = new RelayCommand(_ => OpenLibraryView());
+            CloseLibraryViewCommand = new RelayCommand(_ => CloseLibraryView(true));
+            EventManager.RegisterClassHandler(typeof(Window), Keyboard.PreviewKeyUpEvent, new KeyEventHandler((s, e) => { if (e.Key == Key.Down) libraryDownIsDown = false; }), true);
         }
 
         private CoverSizes Covers
@@ -329,6 +332,110 @@ namespace KippixHelper
             list.UpdateLayout();   // (the panel makes the selected game's tile, wherever it is)
             var c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
             if (c != null) Keyboard.Focus(c);
+        }
+
+        // =====================================================================
+        // The library view: every game as a mosaic, over the layout that's set
+        // =====================================================================
+        // Like an opened folder, it's somewhere you go and come back from, not a setting: LayoutNow says Mosaic while it's open
+        // and the saved layout stays what it was. Playnite's filter and sort are left as they are. Opened by OpenLibraryViewCommand
+        // and, in Row, by Down when there's nothing further below the games; B (or Home) closes it, on the game you were on.
+
+        private bool libraryOpen;
+        private int libraryFromMode;                 // the layout it was opened over (a layout change since: it's closed)
+        private bool libraryDownIsDown, libraryDownHeld;
+        private DateTime libraryDownAt;
+
+        private bool LibraryOpen { get { return libraryOpen && settings.HomeLayoutMode == libraryFromMode; } }
+        public bool IsLibraryOpen { get { return LibraryOpen; } }
+        public ICommand OpenLibraryViewCommand { get; private set; }
+        public ICommand CloseLibraryViewCommand { get; private set; }
+        public bool LibraryDownOpens { get { return settings.LibraryDownOpens; } set { if (SetSetting(ref settings.LibraryDownOpens, value)) Notify("LibraryDownOpens"); } }
+
+        /// <summary>Over Row, Grid or the List (the layouts that show Playnite's own list), on the home screen.</summary>
+        private bool OpenLibraryView()
+        {
+            if (!IsFullscreen || LibraryOpen || settings.HomeLayoutMode < 0 || settings.HomeLayoutMode > 2) return false;
+            if (detailsOpen || confirmOpen || kbOpen || freeMove || IsMasterMoving || boardEditing) return false;
+            if (openPanel != null) ClosePanels();
+            LeaveExtraRows(false);
+            libraryFromMode = settings.HomeLayoutMode;
+            libraryOpen = true;
+            carWhy = "the library view was opened";
+            PlaySound("select");
+            logger.Info("Kippix: mosaic: library view opened (over layout " + libraryFromMode + ")");
+            HomeModeChanged();
+            Notify("IsLibraryOpen");
+            LibraryFocusSoon(0);
+            return true;
+        }
+
+        /// <summary>Back to the home screen under it, the highlight on the same game. False when it wasn't open.</summary>
+        private bool CloseLibraryView(bool sound)
+        {
+            bool was = LibraryOpen;
+            libraryOpen = false;
+            if (!was) return false;
+            if (sound) PlaySound("back");
+            carWhy = "the library view was closed";
+            logger.Info("Kippix: mosaic: library view closed");
+            HomeModeChanged();
+            Notify("IsLibraryOpen");
+            LibraryFocusSoon(0);
+            return true;
+        }
+
+        /// <summary>After opening or closing: the highlight on the selected game's card, once the list has its panel for that layout.</summary>
+        private void LibraryFocusSoon(int tries)
+        {
+            if (ui == null) return;
+            ui.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    if (openPanel != null || detailsOpen || confirmOpen || kbOpen) return;
+                    bool ready = LibraryOpen ? justList != null && justPanel != null : justList == null;
+                    if (!ready && tries < 6) { LibraryFocusSoon(tries + 1); return; }
+                    FocusSelectedCard();
+                }
+                catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, highlight: " + ex.Message); }
+            }), tries == 0 ? DispatcherPriority.ContextIdle : DispatcherPriority.ApplicationIdle);
+        }
+
+        /// <summary>B (Esc, Backspace) with the library view open, nothing else open: back to the home screen.</summary>
+        private bool LibraryBackKey(KeyEventArgs e)
+        {
+            if (!LibraryOpen || confirmOpen || kbOpen || freeMove || IsMasterMoving || descReaderOpen || masterMoving != null || widgetMoving != null || boardEditing) return false;
+            if (e.IsRepeat || !IsBackKey(e) || IsPadRelease(e)) return false;
+            return CloseLibraryView(true);
+        }
+
+        /// <summary>Every Down press on the main window: was Down already down (a held button, sent again and again)?</summary>
+        private void LibraryNoteDown()
+        {
+            var now = DateTime.Now;
+            libraryDownHeld = libraryDownIsDown && (now - libraryDownAt).TotalMilliseconds < 1500;   // (a let-go that never arrived doesn't count for ever)
+            libraryDownIsDown = true;
+            libraryDownAt = now;
+        }
+
+        /// <summary>Row: Down on the games with no rows under them (the rows under them call LibraryDown from their last row).</summary>
+        private bool LibraryDownKey(KeyEventArgs e)
+        {
+            if (e.Key != Key.Down || IsPadRelease(e)) return false;
+            if (!settings.LibraryDownOpens || settings.HomeLayoutMode != 0 || LibraryOpen || ShowExtraRows || extraRowAt != 0) return false;
+            if (confirmOpen || kbOpen || freeMove || IsMasterMoving) return false;
+            var games = UiTools.FindByName(Application.Current.MainWindow, "PART_ListGameItems");
+            if (games == null || !games.IsKeyboardFocusWithin) return false;
+            return LibraryDown(e);
+        }
+
+        /// <summary>A Down with nothing further below, in Row: opens the library view (a new press only: holding Down stops at the bottom). True when it did.</summary>
+        private bool LibraryDown(KeyEventArgs e)
+        {
+            if (!settings.LibraryDownOpens || settings.HomeLayoutMode != 0 || LibraryOpen) return false;
+            if (e.IsRepeat || libraryDownHeld || IsPadRelease(e)) return false;
+            return OpenLibraryView();
         }
 
         /// <summary>New tiles in the mosaic: dressed like any other card (badges; shapes and wide art taken off reused ones).</summary>

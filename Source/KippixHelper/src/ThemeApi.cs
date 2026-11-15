@@ -1134,6 +1134,7 @@ namespace KippixHelper
         {
             if (IsMainWindow(sender)) PerfKeyDown(e);   // (0.93) the slowness finder
             if (openPanel == null && IsMainWindow(sender) && (e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Up || e.Key == Key.Down)) ApplyBgChangeDelay(false);   // (0.99.15) before the picture changes
+            if (e.Key == Key.Down && IsMainWindow(sender)) LibraryNoteDown();   // (a held Down doesn't open the library view)
             try
             {
                 if (IsMasterMoving && OutlineHasFocus) return;   // Master edit: the outline's own key handler takes everything
@@ -1156,11 +1157,13 @@ namespace KippixHelper
                 if (openPanel == "browser") { if (IsMainWindow(sender)) BrowserPreviewKey(e); return; }   // the page gets the keys
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && TilesReleaseKey(e)) { e.Handled = true; return; }   // (0.99.18) the tiles stay up
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && VerticalBarKey(e)) return;   // the shortcut bar down the side
+                if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && LibraryBackKey(e)) { e.Handled = true; padHandled = e; return; }   // the library view: B, back to the home screen
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && FolderBackKey(e)) { e.Handled = true; padHandled = e; return; }   // Folder: B in a folder, back to the folder tiles
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && HomeBackKey(e)) { e.Handled = true; padHandled = e; return; }   // (0.99.62) B on the home screen: the first game / the top bar
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && BoardKey(e)) { e.Handled = true; return; }   // the Board
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && CarouselKey(e)) { e.Handled = true; return; }   // Row's carousel: round the ends, the tiles
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && ExtraRowKey(e)) { e.Handled = true; return; }   // the rows under the games
+                if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && LibraryDownKey(e)) { e.Handled = true; return; }   // Row: Down with nothing below the games: the library view
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && JustKey(e)) { e.Handled = true; return; }   // the mosaic: its rows are ragged, so it moves the highlight itself
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && detailsOpen && (e.Key == Key.Up || e.Key == Key.Down) && DetailsMoreKey(e)) { e.Handled = true; return; }
                 if (openPanel == null && !e.Handled && IsMainWindow(sender) && !detailsOpen && WidgetNavKey(e)) return;   // Up from the games to the widgets
@@ -2130,6 +2133,7 @@ namespace KippixHelper
         {
             if (TourLocked) return;   // (1.0.1) the Home / Guide button doesn't close an unfinished Getting started
             ClosePanels();
+            if (CloseLibraryView(false)) return;   // the library view: home is the home screen under it, on the same game
             if (FolderGoHome()) return;   // Folder: home is the folder tiles, on the folder you were in
             UiTools.ScrollLibraryToStart();
         }

@@ -331,6 +331,7 @@ namespace KippixHelper
 
         // Home: one row or a grid, extra rows, tile badges
         public int HomeLayoutMode = 0;             // 0 row, 1 grid, 2 a list down one side, 3 board, 4 manual board, 5 folders, 6 mosaic
+        public bool LibraryDownOpens = true;       // Row: Down from the games (or from the last row under them) opens the library view: every game as a mosaic, B goes back
         public int JustRows = 3;                   // mosaic: rows on screen (2-5): the height its rows aim for (each row ends up a little over or under, to fill the width)
         // Folders (HomeLayoutMode 5): folder tiles on the home screen, each opening its own games
         public List<HomeFolder> Folders = new List<HomeFolder>();   // All games (Id "all") first, then yours in the order they were made

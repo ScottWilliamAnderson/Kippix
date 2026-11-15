@@ -134,6 +134,7 @@ namespace KippixHelper
 
                 // Folder: B in an opened folder goes back to the folder tiles, wherever the highlight is on the home screen
                 // (the controller's B only arrives here, never on the way down where Esc is caught)
+                if (button == ControllerInput.B && openPanel == null && !detailsOpen && LibraryBackKey(e)) { e.Handled = true; padHandled = e; return; }   // the library view: B, back to the home screen
                 if (button == ControllerInput.B && openPanel == null && !detailsOpen && FolderBackKey(e)) { e.Handled = true; padHandled = e; return; }
                 // (0.99.63) B on the home screen otherwise: the first game / the top bar (Settings › Controller buttons)
                 if (button == ControllerInput.B && openPanel == null && !detailsOpen && HomeBackKey(e)) { e.Handled = true; padHandled = e; return; }

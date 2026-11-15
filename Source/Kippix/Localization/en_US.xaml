@@ -1580,6 +1580,8 @@
     <sys:String x:Key="LOC_KX_SecGridMode">GRID</sys:String>
     <sys:String x:Key="LOC_KX_SecListMode">LIST</sys:String>
     <sys:String x:Key="LOC_KX_SecJustMode">MOSAIC</sys:String>
+    <sys:String x:Key="LOC_KX_LibraryDown">Down opens the library</sys:String>
+    <sys:String x:Key="LOC_KX_LibraryDownSub">Down from your games, when there is nothing further below, shows every game as a mosaic. B goes back</sys:String>
     <sys:String x:Key="LOC_KX_LayoutJustified">Mosaic</sys:String>
     <sys:String x:Key="LOC_KX_JustRows">Rows on screen</sys:String>
     <sys:String x:Key="LOC_KX_JustRowsSub">Fewer rows, bigger covers. Every cover keeps its own shape</sys:String>
