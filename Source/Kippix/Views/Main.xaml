@@ -697,7 +697,7 @@
                                                 HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=HintsAlignment, FallbackValue=Left}"
                                                 Visibility="{PluginSettings Plugin=Kippix, Path=ShowButtonHints, FallbackValue=Visible}">
                                         <ContentControl ContentTemplate="{DynamicResource ButtonPromptA}" Width="26" Height="26" Focusable="False" />
-                                        <!-- "Details", or "Play" when the game page is skipped (then the X hint goes); on a Running now tile: A Switch to, X Close -->
+                                        <!-- "Details", or "Play" when the game page is skipped (then the X hint goes); on a Running now tile: A Switch, X Close -->
                                         <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HintAText, FallbackValue=Details}" Style="{StaticResource KX_TextDim}" Margin="8,0,24,0" VerticalAlignment="Center" />
                                         <StackPanel Orientation="Horizontal" Visibility="{PluginSettings Plugin=Kippix, Path=ShowXPlayHint, FallbackValue=Visible}">
                                             <ContentControl ContentTemplate="{DynamicResource ButtonPromptX}" Width="26" Height="26" Focusable="False" />
@@ -1175,7 +1175,10 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Opacity="{Binding RowOpacity}" Margin="0,0,0,26">
-                                                    <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource FontTitilliumWebBold}" FontSize="24" Height="46">
+                                                    <!-- (issue #11) the highlighted tile grows 1.06x upwards from its bottom edge, over the title: the title is drawn
+                                                         10 higher (a transform: the row's layout, RowTitleH = 46 in ThemeApi.HomeRows.cs, stays as it was) and over the tiles -->
+                                                    <TextBlock x:Name="KX_RowTitle" Text="{Binding Title}" FontFamily="{DynamicResource FontTitilliumWebBold}" FontSize="24" Height="46" Panel.ZIndex="1" IsHitTestVisible="False">
+                                                        <TextBlock.RenderTransform><TranslateTransform Y="-10" /></TextBlock.RenderTransform>
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock" BasedOn="{StaticResource KX_Text}">
                                                                 <Style.Triggers>

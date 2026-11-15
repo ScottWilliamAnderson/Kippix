@@ -91,7 +91,8 @@
                                 <Path Data="M5,12.5 L10,17.5 L19,7" Stroke="#FF4ADE80" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                       Width="14" Height="14" Stretch="Uniform" />
                             </Border>
-                            <!-- (issue #11) running now (Tile badges › Running): Playnite's own IsRunning, so it follows every start and stop by itself -->
+                            <!-- (issue #11) running now (Tile badges › Running): Playnite's own IsRunning, or Kippix's own list of what's running (an app Playnite
+                                 marks as stopped at once, like a browser already open: the helper sets Tag to "on", ThemeApi.HomeRows.cs BadgeCard) -->
                             <Border x:Name="KX_BadgeRunning" CornerRadius="8" Background="#E64ADE80" Padding="8,2" Margin="6,0,0,0">
                                 <Border.Style>
                                     <Style TargetType="Border">
@@ -104,6 +105,7 @@
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Visibility" Value="Visible" />
                                             </MultiDataTrigger>
+                                            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="on"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>

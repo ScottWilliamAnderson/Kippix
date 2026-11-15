@@ -101,6 +101,8 @@ namespace KippixHelper
 
         public override void OnGameStarting(OnGameStartingEventArgs args)
         {
+            // (issue #11) running already as far as Kippix knows, its window still there: not started again, its window comes to the front (before the held-back stop is ended)
+            try { if (args != null && Theme.RunningSwitchInstead(args.Game)) { args.CancelStartup = true; return; } } catch (Exception) { }
             try { if (args != null && args.Game != null) HandoverFinishFor(args.Game.Id); } catch (Exception) { }   // (0.99.54) held back and started again: it ends first (issue #11: only this game's, another one's carries on)
             try { if (args != null && Theme.TimeLimitBlocksStart(args.Game)) { args.CancelStartup = true; return; } } catch (Exception) { }   // Profiles: no time left today
             try { if (args != null && Theme.SteamSwitchFirst(args.Game)) { args.CancelStartup = true; return; } } catch (Exception) { }   // Steam signs into the profile's account first

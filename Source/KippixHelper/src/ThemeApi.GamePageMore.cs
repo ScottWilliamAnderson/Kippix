@@ -960,6 +960,7 @@ namespace KippixHelper
         {
             if (!detailsOpen || openPanel != null || descReaderOpen || confirmOpen) return false;
             if (IsPadRelease(e)) return false;
+            if (DetSwitchKey(e)) { e.Handled = true; return true; }   // (issue #11) A on "Switch to": the running game's window comes to the front
             if (IsPadButton(e, "X"))
             {
                 // X: the settings of the part that's highlighted (the buttons, the trailer, a card...), straight over the game page

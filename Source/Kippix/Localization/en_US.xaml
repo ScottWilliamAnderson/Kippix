@@ -4815,6 +4815,7 @@
     <sys:String x:Key="LOC_KX_RowRunning">Running now</sys:String>
     <sys:String x:Key="LOC_KX_RunRowSub">First, while something is running</sys:String>
     <sys:String x:Key="LOC_KX_RunSwitch">Switch to</sys:String>
+    <sys:String x:Key="LOC_KX_RunSwitchHint">Switch</sys:String>
     <sys:String x:Key="LOC_KX_RunClose">Close</sys:String>
     <sys:String x:Key="LOC_KX_RunClosing">Closing {0}</sys:String>
     <sys:String x:Key="LOC_KX_RunStillOpen">{0} is still open</sys:String>
