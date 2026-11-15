@@ -519,6 +519,8 @@
                                                 Margin="{PluginSettings Plugin=Kippix, Path=FilterAboveMargin, FallbackValue='72,0,72,440'}"
                                                 Visibility="{PluginSettings Plugin=Kippix, Path=FilterAbove, FallbackValue=Collapsed}">
                                     <StackPanel Orientation="Horizontal">
+                                        <!-- (the filter's name only with "Show the current filter"; a search shows without it too) -->
+                                        <StackPanel Orientation="Horizontal" Visibility="{PluginSettings Plugin=Kippix, Path=ShowFilterLabel, FallbackValue=Visible}">
                                         <Path Data="{StaticResource KX_IconFilter}" Style="{StaticResource KX_InfoIcon}" />
                                         <!-- the games' filter; in an extra row (or Folder: the open folder) that name takes its place -->
                                         <Grid>
@@ -536,6 +538,15 @@
                                             <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HomeLabelText}" Style="{StaticResource KX_TextSub}"
                                                        Visibility="{PluginSettings Plugin=Kippix, Path=HomeLabelOwn, FallbackValue=Collapsed}" />
                                         </Grid>
+                                        </StackPanel>
+                                        <!-- the games are searched (Search › Show in my games, or Playnite's own search): what for, and B clears it -->
+                                        <StackPanel Orientation="Horizontal" Visibility="{PluginSettings Plugin=Kippix, Path=HomeSearchShown, FallbackValue=Collapsed}">
+                                            <Border Width="22" Visibility="{PluginSettings Plugin=Kippix, Path=ShowFilterLabel, FallbackValue=Visible}" />
+                                            <Path Data="{StaticResource KX_IconSearch}" Style="{StaticResource KX_InfoIcon}" />
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HomeSearchText}" Style="{StaticResource KX_TextSub}" MaxWidth="520" TextTrimming="CharacterEllipsis" />
+                                            <ContentControl ContentTemplate="{DynamicResource ButtonPromptB}" Width="24" Height="24" Focusable="False" Margin="18,0,0,0" Opacity="0.75" />
+                                            <TextBlock Text="{DynamicResource LOC_KX_ClearSearch}" Style="{StaticResource KX_TextDim}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ContentControl>
 
