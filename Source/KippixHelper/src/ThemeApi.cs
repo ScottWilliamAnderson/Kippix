@@ -637,6 +637,7 @@ namespace KippixHelper
             if (settings.HideTopOptions) settings.SettingsInProfileMenu = true;   // there's always a way into the settings
             settings.DetDescSource = Math.Max(0, Math.Min(1, settings.DetDescSource));
             if (!settings.EditsMerged) MergeEdits(settings);
+            HelperSettings.DropFixedGamePlaces(settings.MasterOffsets, settings.MasterSizes);   // (the game page's left column is one stack now)
             if (settings.StoreWishlist == null) settings.StoreWishlist = new List<WishItem>();
             if (settings.StoreRecent == null) settings.StoreRecent = new List<WishItem>();
             settings.ItadApiKey = "";   // own keys aren't used any more (the built-in one is): an old saved one is dropped

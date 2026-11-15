@@ -183,47 +183,28 @@
                                 <!-- ============ LEFT: logo + info (moved up / down by Settings › Game page › Layout) ============ -->
                                 <DockPanel x:Name="DetBlock" Grid.ColumnSpan="3"
                                            Margin="{PluginSettings Plugin=Kippix, Path=DetInfoMargin, FallbackValue='0,320,0,0'}">
-                                    <!-- logo or name: spans the whole width, so left / centre / right use the whole screen -->
-                                    <Grid x:Name="DetLogo" DockPanel.Dock="Top" Margin="0,0,0,18" MaxHeight="170" Opacity="0"
-                                          Visibility="{PluginSettings Plugin=Kippix, Path=DetShowLogo, FallbackValue=Visible}"
-                                          HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoAlignment, FallbackValue=Left}">
-                                        <Grid.Style>
-                                            <Style TargetType="Grid">
+                                    <!-- the play info, the logo and the game's details: one stack, in the order it's read. In the Default design it stands on the
+                                         buttons' line and grows upwards (a Canvas, so a tall one isn't cut off): the buttons stay where they are whatever a game
+                                         has to show, and no part is drawn over another. In the Centred design it starts under the media, the buttons follow it -->
+                                    <Canvas x:Name="DetHead" DockPanel.Dock="Top">
+                                        <Canvas.Style>
+                                            <Style TargetType="Canvas">
+                                                <Setter Property="Height" Value="408" />
                                                 <Style.Triggers>
-                                                    <!-- Right side / Centre layouts: the logo sits centred over the info block -->
                                                     <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=DetLogoOverInfo}" Value="True">
-                                                        <Setter Property="Width" Value="{Binding ActualWidth, ElementName=InfoColumn}" />
+                                                        <Setter Property="Height" Value="{Binding ActualHeight, ElementName=DetHeadStack}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Grid.Style>
-                                        <Grid.RenderTransform>
-                                            <TranslateTransform x:Name="LogoShift" X="0" Y="0" />
-                                        </Grid.RenderTransform>
-                                        <ContentControl x:Name="ExtraMetadataLoader_LogoLoaderControl" MaxHeight="170" MaxWidth="620"
-                                                        HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}" Focusable="False">
-<ContentControl.Style><Style TargetType="ContentControl"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></ContentControl.Style>
-</ContentControl>
-                                        <TextBlock Text="{Binding DisplayName}" FontSize="62" TextWrapping="Wrap"
-                                                   VerticalAlignment="Bottom" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}">
-<TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource KX_TextTitle}"><Setter Property="Visibility" Value="Visible" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                            <TextBlock.Effect>
-                                                <DropShadowEffect ShadowDepth="0" BlurRadius="18" Opacity="0.6" />
-                                            </TextBlock.Effect>
-                                        </TextBlock>
-                                    </Grid>
-
-                                <DockPanel x:Name="InfoColumn" Opacity="0"
-                                           HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetInfoAlignment, FallbackValue=Left}"
-                                           MaxWidth="{PluginSettings Plugin=Kippix, Path=DetInfoMaxWidth, FallbackValue=1150}">
-                                    <DockPanel.RenderTransform>
-                                        <TranslateTransform x:Name="InfoShift" X="0" Y="0" />
-                                    </DockPanel.RenderTransform>
-
-
+                                        </Canvas.Style>
+                                    <StackPanel x:Name="DetHeadStack" Canvas.Left="0" Canvas.Bottom="0" Width="{Binding ActualWidth, ElementName=DetHead}">
+                                    <!-- (the play info and the details come in with the info column: its fade and its slide) -->
+                                    <Grid x:Name="DetStatsHost" Opacity="{Binding Opacity, ElementName=InfoColumn}" RenderTransform="{Binding RenderTransform, ElementName=InfoColumn}"
+                                          HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetInfoAlignment, FallbackValue=Left}"
+                                          MaxWidth="{PluginSettings Plugin=Kippix, Path=DetInfoMaxWidth, FallbackValue=1150}">
                                     <!-- quick stats -->
                                     <!-- the play info box: the play line (play time, last played...), then How long to beat directly under it -->
-                                    <StackPanel x:Name="KX_DetStats" DockPanel.Dock="Top" Margin="0,0,0,22" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"
+                                    <StackPanel x:Name="KX_DetStats" Margin="0,0,0,22" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"
                                                Visibility="{PluginSettings Plugin=Kippix, Path=DetShowInfo, FallbackValue=Visible}">
                                     <WrapPanel x:Name="KX_DetStatsLine" Orientation="Horizontal" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}">
                                         <!-- each line has its own switch (Settings › Game page › Play time and game info); the helper puts them in the
@@ -312,9 +293,66 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                     </StackPanel>
+                                    </Grid>
+
+                                    <!-- logo or name: spans the whole width, so left / centre / right use the whole screen -->
+                                    <Grid x:Name="DetLogo" Margin="0,0,0,18" MaxHeight="170" Opacity="0"
+                                          Visibility="{PluginSettings Plugin=Kippix, Path=DetShowLogo, FallbackValue=Visible}"
+                                          HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoAlignment, FallbackValue=Left}">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <!-- Right side / Centre layouts: the logo sits centred over the info block -->
+                                                    <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=DetLogoOverInfo}" Value="True">
+                                                        <Setter Property="Width" Value="{Binding ActualWidth, ElementName=InfoColumn}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                        <Grid.RenderTransform>
+                                            <TranslateTransform x:Name="LogoShift" X="0" Y="0" />
+                                        </Grid.RenderTransform>
+                                        <ContentControl x:Name="ExtraMetadataLoader_LogoLoaderControl" MaxHeight="170" MaxWidth="620"
+                                                        HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}" Focusable="False">
+<ContentControl.Style><Style TargetType="ContentControl"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></ContentControl.Style>
+</ContentControl>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="62" TextWrapping="Wrap"
+                                                   VerticalAlignment="Bottom" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}">
+<TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource KX_TextTitle}"><Setter Property="Visibility" Value="Visible" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect ShadowDepth="0" BlurRadius="18" Opacity="0.6" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <Grid x:Name="DetFactsHost" Opacity="{Binding Opacity, ElementName=InfoColumn}" RenderTransform="{Binding RenderTransform, ElementName=InfoColumn}"
+                                          HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetInfoAlignment, FallbackValue=Left}"
+                                          MaxWidth="{PluginSettings Plugin=Kippix, Path=DetInfoMaxWidth, FallbackValue=1150}">
+                                    <!-- details: each one has its own switch (Settings › Game page › Play time and game info); one that's off, or that the game has nothing for, leaves no gap (no details at all: no room taken) -->
+                                    <Grid x:Name="KX_DetFacts" Margin="0" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"
+                                          Visibility="{PluginSettings Plugin=Kippix, Path=DetShowInfo, FallbackValue=Visible}">
+                                        <UniformGrid x:Name="KX_DetFactsGrid" Columns="2" Grid.IsSharedSizeScope="True">
+                                            <Grid Tag="info:dev" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowDev, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameDevelopersTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Developers, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
+                                            <Grid Tag="info:pub" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowPub, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGamePublishersTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Publishers, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
+                                            <Grid Tag="info:release" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowRelease, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameReleaseDateTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding ReleaseDate, Converter={StaticResource ReleaseDateToStringConverter}}" Style="{StaticResource KX_TextSub}" /></Grid>
+                                            <Grid Tag="info:genres" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowGenres, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameGenresTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Genres, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
+                                            <Grid Tag="info:platform" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowPlatform, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGamePlatformTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Platforms, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
+                                            <Grid Tag="info:source" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowSource, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCSourceLabel}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Source.Name}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
+                                        </UniformGrid>
+                                    </Grid>
+                                    </Grid>
+                                    </StackPanel>
+                                    </Canvas>
+
+                                <DockPanel x:Name="InfoColumn" Opacity="0"
+                                           HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetInfoAlignment, FallbackValue=Left}"
+                                           MaxWidth="{PluginSettings Plugin=Kippix, Path=DetInfoMaxWidth, FallbackValue=1150}">
+                                    <DockPanel.RenderTransform>
+                                        <TranslateTransform x:Name="InfoShift" X="0" Y="0" />
+                                    </DockPanel.RenderTransform>
 
                                     <!-- buttons: Play / Install (set by Playnite) and the game menu -->
-                                    <StackPanel x:Name="DetButtons" DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,26" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}">
+                                    <StackPanel x:Name="DetButtons" DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,13,0,26" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}">
                                         <StackPanel.Resources>
                                             <!-- round icon button next to Play -->
                                             <Style x:Key="KX_RoundIconButton" TargetType="ButtonEx" BasedOn="{StaticResource KX_PillButton}">
@@ -372,19 +410,6 @@
                                             </ButtonEx>
                                         </StackPanel>
                                     </Border>
-
-                                    <!-- details: each one has its own switch (Settings › Game page › Play time and game info); one that's off leaves no gap -->
-                                    <Grid x:Name="KX_DetFacts" DockPanel.Dock="Top" Margin="0,0,0,14" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"
-                                          Visibility="{PluginSettings Plugin=Kippix, Path=DetShowInfo, FallbackValue=Visible}">
-                                        <UniformGrid x:Name="KX_DetFactsGrid" Columns="2" Grid.IsSharedSizeScope="True">
-                                            <Grid Tag="info:dev" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowDev, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameDevelopersTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Developers, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
-                                            <Grid Tag="info:pub" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowPub, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGamePublishersTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Publishers, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
-                                            <Grid Tag="info:release" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowRelease, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameReleaseDateTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding ReleaseDate, Converter={StaticResource ReleaseDateToStringConverter}}" Style="{StaticResource KX_TextSub}" /></Grid>
-                                            <Grid Tag="info:genres" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowGenres, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGameGenresTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Genres, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
-                                            <Grid Tag="info:platform" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowPlatform, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCGamePlatformTitle}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Platforms, Converter={StaticResource ListToStringConverter}}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
-                                            <Grid Tag="info:source" Margin="0,0,40,8" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowSource, FallbackValue=Visible}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" SharedSizeGroup="BBFactName" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource LOCSourceLabel}" Style="{StaticResource KX_TextDim}" Margin="0,0,18,0" /><TextBlock Grid.Column="1" Text="{Binding Source.Name}" Style="{StaticResource KX_TextSub}" TextTrimming="CharacterEllipsis" /></Grid>
-                                        </UniformGrid>
-                                    </Grid>
 
                                     <!-- Steam friends who are playing / have played this game (Settings › Game page › Friends) -->
                                     <StackPanel x:Name="KX_DetFriends" DockPanel.Dock="Top" Margin="0,0,0,22" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"

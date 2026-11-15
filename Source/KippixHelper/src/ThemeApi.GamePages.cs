@@ -741,12 +741,34 @@ namespace KippixHelper
         public bool DetInfoShowAch { get { return DetInfoOn("ach"); } }
         public bool DetInfoShowStatus { get { return DetInfoOn("status"); } }
         public bool DetInfoShowEngine { get { return DetInfoOn("engine"); } }
-        public bool DetInfoShowDev { get { return DetInfoOn("dev"); } }
-        public bool DetInfoShowPub { get { return DetInfoOn("pub"); } }
-        public bool DetInfoShowRelease { get { return DetInfoOn("release"); } }
-        public bool DetInfoShowGenres { get { return DetInfoOn("genres"); } }
-        public bool DetInfoShowPlatform { get { return DetInfoOn("platform"); } }
-        public bool DetInfoShowSource { get { return DetInfoOn("source"); } }
+        // the game's details: switched on, and the game has one (a name with nothing beside it isn't shown; an app with no details shows none)
+        public bool DetInfoShowDev { get { return DetInfoOn("dev") && DetHasFact("dev"); } }
+        public bool DetInfoShowPub { get { return DetInfoOn("pub") && DetHasFact("pub"); } }
+        public bool DetInfoShowRelease { get { return DetInfoOn("release") && DetHasFact("release"); } }
+        public bool DetInfoShowGenres { get { return DetInfoOn("genres") && DetHasFact("genres"); } }
+        public bool DetInfoShowPlatform { get { return DetInfoOn("platform") && DetHasFact("platform"); } }
+        public bool DetInfoShowSource { get { return DetInfoOn("source") && DetHasFact("source"); } }
+
+        /// <summary>Does the game on the page have this detail? (Asked again when the page moves to another game: NotifyDetInfo.)</summary>
+        private bool DetHasFact(string k)
+        {
+            try
+            {
+                var g = SelectedGameNow();
+                if (g == null) return true;
+                switch (k)
+                {
+                    case "dev": return g.Developers != null && g.Developers.Count > 0;
+                    case "pub": return g.Publishers != null && g.Publishers.Count > 0;
+                    case "release": return g.ReleaseDate != null;
+                    case "genres": return g.Genres != null && g.Genres.Count > 0;
+                    case "platform": return g.Platforms != null && g.Platforms.Count > 0;
+                    case "source": return g.Source != null && !string.IsNullOrEmpty(g.Source.Name);
+                }
+            }
+            catch (Exception) { }
+            return true;
+        }
         /// <summary>How long to beat in the info (the How long to beat card stays as it is): the times switched on, when the game has them.</summary>
         public bool DetInfoShowHltb { get { return DetInfoOn("hltb") && !string.IsNullOrEmpty(DetInfoHltbText); } }
         /// <summary>(0.88) the "HowLongToBeat" label at the start of that line (off: just the times)</summary>
