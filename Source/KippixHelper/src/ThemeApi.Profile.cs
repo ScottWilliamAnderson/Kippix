@@ -87,6 +87,8 @@ namespace KippixHelper
                             profilePicture = img;
                             Notify("ProfilePicture");
                             Notify("HasProfilePicture");
+                            // the tour's "Choose a picture" row was built while this was still loading: it shows the picture now
+                            if (openPanel == "welcome") { var row = WelcomeRows.FirstOrDefault(r => r.Key == "pic"); if (row != null) row.Picture = img; }
                         }));
                     });
                 }
