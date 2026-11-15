@@ -75,7 +75,8 @@ namespace KippixHelper
         private static void TourSyncCol(ObservableCollection<PickRow> col, List<PickRow> want)
         {
             bool same = col.Count == want.Count;
-            for (int i = 0; same && i < want.Count; i++) same = col[i].Key == want[i].Key;
+            // (Grid and Board both have presets pp:0, pp:1, pp:3: the same key isn't the same box, the name tells them apart)
+            for (int i = 0; same && i < want.Count; i++) same = col[i].Key == want[i].Key && col[i].Text == want[i].Text;
             if (!same)
             {
                 col.Clear();
@@ -88,7 +89,8 @@ namespace KippixHelper
                 have.IsSelected = want[i].IsSelected;
                 have.IsDimmed = want[i].IsDimmed;
                 have.Command = want[i].Command;
-                if (have.Picture == null && want[i].Picture != null) have.Picture = want[i].Picture;
+                // the picture too: "Default" is in every layout, each with its own photo (one not loaded yet is null here, and put on when it's in)
+                have.Picture = want[i].Picture;
             }
         }
 
