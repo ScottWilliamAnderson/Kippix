@@ -158,6 +158,7 @@ namespace KippixHelper
         public bool PreviewSound = false;
         public bool SkipGamePage = false;          // A plays the game instead of opening the game page
         public bool RunKeepBrowsing = false;       // (issue #11) apps and games stay open while you carry on in Playnite: its "X is running" screen closes itself, and music, sounds and the rest come back while Playnite is in front
+        public int RunCloseConfirm = 1;            // X on a Running now tile asks "Close Firefox?" first: 0 never, 1 apps only, 2 always
 
         // Game page extras
         public bool DetShowOptionsButton = true;

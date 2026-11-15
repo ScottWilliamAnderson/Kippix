@@ -4826,6 +4826,13 @@
     <sys:String x:Key="LOC_KX_RunForce">Force close</sys:String>
     <sys:String x:Key="LOC_KX_RunForceText">Forcing it closed loses anything it hasn't saved.</sys:String>
     <sys:String x:Key="LOC_KX_RunNoWindow">Couldn't find {0}'s window</sys:String>
+    <sys:String x:Key="LOC_KX_RunConfirm">Ask before closing</sys:String>
+    <sys:String x:Key="LOC_KX_RunConfirmSub">X in the Running now row asks first, so one press can't close something by accident</sys:String>
+    <sys:String x:Key="LOC_KX_RunConfirmNever">Never</sys:String>
+    <sys:String x:Key="LOC_KX_RunConfirmApps">Apps only</sys:String>
+    <sys:String x:Key="LOC_KX_RunConfirmAlways">Always</sys:String>
+    <sys:String x:Key="LOC_KX_RunCloseAsk">Close {0}?</sys:String>
+    <sys:String x:Key="LOC_KX_RunCloseAskText">All of its windows are asked to close.</sys:String>
     <sys:String x:Key="LOC_KX_BadgeRunning">Running</sys:String>
     <sys:String x:Key="LOC_KX_BadgeRunningShort">Running</sys:String>
     <sys:String x:Key="LOC_KX_BadgeRunningSub">On the games and apps that are running now</sys:String>
