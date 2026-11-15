@@ -40,6 +40,7 @@ namespace KippixHelper
         {
             CycleJustRowsCommand = new RelayCommand(_ => { settings.JustRows = JustRowsNow >= 5 ? 2 : JustRowsNow + 1; SaveSettings(); PlaySound("move"); HomeModeChanged(); });
             JustifiedPanel.Setup = SetupJustPanel;
+            InitJustPerf();
             OpenLibraryViewCommand = new RelayCommand(_ => OpenLibraryView());
             CloseLibraryViewCommand = new RelayCommand(_ => CloseLibraryView(true));
             EventManager.RegisterClassHandler(typeof(Window), Keyboard.PreviewKeyUpEvent, new KeyEventHandler((s, e) => { if (e.Key == Key.Down) libraryDownIsDown = false; }), true);
@@ -327,11 +328,24 @@ namespace KippixHelper
         private void JustGoTo(ListBox list, int index)
         {
             if (index < 0 || index >= list.Items.Count) return;
+            bool perf = JustifiedPanel.Perf;
+            long t0 = perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0, t1 = 0, t2 = 0, t3 = 0;
+            if (perf) JustPerfFrames(true);
             list.SelectedIndex = index;
+            if (perf) t1 = System.Diagnostics.Stopwatch.GetTimestamp();
             if (justPanel != null) justPanel.ScrollToIndex(index);
+            if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
             list.UpdateLayout();   // (the panel makes the selected game's tile, wherever it is)
+            if (perf) t3 = System.Diagnostics.Stopwatch.GetTimestamp();
             var c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
             if (c != null) Keyboard.Focus(c);
+            if (perf)
+            {
+                double f = System.Diagnostics.Stopwatch.Frequency / 1000.0;
+                long t4 = System.Diagnostics.Stopwatch.GetTimestamp();
+                pfSelect.Add((t1 - t0) / f); pfScroll.Add((t2 - t1) / f); pfLayout.Add((t3 - t2) / f); pfFocus.Add((t4 - t3) / f); pfMove.Add((t4 - t0) / f);
+                JustPerfSettle();
+            }
         }
 
         // =====================================================================
@@ -364,6 +378,7 @@ namespace KippixHelper
             carWhy = "the library view was opened";
             PlaySound("select");
             logger.Info("Kippix: mosaic: library view opened (over layout " + libraryFromMode + ")");
+            JustPerfFrames(true);
             HomeModeChanged();
             Notify("IsLibraryOpen");
             LibraryFocusSoon(0);
@@ -379,6 +394,8 @@ namespace KippixHelper
             if (sound) PlaySound("back");
             carWhy = "the library view was closed";
             logger.Info("Kippix: mosaic: library view closed");
+            JustPerfSummary("library view closed");
+            JustPerfFrames(false);
             HomeModeChanged();
             Notify("IsLibraryOpen");
             LibraryFocusSoon(0);

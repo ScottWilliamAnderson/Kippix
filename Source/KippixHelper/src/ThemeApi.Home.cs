@@ -431,7 +431,11 @@ namespace KippixHelper
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
             try { GameSelectedNow(game); }
-            finally { if (sw.ElapsedMilliseconds >= 40) PerfLog("game selected " + sw.ElapsedMilliseconds + " ms, " + PerfWhere); }
+            finally
+            {
+                if (sw.ElapsedMilliseconds >= 40) PerfLog("game selected " + sw.ElapsedMilliseconds + " ms, " + PerfWhere);
+                if (JustifiedPanel.Perf && JustifiedMode) pfSelected.Add(sw.Elapsed.TotalMilliseconds);
+            }
         }
 
         private void GameSelectedNow(Game game)
