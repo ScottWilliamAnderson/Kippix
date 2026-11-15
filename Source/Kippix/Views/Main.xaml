@@ -686,11 +686,11 @@
                                                 HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=HintsAlignment, FallbackValue=Left}"
                                                 Visibility="{PluginSettings Plugin=Kippix, Path=ShowButtonHints, FallbackValue=Visible}">
                                         <ContentControl ContentTemplate="{DynamicResource ButtonPromptA}" Width="26" Height="26" Focusable="False" />
-                                        <!-- "Details", or "Play" when the game page is skipped (then the X hint goes) -->
+                                        <!-- "Details", or "Play" when the game page is skipped (then the X hint goes); on a Running now tile: A Switch to, X Close -->
                                         <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HintAText, FallbackValue=Details}" Style="{StaticResource KX_TextDim}" Margin="8,0,24,0" VerticalAlignment="Center" />
                                         <StackPanel Orientation="Horizontal" Visibility="{PluginSettings Plugin=Kippix, Path=ShowXPlayHint, FallbackValue=Visible}">
                                             <ContentControl ContentTemplate="{DynamicResource ButtonPromptX}" Width="26" Height="26" Focusable="False" />
-                                            <TextBlock Text="{DynamicResource LOC_KX_Play}" Style="{StaticResource KX_TextDim}" Margin="8,0,24,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HintXText, FallbackValue=Play}" Style="{StaticResource KX_TextDim}" Margin="8,0,24,0" VerticalAlignment="Center" />
                                         </StackPanel>
                                         <ContentControl ContentTemplate="{DynamicResource ButtonPromptStart}" Width="26" Height="26" Focusable="False" />
                                         <TextBlock Text="{DynamicResource LOC_KX_GameOptions}" Style="{StaticResource KX_TextDim}" Margin="8,0,24,0" VerticalAlignment="Center" />

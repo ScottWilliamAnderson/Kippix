@@ -22,6 +22,7 @@ namespace KippixHelper
     {
         internal Guid GameId;
         internal string CoverFile;
+        internal bool RunRow;   // (issue #11) a tile in "Running now": A switches to it, X closes it
         public string Name { get; set; }
         private ImageSource cover;
         public ImageSource Cover { get { return cover; } set { if (Set(ref cover, value, "Cover")) Notify("HasCover"); } }
@@ -77,6 +78,7 @@ namespace KippixHelper
         {
             ExtraRowsList = new ObservableCollection<ExtraRow>();
             ExtraRowChoices = new ObservableCollection<PickRow>();
+            Running.Changed += () => OnUi(RunningListChanged);   // (issue #11) the Running now row follows what's running
             CycleHomeLayoutCommand = new RelayCommand(_ =>
             {
                 if (boardEditing) BoardEndEdit(false);
@@ -213,6 +215,7 @@ namespace KippixHelper
         {
             switch (key)
             {
+                case "running": return Loc("LOC_KX_RowRunning", "Running now");
                 case "favourites": return Loc("LOC_KX_RowFavourites", "Favourites");
                 case "recent": return Loc("LOC_KX_RowRecent", "Recently added");
                 case "installed": return Loc("LOC_KX_RowInstalled", "Installed");
@@ -239,7 +242,7 @@ namespace KippixHelper
         private void BuildExtraRowChoices()
         {
             ExtraRowChoices.Clear();
-            var keys = new List<string> { "upnext", "favourites", "recent", "installed", "never" };
+            var keys = new List<string> { "running", "upnext", "favourites", "recent", "installed", "never" };
             try { foreach (var p in api.Database.FilterPresets.OrderBy(p => p.Name)) keys.Add("filter:" + p.Id); } catch (Exception) { }
             foreach (var c in settings.Collections) keys.Add("shelf:" + c.Id);
             var on = ExtraKeys();
@@ -265,8 +268,10 @@ namespace KippixHelper
                 {
                     Text = name, Key = k, IsSelected = pos >= 0, IsSwitch = true,
                     Sub = pos >= 0 ? string.Format(Loc("LOC_KX_RowNumber", "Row {0}"), pos + 2) : Loc("LOC_KX_Off", "Off"),
-                    Icon = k.StartsWith("filter:", StringComparison.Ordinal) ? "filter" : k == "upnext" ? "forward" : "shelf"
+                    Icon = k.StartsWith("filter:", StringComparison.Ordinal) ? "filter" : k == "upnext" ? "forward" : k == "running" ? "play" : "shelf"
                 };
+                // (issue #11) Running now is always the first row, and shows by itself with Keep browsing on
+                if (k == "running") { row.Sub = pos >= 0 || settings.RunKeepBrowsing ? Loc("LOC_KX_RunRowSub", "First, while something is running") : Loc("LOC_KX_Off", "Off"); row.IsSelected = pos >= 0 || settings.RunKeepBrowsing; }
                 row.Command = new RelayCommand(_ => ToggleExtraRow(key));
                 ExtraRowChoices.Add(row);
             }
@@ -504,7 +509,9 @@ namespace KippixHelper
         // Extra rows (one row mode only)
         // =====================================================================
 
-        public bool ShowExtraRows { get { return settings.ExtraRows && settings.HomeLayoutMode == 0 && settings.RowDesign == 0 && ExtraRowsList.Count > 0; } }
+        public bool ShowExtraRows { get { return ExtraRowsWanted && ExtraRowsList.Count > 0; } }
+        /// <summary>Row › Lower with the extra rows on, or (issue #11) with Keep browsing on: then "Running now" shows by itself.</summary>
+        private bool ExtraRowsWanted { get { return (settings.ExtraRows || settings.RunKeepBrowsing) && settings.HomeLayoutMode == 0 && settings.RowDesign == 0; } }
         /// <summary>In one of the extra rows: the filter name above the games shows that row's name instead (same place, same look).</summary>
         private bool InExtraRow { get { return extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count; } }
         /// <summary>The filter name shows a name of its own: the extra row you're in, or (Folder) the folder that's open.</summary>
@@ -534,7 +541,7 @@ namespace KippixHelper
                     ((System.Collections.Specialized.INotifyCollectionChanged)list.Items).CollectionChanged += (s, e) =>
                     {
                         if (IsBoardMode) { BoardRefreshLater(); return; }   // the Board's "All games" follows Playnite's list
-                        if (!ShowExtraRows && !(settings.ExtraRows && settings.HomeLayoutMode == 0 && settings.RowDesign == 0)) return;
+                        if (!ExtraRowsWanted) return;
                         if (rowsChangeTimer == null)
                         {
                             rowsChangeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
@@ -562,8 +569,11 @@ namespace KippixHelper
         private void RebuildExtraRows()
         {
             if (!IsFullscreen) return;
-            if (!settings.ExtraRows || settings.HomeLayoutMode != 0 || settings.RowDesign != 0) { ExtraRowsList.Clear(); Notify("ShowExtraRows"); return; }   // (Row: Lower only)
-            var keys = ExtraKeys().ToList();
+            if (!ExtraRowsWanted) { ExtraRowsList.Clear(); Notify("ShowExtraRows"); return; }   // (Row: Lower only)
+            var keys = settings.ExtraRows ? ExtraKeys().ToList() : new List<string>();
+            // (issue #11) "Running now": first when it's one of your rows, and there by itself with Keep browsing on
+            bool runRow = keys.Remove("running") || settings.RunKeepBrowsing;
+            if (runRow) keys.Insert(0, "running");
             double w = rowTileW, h = rowTileH;
             var shown = GamesInView();
             KippixShared.SafeWork.Queue(_ =>
@@ -580,6 +590,10 @@ namespace KippixHelper
                         List<Game> games;
                         switch (k)
                         {
+                            case "running":   // (whatever Playnite's filter or the hidden flag say: it's running), the last one started first
+                                games = new List<Game>();
+                                foreach (var r in Running.Snapshot().AsEnumerable().Reverse()) { var rg = api.Database.Games.Get(r.Id); if (rg != null) games.Add(rg); }
+                                break;
                             case "favourites": games = all.Where(g => IsFavouriteNow(g)).OrderByDescending(g => LastPlayedNow(g) ?? DateTime.MinValue).ToList(); break;
                             case "recent": games = all.Where(g => g.Added.HasValue).OrderByDescending(g => g.Added.Value).ToList(); break;
                             case "installed": games = all.Where(g => g.IsInstalled).OrderByDescending(g => g.LastActivity ?? DateTime.MinValue).ToList(); break;
@@ -613,7 +627,7 @@ namespace KippixHelper
                                     break;
                                 }
                         }
-                        if (shown != null) games = games.Where(g => shown.Contains(g.Id)).ToList();   // Playnite can only select what its filter shows
+                        if (shown != null && k != "running") games = games.Where(g => shown.Contains(g.Id)).ToList();   // Playnite can only select what its filter shows
                         if (games.Count > 0) built.Add(Tuple.Create(k, name, games.Take(40).ToList()));
                     }
                 }
@@ -621,20 +635,32 @@ namespace KippixHelper
                 OnUi(() =>
                 {
                     int wasAt = extraRowAt;
+                    // (issue #11) Running now comes and goes above the others: where you were is found again by its row and game, not its number
+                    string wasKey = wasAt > 0 && wasAt <= ExtraRowsList.Count ? ExtraRowsList[wasAt - 1].Key : null;
+                    Guid wasGame = extraFocused != null ? extraFocused.GameId : Guid.Empty;
                     rowOffsets.Clear();
                     ExtraRowsList.Clear();
                     foreach (var b in built)
                     {
                         rowTilePlace = 0;
                         var row = new ExtraRow { Key = b.Item1, Title = b.Item2, TileHeight = h };
-                        foreach (var g in b.Item3) row.Tiles.Add(MakeRowTile(g, w, h));
+                        foreach (var g in b.Item3) { var tile = MakeRowTile(g, w, h); tile.RunRow = b.Item1 == "running"; row.Tiles.Add(tile); }
                         ExtraRowsList.Add(row);
                     }
                     Notify("ShowExtraRows");
                     if (wasAt > 0)
                     {
                         if (ExtraRowsList.Count == 0) LeaveExtraRows(true);
-                        else ui.BeginInvoke(new Action(() => GoToExtraRow(Math.Min(wasAt, ExtraRowsList.Count), 0)), DispatcherPriority.Loaded);
+                        else
+                        {
+                            int at = wasKey != null ? ExtraRowsList.ToList().FindIndex(r => r.Key == wasKey) + 1 : 0;
+                            if (at <= 0) at = Math.Min(wasAt, ExtraRowsList.Count);
+                            int col = 0;
+                            var tiles = ExtraRowsList[at - 1].Tiles;
+                            for (int i = 0; i < tiles.Count; i++) if (tiles[i].GameId == wasGame) { col = i; break; }
+                            if (StatusScreenUp()) { extraRowAt = at; extraFocused = tiles[col]; }   // (Playnite's status screen has the highlight: back on the tile when it closes)
+                            else ui.BeginInvoke(new Action(() => GoToExtraRow(at, col)), DispatcherPriority.Loaded);
+                        }
                     }
                     LayoutExtraRows(false);
                     LoadRowCovers();
@@ -715,6 +741,7 @@ namespace KippixHelper
         {
             Notify("HomeLabelOwn");
             Notify("HomeLabelText");
+            Notify("HintAText"); Notify("HintXText"); Notify("ShowXPlayHint");   // (issue #11) Running now: A Switch to, X Close
             try
             {
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
@@ -807,6 +834,7 @@ namespace KippixHelper
             if (!ShowExtraRows || openPanel != null || detailsOpen) return false;
             if (IsPadRelease(e)) return extraRowAt > 0 && (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right);   // a let-go: nothing (but don't let it through either)
             if (extraRowAt > 0 && IsBackKey(e)) { PlaySound("back"); LeaveExtraRows(true); return true; }
+            if (extraRowAt > 0 && e.Key == Key.X && RunningRowX(true)) return true;   // (issue #11) the keyboard's X on a Running now tile: closes it (the controller's: ThemeApi.PadInput.cs)
             if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return false;
             var win = Application.Current.MainWindow;
             var games = UiTools.FindByName(win, "PART_ListGameItems");
@@ -970,6 +998,7 @@ namespace KippixHelper
         private void OpenRowTile(RowTile t)
         {
             if (t == null) return;
+            if (t.RunRow) { RunningSwitchTo(t.GameId); return; }   // (issue #11) Running now: its window comes to the front
             PlaySound("select");
             extraFocused = t;
             try { api.MainView.SelectGame(t.GameId); } catch (Exception) { }

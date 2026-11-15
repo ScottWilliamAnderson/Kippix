@@ -39,6 +39,9 @@ namespace KippixHelper
                 Notify("RunKeepBrowsing");
                 logger.Info("Kippix: running: keep browsing " + (value ? "on" : "off"));
                 if (AnyRunning) { HookRunningWindow(); playniteActive = PlayniteActiveNow(); RunningStateChanged(); }
+                if (!ExtraRowsWanted) LeaveExtraRows(false);
+                NotifyHomeRows();
+                RebuildExtraRowsSoon();   // (the Running now row comes and goes with it)
             }
         }
 
@@ -170,6 +173,19 @@ namespace KippixHelper
         // Playnite's "X is running" screen closes itself (keep browsing)
         // =====================================================================
 
+        /// <summary>Playnite's "X is starting / running" screen is on screen.</summary>
+        private static bool StatusScreenUp()
+        {
+            try
+            {
+                var w = Application.Current != null ? Application.Current.MainWindow : null;
+                object vm = w != null ? w.DataContext : null;
+                object shown = vm != null ? Prop(vm, "GameStatusVisible") : null;
+                return shown is bool && (bool)shown;
+            }
+            catch (Exception) { return false; }
+        }
+
         /// <summary>
         /// Once a second while anything runs: Playnite's status screen is up, nothing is still starting, the last start was 3 s
         /// or more ago and Playnite's window is the active one: the screen closes (as its own Close button does) and the
@@ -236,6 +252,113 @@ namespace KippixHelper
                 catch (Exception ex) { logger.Warn("Kippix: running: highlight after the status screen: " + ex.Message); }
             };
             timer.Start();
+        }
+
+        // =====================================================================
+        // The "Running now" row (ThemeApi.HomeRows.cs, key "running"): A switches to the app, X closes it
+        // =====================================================================
+
+        /// <summary>The highlight is in the Running now row.</summary>
+        private bool InRunningRow { get { return InExtraRow && ExtraRowsList[extraRowAt - 1].Key == "running"; } }
+
+        /// <summary>Something started or stopped: the row is filled again (it goes when nothing runs).</summary>
+        private void RunningListChanged()
+        {
+            if (!IsFullscreen || ui == null) return;
+            bool rowOn = settings.RunKeepBrowsing || (settings.ExtraRows && ExtraKeys().Contains("running"));
+            if (rowOn && ExtraRowsWanted) ui.BeginInvoke(new Action(RebuildExtraRows), DispatcherPriority.Background);
+        }
+
+        /// <summary>X on the highlighted tile, when it's a Running now tile (true: the press was ours, also the let-go).</summary>
+        private bool RunningRowX(bool pressed)
+        {
+            if (extraRowAt == 0) return false;
+            var f = Keyboard.FocusedElement as FrameworkElement;
+            var tile = f != null ? f.DataContext as RowTile : null;
+            if (tile == null || !tile.RunRow) return false;
+            if (pressed) RunningClose(tile.GameId);
+            return true;
+        }
+
+        private static string RunHeader { get { return Loc("LOC_KX_RowRunning", "Running now").ToUpper(); } }
+
+        /// <summary>A on a Running now tile: that app's window comes to the front. False when it isn't running.</summary>
+        private bool RunningSwitchTo(Guid id)
+        {
+            var entry = Running.Get(id);
+            if (entry == null) return false;
+            PlaySound("select");
+            KippixShared.SafeWork.Queue(_ =>
+            {
+                IntPtr h = Running.FindWindow(entry);
+                if (h == IntPtr.Zero)
+                {
+                    logger.Info("Kippix: running: switch to " + entry.Name + ": no window found");
+                    OnUi(() => ShowCard(RunHeader, entry.Name, string.Format(Loc("LOC_KX_RunNoWindow", "Couldn't find {0}'s window"), entry.Name), "", null));
+                    return;
+                }
+                logger.Info("Kippix: running: switch to " + entry.Name + ": window 0x" + h.ToInt64().ToString("X"));
+                KippixOverlay.Native.ForceForeground(h);
+            });
+            return true;
+        }
+
+        private readonly HashSet<Guid> runClosing = new HashSet<Guid>();
+
+        /// <summary>
+        /// X on a Running now tile: its windows are asked to close, the way their own close button would (it can save, or ask
+        /// first); nothing is ever forced here. Still running 10 seconds later: a question offers to force it closed.
+        /// </summary>
+        private void RunningClose(Guid id)
+        {
+            var entry = Running.Get(id);
+            if (entry == null || runClosing.Contains(id)) return;   // (asked already: wait for the 10 seconds)
+            runClosing.Add(id);
+            PlaySound("select");
+            ShowCard(RunHeader, string.Format(Loc("LOC_KX_RunClosing", "Closing {0}"), entry.Name), "", "", null);
+            KippixShared.SafeWork.Queue(_ =>
+            {
+                var wins = Running.WindowsOf(entry, false);
+                if (wins.Count == 0) { IntPtr h = Running.FindWindow(entry); if (h != IntPtr.Zero) wins.Add(h); }
+                int asked = 0;
+                foreach (IntPtr h in wins) if (Running.AskToClose(h)) asked++;
+                logger.Info("Kippix: running: close " + entry.Name + ": " + asked + " of " + wins.Count + " window(s) asked to close");
+                if (wins.Count == 0) OnUi(() => ShowCard(RunHeader, entry.Name, string.Format(Loc("LOC_KX_RunNoWindow", "Couldn't find {0}'s window"), entry.Name), "", null));
+            });
+            var timer = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromSeconds(10) };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                runClosing.Remove(id);
+                if (!ReferenceEquals(Running.Get(id), entry)) return;   // closed (or closed and started again)
+                var w = Application.Current != null ? Application.Current.MainWindow : null;
+                if (w == null || !w.IsActive || confirmOpen || !IsFullscreen)
+                {
+                    logger.Info("Kippix: running: " + entry.Name + " is still open after 10 s (not asked about forcing it: Playnite isn't in front, or a question is up)");
+                    return;
+                }
+                logger.Info("Kippix: running: " + entry.Name + " is still open after 10 s: asking whether to force it closed");
+                Confirm(string.Format(Loc("LOC_KX_RunStillOpen", "{0} is still open"), entry.Name), Loc("LOC_KX_RunForceText", "Forcing it closed loses anything it hasn't saved."), Loc("LOC_KX_RunForce", "Force close"), () => RunningForceClose(entry));
+            };
+            timer.Start();
+        }
+
+        /// <summary>Force close, after the question: its programs and everything they started are ended (taskkill /T /F).</summary>
+        private void RunningForceClose(RunningEntry entry)
+        {
+            if (!ReferenceEquals(Running.Get(entry.Id), entry)) return;
+            KippixShared.SafeWork.Queue(_ =>
+            {
+                var pids = Running.ProcessesOf(entry);
+                if (pids.Count == 0)
+                {
+                    logger.Info("Kippix: running: force close " + entry.Name + ": none of its programs found");
+                    OnUi(() => ShowCard(RunHeader, entry.Name, string.Format(Loc("LOC_KX_RunNoWindow", "Couldn't find {0}'s window"), entry.Name), "", null));
+                    return;
+                }
+                logger.Info("Kippix: running: force close " + entry.Name + ": taskkill /T /F on process " + string.Join(", ", pids.Select(p => p.ToString()).ToArray()));
+                KippixOverlay.Native.RunHidden("taskkill", string.Join(" ", pids.Select(p => "/PID " + p).ToArray()) + " /T /F");
+            });
         }
     }
 }

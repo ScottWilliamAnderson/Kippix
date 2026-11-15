@@ -338,9 +338,11 @@ namespace KippixHelper
         public bool GamePageAvailable { get { return !settings.SkipGamePage; } }
 
         /// <summary>What A does on the home screen: opens the game page, or plays the game.</summary>
-        public string HintAText { get { return settings.SkipGamePage ? Loc("LOC_KX_Play", "Play") : Loc("LOC_KX_Details", "Details"); } }
+        public string HintAText { get { return InRunningRow ? Loc("LOC_KX_RunSwitch", "Switch to") : settings.SkipGamePage ? Loc("LOC_KX_Play", "Play") : Loc("LOC_KX_Details", "Details"); } }
+        /// <summary>(issue #11) What X does: plays, or closes the app on a Running now tile.</summary>
+        public string HintXText { get { return InRunningRow ? Loc("LOC_KX_RunClose", "Close") : Loc("LOC_KX_Play", "Play"); } }
         /// <summary>The separate "X Play" hint, not needed when A already plays.</summary>
-        public bool ShowXPlayHint { get { return !settings.SkipGamePage; } }
+        public bool ShowXPlayHint { get { return !settings.SkipGamePage || InRunningRow; } }
 
         /// <summary>A (or X) on a game card plays it (or installs it) when the game page is skipped. Runs before Playnite's own key bindings on the row.</summary>
         private void OnCardKeyDown(object sender, KeyEventArgs e)
