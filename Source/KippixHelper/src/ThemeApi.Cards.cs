@@ -337,8 +337,8 @@ namespace KippixHelper
         /// <summary>The game page (and its settings) can be used: false when it's skipped.</summary>
         public bool GamePageAvailable { get { return !settings.SkipGamePage; } }
 
-        /// <summary>What A does on the home screen: opens the game page, or plays the game.</summary>
-        public string HintAText { get { return InRunningRow ? Loc("LOC_KX_RunSwitch", "Switch to") : settings.SkipGamePage ? Loc("LOC_KX_Play", "Play") : Loc("LOC_KX_Details", "Details"); } }
+        /// <summary>What A does on the home screen: opens the game page, or plays the game; (issue #11) on a Running now tile: "Switch".</summary>
+        public string HintAText { get { return InRunningRow ? Loc("LOC_KX_RunSwitchHint", "Switch") : settings.SkipGamePage ? Loc("LOC_KX_Play", "Play") : Loc("LOC_KX_Details", "Details"); } }
         /// <summary>(issue #11) What X does: plays, or closes the app on a Running now tile.</summary>
         public string HintXText { get { return InRunningRow ? Loc("LOC_KX_RunClose", "Close") : Loc("LOC_KX_Play", "Play"); } }
         /// <summary>The separate "X Play" hint, not needed when A already plays.</summary>

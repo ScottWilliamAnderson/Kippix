@@ -747,7 +747,7 @@ namespace KippixHelper
         {
             Notify("HomeLabelOwn");
             Notify("HomeLabelText");
-            Notify("HintAText"); Notify("HintXText"); Notify("ShowXPlayHint");   // (issue #11) Running now: A Switch to, X Close
+            Notify("HintAText"); Notify("HintXText"); Notify("ShowXPlayHint");   // (issue #11) Running now: A Switch, X Close
             try
             {
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
