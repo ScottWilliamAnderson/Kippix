@@ -674,9 +674,12 @@ namespace KippixHelper
                 if (row != null) TourFocusRow(row);
                 if (sc != null)
                 {
-                    sc.ScrollToTop();
+                    // (the stores: the first row to press is under the list of stores, which can be longer than the screen: then
+                    // the list goes down to it, rather than back to a top where the highlight isn't)
                     var sc2 = sc;
-                    ui.BeginInvoke(new Action(() => { try { sc2.ScrollToTop(); } catch (Exception) { } }), DispatcherPriority.ApplicationIdle);   // (0.99.14: the heading over the first row too)
+                    var wl2 = wl as ItemsControl;
+                    TourTopOrRow(wl2, sc2, row);
+                    ui.BeginInvoke(new Action(() => TourTopOrRow(wl2, sc2, row)), DispatcherPriority.ApplicationIdle);   // (0.99.14: the heading over the first row too)
                 }
                 else if (!UiTools.FocusByNameIfVisible("KX_TourStart") && !UiTools.FocusByNameIfVisible("KX_TourNext")) UiTools.FocusInside("KX_WelcomeView");
             }), DispatcherPriority.ContextIdle);
@@ -1093,6 +1096,22 @@ namespace KippixHelper
                 double view = scroller.ViewportHeight, at = scroller.VerticalOffset;
                 if (top - 16 < at) scroller.ScrollToVerticalOffset(Math.Max(0, top - 16));
                 else if (bottom + 24 > at + view) scroller.ScrollToVerticalOffset(Math.Min(scroller.ScrollableHeight, bottom + 24 - view));
+            }
+            catch (Exception) { }
+        }
+
+        /// <summary>A step starts at the top of its list when the highlighted row <paramref name="r"/> shows from there; otherwise the list is scrolled to that row.</summary>
+        private static void TourTopOrRow(ItemsControl list, ScrollViewer scroller, PickRow r)
+        {
+            try
+            {
+                scroller.ScrollToTop();
+                if (list == null || r == null) return;
+                scroller.UpdateLayout();
+                var c = list.ItemContainerGenerator.ContainerFromItem(r) as FrameworkElement;
+                if (c == null) return;
+                double bottom = c.TransformToAncestor(scroller).Transform(new Point(0, 0)).Y + scroller.VerticalOffset + c.ActualHeight;
+                if (bottom > scroller.ViewportHeight) TourScrollTo(list, scroller, r, null);
             }
             catch (Exception) { }
         }
