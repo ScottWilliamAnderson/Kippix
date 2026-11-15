@@ -281,6 +281,10 @@ namespace KippixHelper
                 w.Activated += (s, e) => UpdateMusicState();
                 w.Deactivated += (s, e) => UpdateMusicState();
             }
+            // Playnite starts its music again by itself (back from a game, its window in front again, its volume changed): looked at every second too
+            playniteMusicWatch = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromSeconds(1) };
+            playniteMusicWatch.Tick += (s, e) => QuietPlayniteMusic();
+            playniteMusicWatch.Start();
             RestartMusic();
         }
 
@@ -302,6 +306,7 @@ namespace KippixHelper
             track = -1;
             musicPlaying = false;
             music.Stop();
+            QuietPlayniteMusic();
             if (playlist.Count == 0)
             {
                 NowPlayingText = settings.MusicMode == 2 ? Loc("LOC_KX_MusicEmpty", "No music in the folder yet") : "";
@@ -332,6 +337,7 @@ namespace KippixHelper
                           && w != null && w.IsActive && !(trailerPlaying && settings.DetTrailerSound) && !PreviewHasSound && !StoreSoundActive && !GallerySoundActive && !IntroSoundActive && !LocalPlayerActive;
             if (should && !musicPlaying) { music.Volume = 0; musicLevel = 0; music.Play(); musicPlaying = true; }
             musicFade.Start();
+            QuietPlayniteMusic();
         }
 
         private void FadeStep()
@@ -351,6 +357,75 @@ namespace KippixHelper
         }
 
         private bool gameRunningNow;
+
+        // ---------------- Playnite's own background music ----------------
+
+        private DispatcherTimer playniteMusicWatch;
+        private bool playniteAudioLooked;
+        private object playniteAudio;
+        private MethodInfo pnMusicPlaying, pnMusicPaused, pnMusicPause, pnMusicResume;
+        private bool playniteMusicPausedByUs;
+
+        /// <summary>Playnite's audio engine (PlayniteApplication.Current.Audio): not in the SDK, so it's found by name.</summary>
+        private bool FindPlayniteAudio()
+        {
+            if (playniteAudio != null) return true;
+            if (playniteAudioLooked) return false;
+            playniteAudioLooked = true;
+            try
+            {
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    Type t = a.GetType("Playnite.PlayniteApplication", false);
+                    if (t == null) continue;
+                    PropertyInfo cur = t.GetProperty("Current", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                    object app = cur != null ? cur.GetValue(null, null) : null;
+                    PropertyInfo ap = app != null ? app.GetType().GetProperty("Audio", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy) : null;
+                    object audio = ap != null ? ap.GetValue(app, null) : null;
+                    if (audio == null) { playniteAudioLooked = false; return false; }   // Playnite has not made it yet (asked early at start-up): looked for again next time
+                    Type at = audio.GetType();
+                    pnMusicPlaying = at.GetMethod("GetIsMusicPlaying", Type.EmptyTypes);
+                    pnMusicPaused = at.GetMethod("GetIsMusicPaused", Type.EmptyTypes);
+                    pnMusicPause = at.GetMethod("PauseMusic", Type.EmptyTypes);
+                    pnMusicResume = at.GetMethod("ResumeMusic", Type.EmptyTypes);
+                    if (pnMusicPlaying != null && pnMusicPaused != null && pnMusicPause != null && pnMusicResume != null) playniteAudio = audio;
+                    break;
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: Playnite's music can't be reached: " + ex.Message); }
+            if (playniteAudio == null) logger.Info("Kippix: Playnite's audio engine wasn't found: its own music is left alone");
+            return playniteAudio != null;
+        }
+
+        /// <summary>
+        /// Playnite plays its own background music whatever Music is set to here: with Off it kept playing, and with
+        /// "Playnite's music" (the same file, played by our player) or My music it would play on top of ours. So it's paused,
+        /// except with UniPlaySong, which deals with Playnite's music itself. Playnite resumes it on its own
+        /// (after a game, when its window comes back), so this is asked again each time, not once.
+        /// </summary>
+        private void QuietPlayniteMusic()
+        {
+            if (music == null) return;   // fullscreen only
+            try
+            {
+                if (!FindPlayniteAudio()) return;
+                if (!MusicUps)
+                {
+                    if ((bool)pnMusicPlaying.Invoke(playniteAudio, null) && !(bool)pnMusicPaused.Invoke(playniteAudio, null))
+                    {
+                        pnMusicPause.Invoke(playniteAudio, null);
+                        playniteMusicPausedByUs = true;
+                    }
+                }
+                else if (playniteMusicPausedByUs)
+                {
+                    // UniPlaySong was just picked: Playnite's music goes back to how it was (not under a running game, Playnite keeps it paused there)
+                    playniteMusicPausedByUs = false;
+                    if (!gameRunningNow && (bool)pnMusicPaused.Invoke(playniteAudio, null)) pnMusicResume.Invoke(playniteAudio, null);
+                }
+            }
+            catch (Exception) { }
+        }
 
         // ---------------- exit ----------------
 
