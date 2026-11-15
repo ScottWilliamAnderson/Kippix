@@ -161,6 +161,7 @@ namespace KippixHelper
             settings.HomeBgOffsetX = d.HomeBgOffsetX;   // (r15: Move the picture: back in the middle; SetHomeBgMode below applies it)
             settings.HomeBgOffsetY = d.HomeBgOffsetY;
             settings.LiveSlideWeb = d.LiveSlideWeb;
+            settings.HomeVideo = d.HomeVideo; settings.HomeVideoDownload = d.HomeVideoDownload; NotifyHomeVideo();   // (issue #13; the tick stops it)
             settings.BackgroundMotion = d.BackgroundMotion;
             settings.MotionSpeed = d.MotionSpeed;
             settings.MotionAmount = d.MotionAmount;

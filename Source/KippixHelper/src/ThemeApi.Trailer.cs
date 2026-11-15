@@ -358,7 +358,17 @@ namespace KippixHelper
             }
 
             // 2. the Steam store trailer
-            if (!settings.DetTrailerStream || game.PluginId != SteamPluginId || string.IsNullOrEmpty(game.GameId)) { done(null); return; }
+            if (!settings.DetTrailerStream) { done(null); return; }
+            ResolveSteamTrailer(game, done, downloading);
+        }
+
+        /// <summary>
+        /// The game's Steam store trailer alone (downloaded once, then reused), whatever DetTrailerStream says: the caller asks
+        /// its own setting. (issue #13: split from ResolveTrailer so the home video can use the same download and cache.)
+        /// </summary>
+        private void ResolveSteamTrailer(Game game, Action<TrailerFiles> done, Func<bool> downloading)
+        {
+            if (game.PluginId != SteamPluginId || string.IsNullOrEmpty(game.GameId)) { done(null); return; }
             string appId = game.GameId;
             TrailerFiles cached;
             lock (steamTrailers)

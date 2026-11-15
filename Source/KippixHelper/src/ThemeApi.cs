@@ -287,6 +287,7 @@ namespace KippixHelper
             RefreshBattery();
             try { MediaAddonsTick(); } catch (Exception) { }   // (0.98) UniPlaySong / BackgroundChanger, once they're loaded
             ApplyBgChangeDelay();   // (0.99.7) Playnite puts its own 300 ms back now and then
+            try { EnsureHomeVideoTimer(); } catch (Exception) { }   // (issue #13) Gameplay video behind the games (ThemeApi.HomeVideo.cs)
             try { BadgeSettingsTick(); } catch (Exception) { }   // (0.99.17)
             try { PlayersBootCheck(); } catch (Exception) { }    // (0.99.36) the first game's players online after fullscreen starts
             // (0.93) moving through the games on the home screen: the upkeep below waits until you stop (for up to 6 s), so it

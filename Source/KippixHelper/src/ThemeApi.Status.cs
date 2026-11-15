@@ -71,6 +71,7 @@ namespace KippixHelper
             launchPageBgWhat = "";
             launchGame = game;
             launchGameAt = DateTime.Now;
+            try { HomeVideoGameStarting(); } catch (Exception) { }   // (issue #13) no video (or open file) behind a game that's starting
             try { AutoSavesBackup(game, true); } catch (Exception) { }
             SessionStarting(game);
             OnUi(() =>
