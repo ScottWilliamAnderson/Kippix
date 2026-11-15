@@ -647,6 +647,20 @@
                                         <Grid>
                                         <Image x:Name="PART_ImageCover" Stretch="Uniform"
                                                Height="{PluginSettings Plugin=Kippix, Path=DetCoverHeight, FallbackValue=560}" MaxWidth="{PluginSettings Plugin=Kippix, Path=DetCoverHeight, FallbackValue=560}"
+                                               RenderOptions.BitmapScalingMode="Fant">
+                                            <!-- (Shuffle covers has a cover picked for this game: that one shows, below, in this one's place) -->
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=HasShuffleCoverPage}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <Image x:Name="KX_ShuffleCover" Stretch="Uniform" Source="{PluginSettings Plugin=Kippix, Path=ShuffleCoverPage}"
+                                               Height="{PluginSettings Plugin=Kippix, Path=DetCoverHeight, FallbackValue=560}" MaxWidth="{PluginSettings Plugin=Kippix, Path=DetCoverHeight, FallbackValue=560}"
                                                RenderOptions.BitmapScalingMode="Fant" />
                                         <!-- (0.98) BackgroundChanger's cover for the game, in the cover's own box -->
                                         <ContentControl x:Name="BackgroundChanger_PluginCoverImage" Focusable="False" IsHitTestVisible="False"

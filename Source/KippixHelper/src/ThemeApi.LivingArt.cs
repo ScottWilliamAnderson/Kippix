@@ -65,6 +65,7 @@ namespace KippixHelper
             FrameworkElement src = null;
             Binding source = null;
             if (parent.Name == "KX_WideArt") src = UiTools.FindByName(parent, "KX_WideImage") as Image;
+            if (src == null) { var pick = UiTools.FindByName(tile, "KX_ShuffleCover") as Image; if (pick != null && pick.Source != null) src = pick; }   // (Shuffle covers' pick, when the card shows one)
             if (src == null) src = UiTools.FindByName(tile, "PART_ImageCover") as Image;
             if (src != null) { if (((Image)src).Source == null) return false; source = new Binding("Source") { Source = src }; }
             else

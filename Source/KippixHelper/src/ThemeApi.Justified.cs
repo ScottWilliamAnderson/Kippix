@@ -55,6 +55,8 @@ namespace KippixHelper
                 coverSizes = new CoverSizes(api, dir, ui ?? (Application.Current != null ? Application.Current.Dispatcher : null));
                 // shapes learnt after the rows were worked out: worked out again (a few at a time, never per cover)
                 coverSizes.Changed += () => { if (justPanel != null) justPanel.InvalidateModel(); };
+                coverSizes.PickOf = ShuffleCoverFile;   // Shuffle covers: the tile takes the shape of the cover picked for this period
+                ShuffleCoversChanged += () => { if (justPanel != null) justPanel.InvalidateModel(); };
                 return coverSizes;
             }
         }

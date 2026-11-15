@@ -467,6 +467,7 @@ namespace KippixHelper
                     SaveSettings(); PlaySound("move"); NotifyBc(); BcRowsAgain("bccover");
                 }));
             if (cv) BcModeRows(rows, "Cover", "bccovermode", "bccovertimer");
+            ShuffleRows(rows);   // Shuffle covers on the home screen (ThemeApi.ShuffleCovers.cs)
             rows.Add(new PickRow { IsInfo = true, Icon = "info", Key = "bcmore", Text = Loc("LOC_KX_BcMore", "Adding pictures and videos to a game is in BackgroundChanger itself"), Sub = Loc("LOC_KX_BcMoreSub", "Playnite's desktop mode: right-click a game › BackgroundChanger") });
         }
 
@@ -542,6 +543,7 @@ namespace KippixHelper
             }
             if (ticks > 2) { try { BcEnforceBg(); } catch (Exception ex) { logger.Warn("Kippix: BackgroundChanger background: " + ex.Message); } }
             UpsQuietCheck();
+            try { ShuffleTick(); } catch (Exception ex) { logger.Warn("Kippix: shuffle covers: " + ex.Message); }
         }
     }
 }

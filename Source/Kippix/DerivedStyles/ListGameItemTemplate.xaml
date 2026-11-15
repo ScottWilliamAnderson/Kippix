@@ -29,6 +29,11 @@
                                RenderOptions.BitmapScalingMode="Fant"
                                Stretch="UniformToFill"
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <!-- Shuffle covers (Background > BackgroundChanger): the cover picked for now, set by the helper; empty, the cover above shows -->
+                        <Image x:Name="KX_ShuffleCover"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                         <!-- wide tiles and the list down one side (Options > Home settings): the helper fills these in -->
                         <Grid x:Name="KX_WideArt" Visibility="Collapsed" IsHitTestVisible="False">

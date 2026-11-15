@@ -36,6 +36,9 @@ namespace KippixHelper
         /// <summary>Some shapes have been learnt since the last call (on the UI thread, at most a few times a second).</summary>
         public event Action Changed;
 
+        /// <summary>Shuffle covers: the cover file picked for a game this period (a full path), or null for the game's own cover.</summary>
+        public Func<Guid, string> PickOf;
+
         public CoverSizes(IPlayniteAPI api, string dataDir, Dispatcher ui)
         {
             this.api = api;
@@ -48,7 +51,7 @@ namespace KippixHelper
         /// <summary>The cover's width / height: the real one when known, a box cover's until then (the real one is then read in the background).</summary>
         public float Get(Game game)
         {
-            string id = game != null ? game.CoverImage : null;
+            string id = game != null ? ((PickOf != null ? PickOf(game.Id) : null) ?? game.CoverImage) : null;
             if (string.IsNullOrEmpty(id)) return DefaultRatio;
             bool start = false;
             lock (gate)
@@ -95,7 +98,7 @@ namespace KippixHelper
                     if (ids.Count > 0)
                     {
                         var keep = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
-                        foreach (string k in ratios.Keys.Where(k => !keep.Contains(k)).ToList()) { ratios.Remove(k); dropped++; dirty = true; }
+                        foreach (string k in ratios.Keys.Where(k => !keep.Contains(k) && !Path.IsPathRooted(k)).ToList()) { ratios.Remove(k); dropped++; dirty = true; }
                     }
                 }
                 Save();
@@ -143,7 +146,7 @@ namespace KippixHelper
         {
             try
             {
-                string file = api.Database.GetFullFilePath(id);
+                string file = Path.IsPathRooted(id) ? id : api.Database.GetFullFilePath(id);   // (a shuffled cover is a full path already)
                 if (string.IsNullOrEmpty(file) || !File.Exists(file)) return 0;
                 using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {

@@ -442,6 +442,7 @@ namespace KippixHelper
             if (Running.Any) Notify("DetPlaySwitches");   // (issue #11) the game page's Play button reads "Switch to" for a game that's running
             try { LiveSelectionChanged(); } catch (Exception) { }   // live backgrounds / animated art (ThemeApi.LiveBackground.cs)
             try { HomeVideoSelectionChanged(game); } catch (Exception) { }   // (issue #13) the last game's video goes at once (ThemeApi.HomeVideo.cs)
+            try { ShufflePageCover(game); } catch (Exception) { }   // Shuffle covers: the game page moved to another game
             try { TileBgSelected(game); } catch (Exception) { }   // (0.88) Background › The game's tile
             try { HomeExtrasSelected(game, false); } catch (Exception) { }   // (r13) the info line's players online / friends (ThemeApi.HomeInfoExtras.cs)
             try { LookGameSelected(game); FolderAccentFollow(); if (detailsOpen) UpdateGamePageMore(); } catch (Exception) { }

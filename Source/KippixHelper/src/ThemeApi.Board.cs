@@ -1274,7 +1274,7 @@ namespace KippixHelper
             if (g != null)
             {
                 int kind = BoardArtKind(c, t.Width, t.Height);   // (cropped: for the part that's left, which its picture fills)
-                string cover = FilePathOf(g.CoverImage), bg = FilePathOf(g.BackgroundImage);
+                string cover = ShuffledCover(g, FilePathOf(g.CoverImage)), bg = FilePathOf(g.BackgroundImage);
                 string wide = null;
                 try { wide = WideArtPath(g); } catch (Exception) { }
                 switch (kind)

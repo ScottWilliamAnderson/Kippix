@@ -47,6 +47,17 @@ namespace KippixHelper
             return img;
         }
 
+        /// <summary>The picture if it's already decoded at this width (nothing is read); null otherwise.</summary>
+        public static ImageSource Peek(string path, int width)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            lock (cache)
+            {
+                ImageSource hit;
+                return cache.TryGetValue(width + "|" + path, out hit) ? hit : null;
+            }
+        }
+
         /// <summary>Same, without keeping it in memory (big backgrounds, full screen pictures).</summary>
         public static ImageSource LoadUncached(string path, int width)
         {

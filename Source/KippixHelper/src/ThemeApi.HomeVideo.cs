@@ -210,7 +210,7 @@ namespace KippixHelper
             if (openPanel != null) return "a panel is open";
             if (confirmOpen || kbOpen) return "a question or the keyboard is open";
             // ---- THE LIBRARY VIEW (feat/justified-library, ThemeApi.Justified.cs): once both are merged, add this line here ----
-            //     if (LibraryOpen) return "the library view is open";
+            if (LibraryOpen) return "the library view is open";
             return null;
         }
 

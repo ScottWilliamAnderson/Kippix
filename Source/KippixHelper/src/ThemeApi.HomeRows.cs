@@ -690,7 +690,7 @@ namespace KippixHelper
             var t = new RowTile
             {
                 GameId = g.Id, Name = g.Name, Width = w, Height = h,
-                CoverFile = !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : g.CoverImage,
+                CoverFile = ShuffledCover(g, !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : g.CoverImage),
                 ShowInstalled = settings.BadgeInstalled && g.IsInstalled,
                 ShowRunning = settings.BadgeRunning && Running.IsRunning(g.Id),
                 ShowNew = settings.BadgeNew && IsNewGame(g),
