@@ -2026,13 +2026,13 @@ namespace KippixHelper
                 ui.BeginInvoke(new Action(() =>
                 {
                     try { api.MainView.SelectGame(id); } catch (Exception) { }
-                    if (settings.SkipGamePage) { launchedDirectlyAt = DateTime.Now; try { api.StartGame(id); } catch (Exception) { } return; }
+                    if (settings.SkipGamePage) { if (TrySwitchInsteadOfPlay(id)) return; launchedDirectlyAt = DateTime.Now; try { api.StartGame(id); } catch (Exception) { } return; }
                     ui.BeginInvoke(new Action(() => { if (SelectedGameId() == id) RunMainCommand("ToggleGameDetailsCommand"); }), DispatcherPriority.Loaded);
                 }), DispatcherPriority.ContextIdle);
                 return;
             }
             try { api.MainView.SelectGame(id); } catch (Exception) { }
-            if (settings.SkipGamePage) { launchedDirectlyAt = DateTime.Now; try { api.StartGame(id); } catch (Exception) { } return; }
+            if (settings.SkipGamePage) { if (TrySwitchInsteadOfPlay(id)) return; launchedDirectlyAt = DateTime.Now; try { api.StartGame(id); } catch (Exception) { } return; }
             ui.BeginInvoke(new Action(() =>
             {
                 if (SelectedGameId() != id) return;   // Playnite's filter hides it: don't open another game's page

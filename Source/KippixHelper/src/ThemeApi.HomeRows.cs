@@ -29,6 +29,9 @@ namespace KippixHelper
         public bool HasCover { get { return cover != null; } }
         public bool ShowNew { get; set; }
         public bool ShowInstalled { get; set; }
+        private bool showRunning;
+        /// <summary>(issue #11) Running now: a green dot.</summary>
+        public bool ShowRunning { get { return showRunning; } set { Set(ref showRunning, value, "ShowRunning"); } }
         public string AchText { get; set; }
         public bool ShowAch { get { return !string.IsNullOrEmpty(AchText); } }
         public string HltbText { get; set; }
@@ -180,6 +183,7 @@ namespace KippixHelper
             set { if (settings.ExtraRows == value) return; settings.ExtraRows = value; if (!value) LeaveExtraRows(false); SaveSettings(); NotifyHomeRows(); RebuildExtraRowsSoon(); }
         }
         public bool BadgeInstalled { get { return settings.BadgeInstalled; } set { if (SetSetting(ref settings.BadgeInstalled, value)) { Notify("BadgeInstalled"); RefreshBadgesSoon(); } } }
+        public bool BadgeRunning { get { return settings.BadgeRunning; } set { if (SetSetting(ref settings.BadgeRunning, value)) { Notify("BadgeRunning"); RunningBadgesChanged(); } } }   // (issue #11) "Running" on the tiles of what's running
         public bool BadgeNew { get { return settings.BadgeNew; } set { if (SetSetting(ref settings.BadgeNew, value)) { Notify("BadgeNew"); RefreshBadgesSoon(); } } }
         public bool BadgeAch { get { return settings.BadgeAch; } set { if (SetSetting(ref settings.BadgeAch, value)) { Notify("BadgeAch"); RefreshBadgesSoon(); } } }
         public bool BadgeHltb { get { return settings.BadgeHltb; } set { if (SetSetting(ref settings.BadgeHltb, value)) { Notify("BadgeHltb"); RefreshBadgesSoon(); } } }
@@ -189,6 +193,7 @@ namespace KippixHelper
             {
                 var on = new List<string>();
                 if (settings.BadgeInstalled) on.Add(Loc("LOC_KX_BadgeInstalledShort", "Installed"));
+                if (settings.BadgeRunning) on.Add(Loc("LOC_KX_BadgeRunningShort", "Running"));
                 if (settings.BadgeNew) on.Add(Loc("LOC_KX_BadgeNewShort", "New"));
                 if (settings.BadgeAch) on.Add(Loc("LOC_KX_BadgeAchShort", "Achievements"));
                 if (settings.BadgeHltb) on.Add("HLTB");
@@ -683,6 +688,7 @@ namespace KippixHelper
                 GameId = g.Id, Name = g.Name, Width = w, Height = h,
                 CoverFile = !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : g.CoverImage,
                 ShowInstalled = settings.BadgeInstalled && g.IsInstalled,
+                ShowRunning = settings.BadgeRunning && Running.IsRunning(g.Id),
                 ShowNew = settings.BadgeNew && IsNewGame(g),
                 AchText = settings.BadgeAch ? AchBadgeText(g.Id) : null,
                 HltbText = settings.BadgeHltb ? HltbBadgeText(g.Id, false) : null
@@ -1002,7 +1008,7 @@ namespace KippixHelper
             PlaySound("select");
             extraFocused = t;
             try { api.MainView.SelectGame(t.GameId); } catch (Exception) { }
-            if (settings.SkipGamePage) { launchedDirectlyAt = DateTime.Now; try { api.StartGame(t.GameId); } catch (Exception) { } return; }
+            if (settings.SkipGamePage) { if (TrySwitchInsteadOfPlay(t.GameId)) return; launchedDirectlyAt = DateTime.Now; try { api.StartGame(t.GameId); } catch (Exception) { } return; }
             ui.BeginInvoke(new Action(() =>
             {
                 if (SelectedGameId() != t.GameId) return;   // Playnite's filter hides it: don't open another game's page

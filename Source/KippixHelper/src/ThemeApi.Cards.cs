@@ -369,6 +369,7 @@ namespace KippixHelper
                 if (!play) return;
 
                 e.Handled = true;
+                if (TrySwitchInsteadOfPlay(SelectedGameId())) return;   // (issue #11) running already: its window comes to the front
                 PausePreviewFor(10);
                 RunMainCommand("ActivateSelectedCommand");
             }

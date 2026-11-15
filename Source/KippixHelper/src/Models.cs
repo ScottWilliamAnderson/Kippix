@@ -367,6 +367,7 @@ namespace KippixHelper
         public bool ExtraRows = false;             // rows under the games (one row only)
         public List<string> ExtraRowKeys;          // which rows, in order: favourites, recent, installed, never, filter:<id>
         public bool BadgeInstalled = false;
+        public bool BadgeRunning = true;           // (issue #11) "Running" on the tiles of what's running now
         public bool BadgeNew = false;
         public bool BadgeAch = false;
         public bool BadgeHltb = false;

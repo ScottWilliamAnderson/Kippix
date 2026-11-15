@@ -91,6 +91,24 @@
                                 <Path Data="M5,12.5 L10,17.5 L19,7" Stroke="#FF4ADE80" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                       Width="14" Height="14" Stretch="Uniform" />
                             </Border>
+                            <!-- (issue #11) running now (Tile badges › Running): Playnite's own IsRunning, so it follows every start and stop by itself -->
+                            <Border x:Name="KX_BadgeRunning" CornerRadius="8" Background="#E64ADE80" Padding="8,2" Margin="6,0,0,0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsRunning}" Value="True" />
+                                                    <Condition Binding="{PluginSettings Plugin=Kippix, Path=BadgeRunning}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="{DynamicResource LOC_KX_BadgeRunningText}" FontSize="13" FontFamily="{DynamicResource FontTitilliumWebBold}" Foreground="#FF0D0F12" />
+                            </Border>
                             <!-- (r12) the game's store (Store logo on cards, off at first): set by the helper -->
                             <Border x:Name="KX_BadgeStore" CornerRadius="8" Background="#CC0D0F12" Padding="8,2" Margin="6,0,0,0" Visibility="Collapsed">
                                 <TextBlock x:Name="KX_BadgeStoreText" FontSize="13" FontFamily="{DynamicResource FontTitilliumWebBold}" Foreground="White" />

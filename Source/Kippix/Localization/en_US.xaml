@@ -4813,4 +4813,8 @@
     <sys:String x:Key="LOC_KX_RunForce">Force close</sys:String>
     <sys:String x:Key="LOC_KX_RunForceText">Forcing it closed loses anything it hasn't saved.</sys:String>
     <sys:String x:Key="LOC_KX_RunNoWindow">Couldn't find {0}'s window</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunning">Running</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningShort">Running</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningSub">On the games and apps that are running now</sys:String>
+    <sys:String x:Key="LOC_KX_BadgeRunningText">RUNNING</sys:String>
 </ResourceDictionary>

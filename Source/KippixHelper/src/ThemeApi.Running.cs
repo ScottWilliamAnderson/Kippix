@@ -267,6 +267,25 @@ namespace KippixHelper
             if (!IsFullscreen || ui == null) return;
             bool rowOn = settings.RunKeepBrowsing || (settings.ExtraRows && ExtraKeys().Contains("running"));
             if (rowOn && ExtraRowsWanted) ui.BeginInvoke(new Action(RebuildExtraRows), DispatcherPriority.Background);
+            RunningBadgesChanged();
+        }
+
+        /// <summary>The green dot on the extra rows' tiles of what's running (the game cards' own "Running" pill follows Playnite's IsRunning in the theme).</summary>
+        private void RunningBadgesChanged()
+        {
+            foreach (var row in ExtraRowsList)
+                foreach (var t in row.Tiles) t.ShowRunning = settings.BadgeRunning && Running.IsRunning(t.GameId);
+        }
+
+        /// <summary>
+        /// Where Kippix itself starts a game (A with "Skip the game page" on): it's running already, so its window comes to the
+        /// front instead (Playnite would do nothing at all: it never starts a game twice). False: not running, start it.
+        /// </summary>
+        private bool TrySwitchInsteadOfPlay(Guid id)
+        {
+            if (id == Guid.Empty || !Running.IsRunning(id)) return false;
+            logger.Info("Kippix: running: play on a game that's already running: switching to it");
+            return RunningSwitchTo(id);
         }
 
         /// <summary>X on the highlighted tile, when it's a Running now tile (true: the press was ours, also the let-go).</summary>

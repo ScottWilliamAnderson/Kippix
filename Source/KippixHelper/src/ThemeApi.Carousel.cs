@@ -1030,7 +1030,7 @@ namespace KippixHelper
             if (seq < carExtras.Count) { CarouselActivateCommand.Execute(null); return; }
             CarFocusGame(CarListIndex(seq - carExtras.Count));
             PlaySound("select");
-            if (settings.SkipGamePage) { PausePreviewFor(10); RunMainCommand("ActivateSelectedCommand"); return; }
+            if (settings.SkipGamePage) { if (TrySwitchInsteadOfPlay(SelectedGameId())) return; PausePreviewFor(10); RunMainCommand("ActivateSelectedCommand"); return; }
             RunMainCommand("ToggleGameDetailsCommand");
         }
 
