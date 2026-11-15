@@ -4371,7 +4371,7 @@
     <sys:String x:Key="LOC_KX_BcCoverOn">The game page's cover is the one (or ones) you gave the game in it</sys:String>
     <sys:String x:Key="LOC_KX_BcCoverOff">Off: the game's own cover</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffle">Shuffle covers on the home screen</sys:String>
-    <sys:String x:Key="LOC_KX_BcShuffleOn">A game with more than one cover in it shows a different one each time, on its tile and its game page</sys:String>
+    <sys:String x:Key="LOC_KX_BcShuffleOn">A game with covers in it shows a different one each time (its own cover takes its turn too), on its tile and its game page</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffleOff">Off: each game's own cover</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffleEvery">A new cover</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffleStart">Each time Playnite starts</sys:String>

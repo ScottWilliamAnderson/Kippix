@@ -114,7 +114,7 @@ namespace KippixHelper
         public bool UpsToast = false;              // (0.98) Audio › UniPlaySong › Show the song when it changes
         public bool UseBcBackgrounds = false;      // (0.98) Background › BackgroundChanger › Its backgrounds (when it's installed; 0.99.1: off to start with)
         public bool UseBcCovers = false;           // (0.98) ... › Its covers on the game page (0.99.1: off to start with)
-        public bool ShuffleCovers = false;         // ... › Shuffle covers on the home screen: a game with several covers in BackgroundChanger shows a different one each period
+        public bool ShuffleCovers = false;         // ... › Shuffle covers on the home screen: a game with covers in BackgroundChanger shows a different one (or its own) each period
         public int ShuffleCoversEvery = 0;         // a new pick: 0 each time Playnite starts, 1 each day
         public int ShuffleCoversRun = 0;           // how many times Playnite has started with it on (which pick "each start" is at)
         public bool BcOffOnce = false;             // (0.99.1) both put off once (they started on in 0.98-0.99)
