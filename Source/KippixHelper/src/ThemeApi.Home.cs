@@ -286,6 +286,7 @@ namespace KippixHelper
                 PreloadAchievementsLater();
                 if (IsFullscreen)
                 {
+                    JustPrewarmSoon();   // the mosaic: every cover's shape, read once on a worker
                     RebuildExtraRowsSoon();
                     RefreshBadgesSoon();
                     RefreshTileArtSoon();

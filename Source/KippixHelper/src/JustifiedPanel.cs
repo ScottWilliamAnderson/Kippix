@@ -478,6 +478,13 @@ namespace KippixHelper
             return from;
         }
 
+        /// <summary>(The name Playnite's own panel has for it: the helper's "make this item's tile" looks for it.)</summary>
+        public void ScrollToItem(object item)
+        {
+            var owner = Owner;
+            if (owner != null) ScrollToIndex(owner.Items.IndexOf(item));
+        }
+
         /// <summary>Scrolls just far enough for the item's row to be on screen whole.</summary>
         public void ScrollToIndex(int index)
         {

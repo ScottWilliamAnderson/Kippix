@@ -134,7 +134,7 @@ namespace KippixHelper
         private void ApplyHomeTiles()
         {
             if (HomeTiles == null) return;
-            if (CarouselOn)
+            if (CarouselOn || LayoutNow == 6)   // (the mosaic is the games only)
             {
                 // the carousel (Row: Lower with Loop, Tall, Full Screen): the tiles are items in it, before the first game
                 bool was = homeTilesShown || tilesVisible;
@@ -165,6 +165,7 @@ namespace KippixHelper
                 var owner = ItemsControl.ItemsControlFromItemContainer(item);
                 if (owner == null || owner.Name != "PART_ListGameItems") return;
                 if (SideMode) { if (SideTilesKey(item, owner, e.Key)) e.Handled = true; return; }
+                if (LayoutNow == 6) return;
                 if (e.Key != Key.Left || TilesMode == 0) return;
                 if (owner.ItemContainerGenerator.IndexFromContainer(item) != 0) return;
                 e.Handled = true;

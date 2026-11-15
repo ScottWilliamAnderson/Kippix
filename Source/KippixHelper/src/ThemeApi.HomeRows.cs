@@ -80,7 +80,7 @@ namespace KippixHelper
             CycleHomeLayoutCommand = new RelayCommand(_ =>
             {
                 if (boardEditing) BoardEndEdit(false);
-                settings.HomeLayoutMode = (settings.HomeLayoutMode + 1) % 6;   // row, grid, list, board, manual, folder
+                settings.HomeLayoutMode = (settings.HomeLayoutMode + 1) % 7;   // row, grid, list, board, manual, folder, mosaic
                 carWhy = "Games shown as changed";
                 if (settings.HomeLayoutMode != 0) LeaveExtraRows(false);
                 SaveSettings(); PlaySound("move"); HomeModeChanged();
@@ -123,7 +123,8 @@ namespace KippixHelper
         {
             get
             {
-                return settings.HomeLayoutMode == 5 ? Loc("LOC_KX_LayoutFolder", "Folder (WIP)")
+                return settings.HomeLayoutMode == 6 ? Loc("LOC_KX_LayoutJustified", "Mosaic")
+                     : settings.HomeLayoutMode == 5 ? Loc("LOC_KX_LayoutFolder", "Folder (WIP)")
                      : settings.HomeLayoutMode == 4 ? Loc("LOC_KX_LayoutManualBoard", "Manual Board")
                      : settings.HomeLayoutMode == 3 ? Loc("LOC_KX_LayoutBoard", "Board")
                      : settings.HomeLayoutMode == 1 ? Loc("LOC_KX_LayoutGrid", "Grid")
@@ -168,6 +169,7 @@ namespace KippixHelper
                 if (settings.HomeLayoutMode == 4) return settings.ManualPlacement == 1 ? string.Format(Loc("LOC_KX_FreeSummaryShort", "Manual Board, free placement, {0} tiles"), settings.FreeCards != null ? settings.FreeCards.Count : 0)
                                                                                      : string.Format(Loc("LOC_KX_ManualSummaryShort2", "Manual Board, grid, {0} tiles"), settings.ManualCards != null ? settings.ManualCards.Count : 0);
                 if (settings.HomeLayoutMode == 5) return FoldersShortSummary;
+                if (settings.HomeLayoutMode == 6) return string.Format(Loc("LOC_KX_JustSummary", "Mosaic, {0} rows"), JustRowsNow);
                 if (settings.RowDesign != 0) return string.Format(Loc("LOC_KX_RowSummaryDesign", "Row, {0}"), RowDesignText);
                 return settings.ExtraRows ? string.Format(Loc("LOC_KX_RowSummaryExtra", "Row + {0} more"), ExtraKeys().Count) : Loc("LOC_KX_LayoutRow", "Row");
             }
@@ -199,7 +201,7 @@ namespace KippixHelper
             foreach (string n in new[] { "IsListMode", "IsBoardMode", "IsBoardOnly", "IsManualMode", "IsNotBoardMode", "ShowCardLook", "ShowCardSpacing", "ShowTriArrange", "ShowTriSpacing", "HomeLayoutText", "GridRowsText", "GridColumnsText", "ListRowsText", "ListStretchText", "ListTooTall", "ListSideText",
                                          "HomeRowsSummary", "ExtraRowsOn", "BadgesSummary",
                                          "ShowExtraRows", "CardsMargin", "CardsWidth", "CardsHAlign", "CardsHScroll", "CardsVScroll",
-                                         "RowSettingsShown", "RowDesignTopShown", "RowDesignFolderShown", "GridSettingsShown", "ListSettingsShown", "IsRowLower", "HomeLabelOwn", "HomeLabelText" })
+                                         "RowSettingsShown", "RowDesignTopShown", "RowDesignFolderShown", "GridSettingsShown", "ListSettingsShown", "JustSettingsShown", "JustRowsText", "IsRowLower", "HomeLabelOwn", "HomeLabelText" })
                 Notify(n);
         }
 
@@ -299,6 +301,7 @@ namespace KippixHelper
             {
                 case 1: return new Thickness(gridTilesRoom, 0, 0, 16 + settings.CardOffset);
                 case 2: return settings.ListSide == 0 ? new Thickness(64, 0, 0, ListBottom) : new Thickness(0, 0, 64, ListBottom);
+                case 6: return new Thickness(0, 0, 0, 16 + settings.CardOffset);   // the mosaic: across the screen, like the grid without its tiles
             }
             return new Thickness(left, 0, 0, -55 + settings.CardOffset);
         }
@@ -309,14 +312,14 @@ namespace KippixHelper
         {
             get
             {
-                if (LayoutNow == 1) return HorizontalAlignment.Center;
+                if (LayoutNow == 1 || LayoutNow == 6) return HorizontalAlignment.Center;
                 if (LayoutNow == 2) return settings.ListSide == 0 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
                 return HorizontalAlignment.Stretch;
             }
         }
-        // the row scrolls sideways, the grid and the list downwards (a "Disabled" direction tells the panel it can't scroll that way)
-        public ScrollBarVisibility CardsHScroll { get { return SideMode ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Hidden; } }
-        public ScrollBarVisibility CardsVScroll { get { return SideMode ? ScrollBarVisibility.Hidden : ScrollBarVisibility.Disabled; } }
+        // the row scrolls sideways, the grid, the list and the mosaic downwards (a "Disabled" direction tells the panel it can't scroll that way)
+        public ScrollBarVisibility CardsHScroll { get { return ScrollsDown ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Hidden; } }
+        public ScrollBarVisibility CardsVScroll { get { return ScrollsDown ? ScrollBarVisibility.Hidden : ScrollBarVisibility.Disabled; } }
 
         private DependencyProperty horizProp, rowsProp;
         private BindingBase horizBinding, rowsBinding;

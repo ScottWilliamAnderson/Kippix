@@ -114,7 +114,7 @@ namespace KippixHelper
         // The cover row / grid / list (Playnite's own cards): shape, ring, badges, honeycomb / triangle packing
         // =====================================================================
 
-        private bool ShapesOn { get { return CardShapes.IsCut(settings.CardShape); } }
+        private bool ShapesOn { get { return CardShapes.IsCut(settings.CardShape) && LayoutNow != 6; } }   // (the mosaic: every cover its own shape, never cut)
         private bool shapesWereOn;
 
         /// <summary>A card's own shape (from the setting, triangles taking turns), where it is in the list.</summary>
@@ -337,9 +337,9 @@ namespace KippixHelper
         public bool IsNotBoardMode { get { return !BoardSettingsShown; } }
         /// <summary>Row › Tall / Full Screen is chosen (for the home screen or a folder's games): their cards are the default card.</summary>
         private bool RowPanelsChosen { get { return RowSettingsShown && settings.RowDesign != 0; } }
-        public bool ShowCardLook { get { return !IsManualMode; } }   // (0.89: Tall / Full Screen too, for the card shape)
-        public bool ShowCardSpacing { get { return IsBoardOnly || (!BoardSettingsShown && !RowPanelsChosen && !CardShapes.IsTriangle(settings.CardShape)); } }
-        public bool ShowTriArrange { get { return !BoardSettingsShown && CardShapes.IsTriangle(settings.CardShape); } }
+        public bool ShowCardLook { get { return !IsManualMode && settings.HomeLayoutMode != 6; } }   // (0.89: Tall / Full Screen too, for the card shape)
+        public bool ShowCardSpacing { get { return IsBoardOnly || (!BoardSettingsShown && !RowPanelsChosen && !CardShapes.IsTriangle(settings.CardShape) && settings.HomeLayoutMode != 6); } }
+        public bool ShowTriArrange { get { return !BoardSettingsShown && CardShapes.IsTriangle(settings.CardShape) && settings.HomeLayoutMode != 6; } }
         public bool ShowTriSpacing { get { return !BoardSettingsShown && !RowPanelsChosen && TrianglesPacked; } }
         private ICommand resetTriCmd;
         public ICommand ResetTriSpacingCommand
@@ -355,7 +355,7 @@ namespace KippixHelper
         }
         /// <summary>Triangles in the row / grid / extra rows: from one to the next, as a part of a triangle's width (taking turns: they overlap by half).</summary>
         private double TriStep { get { return (settings.TriArrange == 0 ? 0.5 : 1.0) + settings.TriSpacing / 100.0; } }
-        private bool TrianglesPacked { get { return CardShapes.IsTriangle(settings.CardShape) && LayoutNow != 2; } }
+        private bool TrianglesPacked { get { return CardShapes.IsTriangle(settings.CardShape) && LayoutNow != 2 && LayoutNow != 6; } }
 
         private SliderModel triSlider;
         public SliderModel TriSpacingSlider { get { return triSlider ?? (triSlider = new SliderModel()); } }
