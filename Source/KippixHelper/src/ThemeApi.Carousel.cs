@@ -1837,6 +1837,8 @@ namespace KippixHelper
 
         private string CarCoverFile(Game g)
         {
+            string pick = g != null ? ShuffleCoverFile(g.Id) : null;   // (Shuffle covers: the one picked for now)
+            if (pick != null) return pick;
             if (g == null || string.IsNullOrEmpty(g.CoverImage) || g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return null;
             return SafeFullPath(g.CoverImage);
         }

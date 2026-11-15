@@ -873,6 +873,8 @@ namespace KippixHelper
 
         private string CoverFile(Game g)
         {
+            string pick = g != null ? ShuffleCoverFile(g.Id) : null;   // (Shuffle covers: the one picked for now)
+            if (pick != null) return pick;
             if (g == null || string.IsNullOrEmpty(g.CoverImage)) return null;
             if (g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return g.CoverImage;
             try { return api.Database.GetFullFilePath(g.CoverImage); } catch (Exception) { return null; }

@@ -438,6 +438,7 @@ namespace KippixHelper
             lastSelectAt = DateTime.Now;   // (the start-up black screen waits for the background to settle)
             PreviewSelectionChanged();
             try { LiveSelectionChanged(); } catch (Exception) { }   // live backgrounds / animated art (ThemeApi.LiveBackground.cs)
+            try { ShufflePageCover(game); } catch (Exception) { }   // Shuffle covers: the game page moved to another game
             try { TileBgSelected(game); } catch (Exception) { }   // (0.88) Background › The game's tile
             try { HomeExtrasSelected(game, false); } catch (Exception) { }   // (r13) the info line's players online / friends (ThemeApi.HomeInfoExtras.cs)
             try { LookGameSelected(game); FolderAccentFollow(); if (detailsOpen) UpdateGamePageMore(); } catch (Exception) { }

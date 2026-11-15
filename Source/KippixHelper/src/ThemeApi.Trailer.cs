@@ -139,6 +139,7 @@ namespace KippixHelper
         private void DetailsOpened(FrameworkElement details)
         {
             try { DetEntranceStart(details); } catch (Exception) { DetailsFadeDone(details); }   // (0.99.69) waits until the page is drawn, then plays
+            try { ShufflePageCover(SelectedGameNow()); } catch (Exception) { }   // Shuffle covers: the cover picked for now
             try { DetCoverHold(details); } catch (Exception) { }   // (0.99.66) the cover fades in once it's the new game's
             detOriginId = Guid.Empty; trailerUserPaused = false; trailerHeld = false; trailerGameId = Guid.Empty;
             StopPreview(); if (masterTransforms.Count > 0 || settings.MasterOffsets.Count > 0 || (settings.MasterSizes != null && settings.MasterSizes.Count > 0) || HasMasterTurns) ApplyMasterOffsets(); detGameId = Guid.Empty; DetailsScrollTo(false, false); ApplyDetPlacement();

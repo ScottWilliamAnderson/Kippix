@@ -32,7 +32,7 @@ namespace KippixHelper
                 var tile = new HomeTile { Key = "pin:" + s, Name = g.Name, Sub = "", GameId = gid };
                 tile.Command = new RelayCommand(_ => OpenPinnedGame(gid));
                 HomeTiles.Add(tile);
-                string cover = !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : null;
+                string cover = ShuffledCover(g, !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : null);
                 if (cover != null)
                 {
                     var t = tile;

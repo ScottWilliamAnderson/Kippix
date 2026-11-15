@@ -63,6 +63,7 @@ namespace KippixHelper
         {
             EventManager.RegisterClassHandler(typeof(ListBoxItem), Keyboard.KeyDownEvent, new KeyEventHandler(OnCardLeftKey), false);
             HookCardDressing();   // the list's play info (and wide art) filled in as each card goes on screen
+            HookShuffleCards();   // Shuffle covers: a card's pick as it goes on screen
             BuildHomeTiles();
         }
 

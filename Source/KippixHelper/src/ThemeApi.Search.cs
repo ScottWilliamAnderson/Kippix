@@ -238,7 +238,7 @@ namespace KippixHelper
                 {
                     GameId = g.Id, Name = g.Name,
                     Sub = g.IsInstalled ? Loc("LOC_KX_Installed", "Installed") : (g.Source != null ? g.Source.Name : ""),
-                    CoverFile = !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : null
+                    CoverFile = ShuffledCover(g, !string.IsNullOrEmpty(g.CoverImage) && !g.CoverImage.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? SafeFullPath(g.CoverImage) : null)
                 };
                 var id = g.Id;
                 hit.Command = new RelayCommand(_ => OpenSearchHit(id));

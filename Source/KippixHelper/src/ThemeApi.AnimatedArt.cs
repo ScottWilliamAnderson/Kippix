@@ -320,6 +320,9 @@ namespace KippixHelper
             var wide = UiTools.FindByName(tile, "KX_WideArt") as Panel;
             var wideImg = wide != null && wide.IsVisible ? UiTools.FindByName(wide, "KX_WideImage") as FrameworkElement : null;
             var cover = UiTools.FindByName(tile, "PART_ImageCover") as FrameworkElement;
+            // (Shuffle covers' picture lies just over the cover: what moves goes over that)
+            var shuffled = cover != null ? UiTools.FindByName(tile, "KX_ShuffleCover") as FrameworkElement : null;
+            if (shuffled != null && ReferenceEquals(VisualTreeHelper.GetParent(shuffled), VisualTreeHelper.GetParent(cover))) cover = shuffled;
             if (allowWide && wideImg != null && ReferenceEquals(VisualTreeHelper.GetParent(wideImg), wide))
             {
                 parent = wide;
