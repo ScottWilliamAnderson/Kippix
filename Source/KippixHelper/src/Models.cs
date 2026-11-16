@@ -410,6 +410,9 @@ namespace KippixHelper
         public List<string> WishRemoveFromSteam = new List<string>();   // Steam app ids taken off the wishlist here, still to take off Steam's   // "steam:123" / "gog:456" taken off here: not brought back
         public List<string> ExtraPins = new List<string> { "quick" };   // top bar shortcuts added in 0.32 that are pinned
         public bool InstalledOnly = false;         // Sort and show: only installed games on the home screen, whatever filter is on
+        public bool OneTilePerGame = false;        // Sort and show: a game that's in the library more than once shows as one tile (ThemeApi.Copies.cs)
+        public List<string> CopyPicks = new List<string>();    // ... the copy chosen by hand to be that tile (game ids)
+        public List<string> CopySplits = new List<string>();   // ... games that keep a tile of their own (two different games with one name)
         public List<GameShelf> Collections = new List<GameShelf>();
         public List<string> UpNext = new List<string>();   // Up next: game ids you mean to play, in order (each profile has its own)
         public int GridRows = 2;

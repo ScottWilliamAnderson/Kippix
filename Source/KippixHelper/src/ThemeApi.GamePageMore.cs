@@ -841,6 +841,7 @@ namespace KippixHelper
             AddHomeRows(g);
             AddShareCardRow(g);   // Share card (ThemeApi.ShareCards.cs)
             AddGameEditRow(g);    // Edit this game (ThemeApi.GameEdit.cs)
+            AddCopyRows(g);       // its other copies (ThemeApi.Copies.cs)
             string store = StorePageFor(g);
             var links = g.Links == null ? new List<Link>()
                       : g.Links.Where(l => l != null && !string.IsNullOrEmpty(l.Url) && l.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase)

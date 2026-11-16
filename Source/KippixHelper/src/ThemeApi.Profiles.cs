@@ -482,10 +482,11 @@ namespace KippixHelper
             {
                 var view = HomeListView();
                 if (view == null) return;
-                bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly || appsCatId != Guid.Empty;
+                bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly || settings.OneTilePerGame || appsCatId != Guid.Empty;
                 if (!ReferenceEquals(view, listFilterView))
                 {
                     listFilterView = view; listWrapFilter = null; listOrigFilter = null;
+                    CopyListSeen(view);
                     ((System.Collections.Specialized.INotifyCollectionChanged)view).CollectionChanged += AppsRowListChanged;   // (ThemeApi.AppsRow.cs)
                 }
                 bool ours = listWrapFilter != null && ReferenceEquals(view.Filter, listWrapFilter);
@@ -498,7 +499,7 @@ namespace KippixHelper
                 {
                     listOrigFilter = view.Filter;
                     var orig = listOrigFilter;
-                    listWrapFilter = o =>
+                    Predicate<object> rest = o =>
                     {
                         // runs inside Playnite's own list updates: must never throw
                         Guid id = Guid.Empty;
@@ -522,6 +523,8 @@ namespace KippixHelper
                         catch (Exception) { }
                         return orig == null || orig(o);
                     };
+                    // One tile per game (ThemeApi.Copies.cs): of the copies that pass all of the above, only the best one
+                    listWrapFilter = o => rest(o) && !CopyBehindInList(o, rest);
                     view.Filter = listWrapFilter;   // (setting it refreshes the list)
                     return;
                 }

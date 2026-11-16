@@ -65,6 +65,12 @@ namespace KippixHelper
                 Sub = Loc("LOC_KX_InstalledOnlySub", "Stays on whichever filter you switch to"),
                 Command = new RelayCommand(_ => SetInstalledOnly(!settings.InstalledOnly))
             });
+            rows.Add(new PickRow
+            {
+                Key = "onetile", Icon = "layout", IsSwitch = true, IsSelected = settings.OneTilePerGame, Text = Loc("LOC_KX_OneTile", "One tile per game"),
+                Sub = Loc("LOC_KX_OneTileSub", "A game you have more than once shows once: the installed copy, else the one you played last"),
+                Command = new RelayCommand(_ => SetOneTilePerGame(!settings.OneTilePerGame))
+            });
             rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SortShowSort", "SORT BY") });
             SortOrder now = SortOrder.Name;
             bool down = false;
