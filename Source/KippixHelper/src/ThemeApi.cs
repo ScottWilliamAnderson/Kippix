@@ -1135,6 +1135,7 @@ namespace KippixHelper
             if (IsMainWindow(sender)) PerfKeyDown(e);   // (0.93) the slowness finder
             if (openPanel == null && IsMainWindow(sender) && (e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Up || e.Key == Key.Down)) ApplyBgChangeDelay(false);   // (0.99.15) before the picture changes
             if (e.Key == Key.Down && IsMainWindow(sender)) LibraryNoteDown();   // (a held Down doesn't open the library view)
+            if (justPending != null && IsMainWindow(sender)) JustCommitUnlessMove(e);   // the mosaic: anything but a move acts on the highlighted game
             try
             {
                 if (IsMasterMoving && OutlineHasFocus) return;   // Master edit: the outline's own key handler takes everything
