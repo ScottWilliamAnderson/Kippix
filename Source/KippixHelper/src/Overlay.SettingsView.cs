@@ -17,8 +17,8 @@ namespace KippixOverlay
         private readonly OverlayPlugin plugin;
 
         public int Provider;
-        public string OpenAiKey, OpenAiModel, GeminiKey, GeminiModel;
-        public bool OpenAiWebSearch, GeminiWebSearch, AutoDownload, UpdateOnStartup, InstalledOnly;
+        public string OpenAiKey, OpenAiModel, GeminiKey, GeminiModel, ClaudePath, ClaudeModel;
+        public bool OpenAiWebSearch, GeminiWebSearch, ClaudeWebSearch, AutoDownload, UpdateOnStartup, InstalledOnly;
         public string Cap;
 
         public GuideSettings(OverlayPlugin plugin)
@@ -37,6 +37,9 @@ namespace KippixOverlay
             GeminiKey = c.GeminiKey;
             GeminiModel = c.GeminiModel;
             GeminiWebSearch = c.GeminiWebSearch;
+            ClaudePath = c.ClaudeCodePath;
+            ClaudeModel = c.ClaudeCodeModel;
+            ClaudeWebSearch = c.ClaudeCodeWebSearch;
             AutoDownload = c.AutoDownloadGuides;
             UpdateOnStartup = c.UpdateGuidesOnStartup;
             InstalledOnly = c.GuideUpdateInstalledOnly;
@@ -61,6 +64,9 @@ namespace KippixOverlay
             c.GeminiKey = (GeminiKey ?? "").Trim();
             c.GeminiModel = (GeminiModel ?? "").Trim();
             c.GeminiWebSearch = GeminiWebSearch;
+            c.ClaudeCodePath = (ClaudePath ?? "").Trim().Trim('"');
+            c.ClaudeCodeModel = (ClaudeModel ?? "").Trim();
+            c.ClaudeCodeWebSearch = ClaudeWebSearch;
             c.AutoDownloadGuides = AutoDownload;
             c.UpdateGuidesOnStartup = UpdateOnStartup;
             c.GuideUpdateInstalledOnly = InstalledOnly;
@@ -78,6 +84,7 @@ namespace KippixOverlay
                 errors.Add("The spending cap must be a number, for example 2 or 2.50 (0 means no cap).");
             if (Provider == 1 && string.IsNullOrWhiteSpace(OpenAiKey)) errors.Add("Add your OpenAI API key, or set the provider to Off.");
             if (Provider == 2 && string.IsNullOrWhiteSpace(GeminiKey)) errors.Add("Add your Gemini API key, or set the provider to Off.");
+            if (Provider == 3 && ClaudeCode.Find(ClaudePath) == null) errors.Add("Claude Code wasn't found. Install it and sign in, give the path to claude.exe, or set the provider to Off.");
             return errors.Count == 0;
         }
     }
@@ -87,7 +94,7 @@ namespace KippixOverlay
     {
         private readonly OverlayPlugin plugin;
         private readonly GuideSettings s;
-        private StackPanel openAiPanel, geminiPanel;
+        private StackPanel openAiPanel, geminiPanel, claudePanel;
         private TextBlock status, testResult, fileNote;
 
         public GuideSettingsView(OverlayPlugin plugin, GuideSettings settings)
@@ -127,8 +134,18 @@ namespace KippixOverlay
             geminiPanel.Children.Add(Ui.CheckRow("Use Google Search while writing tips", "Skipped automatically if your free tier doesn't include it.", s.GeminiWebSearch, v => s.GeminiWebSearch = v));
             ai.Add(geminiPanel);
 
+            claudePanel = new StackPanel();
+            claudePanel.Children.Add(Ui.Help("No API key: the tips are written by Claude Code, the program from Anthropic, already installed and signed in on this PC, and count against your Claude plan's usage. It gets web search only, none of your own Claude Code set-up, and nothing else on this PC."));
+            claudePanel.Children.Add(new Border { Height = 8 });
+            claudePanel.Children.Add(Ui.LinkLine("Get Claude Code: claude.com/claude-code", "https://claude.com/claude-code"));
+            claudePanel.Children.Add(new Border { Height = 6 });
+            claudePanel.Children.Add(Ui.Row("Model", Ui.Help("sonnet, haiku, opus, or a full model name."), Ui.TextField(s.ClaudeModel, v => s.ClaudeModel = v, 260, null)));
+            claudePanel.Children.Add(Ui.Row("Where claude.exe is", Ui.Help("Leave empty to have it found."), Ui.TextField(s.ClaudePath, v => s.ClaudePath = v, 380, null)));
+            claudePanel.Children.Add(Ui.CheckRow("Let Claude search the web while writing tips", "Much more accurate; uses more of your plan's allowance.", s.ClaudeWebSearch, v => s.ClaudeWebSearch = v));
+            ai.Add(claudePanel);
+
             var testRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 10) };
-            var testButton = Ui.MakeButton("Test key", TestKey);
+            var testButton = Ui.MakeButton("Test", TestKey);
             testResult = new TextBlock { Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, MaxWidth = 560 };
             testRow.Children.Add(testButton);
             testRow.Children.Add(testResult);
@@ -187,6 +204,7 @@ namespace KippixOverlay
         {
             openAiPanel.Visibility = s.Provider == 1 ? Visibility.Visible : Visibility.Collapsed;
             geminiPanel.Visibility = s.Provider == 2 ? Visibility.Visible : Visibility.Collapsed;
+            claudePanel.Visibility = s.Provider == 3 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void RefreshStatus()
@@ -206,7 +224,7 @@ namespace KippixOverlay
                 string msg;
                 try
                 {
-                    if (c.GuideProvider == 0) msg = "Choose OpenAI or Gemini first.";
+                    if (c.GuideProvider == 0) msg = "Choose a provider first.";
                     else { AiClient.Test(c); msg = "\u2714 Works! " + OverlayConfig.GuideProviderNames[c.GuideProvider] + " answered."; }
                 }
                 catch (Exception ex) { msg = "\u2716 " + ex.Message; }
