@@ -476,6 +476,9 @@ namespace KippixHelper
                 try
                 {
                     hvShown = true;
+                    // past the ratings card / logo a trailer opens on (short clips are played whole)
+                    int skip = Math.Max(0, Math.Min(30, settings.HomeVideoSkipSeconds));
+                    if (skip > 0 && me.NaturalDuration.HasTimeSpan && me.NaturalDuration.TimeSpan.TotalSeconds > 30) me.Position = TimeSpan.FromSeconds(skip);
                     SetMotionPaused(true);   // the background zoom holds still under it
                     me.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(HomeVideoFadeInMs)) { EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
                 }
@@ -484,7 +487,7 @@ namespace KippixHelper
             me.MediaEnded += (s, e) =>
             {
                 if (!ReferenceEquals(s, hvPlayer)) return;
-                try { me.Position = TimeSpan.Zero; me.Play(); } catch (Exception) { }   // loops
+                try { int skip = Math.Max(0, Math.Min(30, settings.HomeVideoSkipSeconds)); me.Position = skip > 0 && me.NaturalDuration.HasTimeSpan && me.NaturalDuration.TimeSpan.TotalSeconds > 30 ? TimeSpan.FromSeconds(skip) : TimeSpan.Zero; me.Play(); } catch (Exception) { }   // loops
             };
             me.MediaFailed += (s, e) =>
             {
