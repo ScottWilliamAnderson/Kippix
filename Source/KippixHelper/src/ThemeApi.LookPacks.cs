@@ -361,7 +361,7 @@ namespace KippixHelper
             }
             LookAccentFollow(true);
             // once the window is on its way (Start): the top bar's look, and the highlighted card's zoom
-            if (ui != null && !lookStarted) { lookStarted = true; HookLookFocus(); LookExtras(); }
+            if (ui != null && !lookStarted) { lookStarted = true; HookLookFocus(); LookExtras(); HookBareWindows(); }
         }
 
         private bool lookStarted;
