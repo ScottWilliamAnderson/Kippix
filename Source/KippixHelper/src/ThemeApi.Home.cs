@@ -129,6 +129,10 @@ namespace KippixHelper
                 if (mainRowShift != null) moved += mainRowShift.Y;   // the row sliding away for the extra rows isn't a new place for the info
                 top -= moved;
                 coverBottom -= moved;
+                // (no games in the row: where the covers were when there were some, not CoverTop's guess. With the guess, a row under
+                //  the games (Apps, Running now) sat higher than the games do, and its name was under its own tiles)
+                if (list.Items.Count > 0) { homeCoverTop = top; homeCoverBottom = coverBottom; }
+                else if (!double.IsNaN(homeCoverTop)) { top = homeCoverTop; coverBottom = homeCoverBottom; }
                 // the highlighted cover grows by 6% from its bottom edge (plus its glow): the filter name sits above that, not under it
                 double lift = Math.Round(Math.Max(0, coverBottom - top) * 0.06) + 16;
                 // room for the filter name above the covers: (0.89) kept when it's switched off or deleted, so nothing round it moves
@@ -182,6 +186,8 @@ namespace KippixHelper
             }
             catch (Exception ex) { logger.Error(ex, "Kippix: home layout failed"); }
         }
+
+        private double homeCoverTop = double.NaN, homeCoverBottom = double.NaN;   // the games row's covers when last measured from real covers
 
         private static void SetScale(FrameworkElement el, double scale)
         {
