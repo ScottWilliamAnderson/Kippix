@@ -350,7 +350,7 @@ namespace KippixHelper
         public ObservableCollection<PickRow> PresetRows { get; private set; }
         public bool IsOptionsPresets { get { return optionsPage == "presets"; } }
 
-        private string HomeSlotNow { get { return FolderTilesShown || settings.HomeLayoutMode == 5 ? null : BgLayoutKeyNow; } }   // (folders: your own)
+        private string HomeSlotNow { get { return FolderTilesShown || settings.HomeLayoutMode == 5 || LayoutNow == 6 ? null : BgLayoutKeyNow; } }   // (folders: your own; Mosaic and the library view: no designs of their own, and the row read "Preset: l6")
 
         private string SlotName(string slot)
         {
