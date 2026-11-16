@@ -33,7 +33,9 @@ namespace KippixHelper
         }
 
         private readonly PerfSeries pfSelect = new PerfSeries(), pfScroll = new PerfSeries(), pfLayout = new PerfSeries(), pfFocus = new PerfSeries(),
-                                    pfMove = new PerfSeries(), pfSettle = new PerfSeries(), pfFrames = new PerfSeries(), pfSelected = new PerfSeries();
+                                    pfMove = new PerfSeries(), pfSettle = new PerfSeries(), pfFrames = new PerfSeries(), pfSelected = new PerfSeries(), pfPress = new PerfSeries();
+        private long pfPressStamp;
+        private int pfPressFrames;
         private bool pfHooked;
         private TimeSpan pfLastRender;
         private long pfLastStamp;
@@ -47,7 +49,7 @@ namespace KippixHelper
         private void InitJustPerf()
         {
             try { if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("KIPPIX_MOSAIC_PERF"))) JustifiedPanel.Perf = true; } catch (Exception) { }
-            JustifiedPanel.PerfDump = () => JustPerfSummary("asked for");
+            JustifiedPanel.PerfDump = () => { JustPerfSummary("asked for"); if (!JustifiedMode) JustPerfFrames(false); };
         }
 
         /// <summary>Frames are timed while the mosaic is up (and the stopwatch is on).</summary>
@@ -68,6 +70,28 @@ namespace KippixHelper
             long now = Stopwatch.GetTimestamp();
             if (pfLastStamp != 0) pfFrames.Add((now - pfLastStamp) * 1000.0 / Stopwatch.Frequency);
             pfLastStamp = now;
+            // (the frame that starts being drawn at the first of these after a press is on screen by the second)
+            if (pfPressStamp != 0 && ++pfPressFrames >= 2) { pfPress.Add((now - pfPressStamp) * 1000.0 / Stopwatch.Frequency); pfPressStamp = 0; }
+        }
+
+        /// <summary>
+        /// A direction pressed (from PerfKeyDown, the window's first look at it), on the home screen or in the mosaic: the time
+        /// from here to the frame that shows what it did is what a press feels like.
+        /// </summary>
+        private void JustPerfPress(System.Windows.Input.KeyEventArgs e)
+        {
+            try
+            {
+                if (pfPressStamp != 0 || openPanel != null || detailsOpen || IsPadRelease(e)) return;
+                string b = PadButton(e).ToString();
+                bool move = b.StartsWith("DPad", StringComparison.Ordinal) || b.StartsWith("LeftStick", StringComparison.Ordinal)
+                    || e.Key == System.Windows.Input.Key.Up || e.Key == System.Windows.Input.Key.Down || e.Key == System.Windows.Input.Key.Left || e.Key == System.Windows.Input.Key.Right;
+                if (!move) return;
+                JustPerfFrames(true);
+                pfPressFrames = 0;
+                pfPressStamp = Stopwatch.GetTimestamp();
+            }
+            catch (Exception) { }
         }
 
         /// <summary>After a move: how long until everything it set off is done (the screen's thread idle again).</summary>
@@ -87,13 +111,17 @@ namespace KippixHelper
             try
             {
                 if (pfMove.Count == 0 && pfFrames.Count == 0) return;
+                why += LibraryOpen ? ", library view" : JustifiedMode ? ", mosaic" : ", home";
+                long mem = 0;
+                try { using (var me = Process.GetCurrentProcess()) mem = me.WorkingSet64 / (1024 * 1024); } catch (Exception) { }
                 logger.Info("Kippix: mosaic: perf (" + why + "): " + pfMove.Count + " moves: " + pfMove
                     + "; of that selecting " + pfSelect + " (the helper's own share " + pfSelected + "); scrolling " + pfScroll + "; layout " + pfLayout + "; highlight " + pfFocus
                     + "; settled after " + pfSettle);
+                logger.Info("Kippix: mosaic: perf (" + why + "): " + pfPress.Count + " presses, each to its frame on screen: " + pfPress + "; Playnite is using " + mem + " MB");
                 logger.Info("Kippix: mosaic: perf (" + why + "): " + pfFrames.Count + " frames: " + pfFrames + "; over 25 ms: " + pfFrames.Over(25) + ", over 50 ms: " + pfFrames.Over(50) + ", over 100 ms: " + pfFrames.Over(100)
                     + "; panel: " + JustifiedPanel.PerfMeasures + " measures, " + JustifiedPanel.PerfMeasureMs.ToString("0", CultureInfo.InvariantCulture) + " ms in all, worst " + JustifiedPanel.PerfMeasureWorst.ToString("0.0", CultureInfo.InvariantCulture)
                     + " ms, " + JustifiedPanel.PerfMade + " tiles made, " + JustifiedPanel.PerfModels + " row models; " + JustifiedPanel.PerfArranges + " arranges, " + JustifiedPanel.PerfArrangeMs.ToString("0", CultureInfo.InvariantCulture) + " ms");
-                foreach (var s in new[] { pfSelect, pfScroll, pfLayout, pfFocus, pfMove, pfSettle, pfFrames, pfSelected }) s.Clear();
+                foreach (var s in new[] { pfSelect, pfScroll, pfLayout, pfFocus, pfMove, pfSettle, pfFrames, pfSelected, pfPress }) s.Clear();
                 JustifiedPanel.PerfMeasures = JustifiedPanel.PerfMade = JustifiedPanel.PerfModels = JustifiedPanel.PerfArranges = 0;
                 JustifiedPanel.PerfMeasureMs = JustifiedPanel.PerfMeasureWorst = JustifiedPanel.PerfArrangeMs = 0;
                 pfLastStamp = 0;
