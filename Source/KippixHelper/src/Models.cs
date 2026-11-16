@@ -455,6 +455,8 @@ namespace KippixHelper
         public bool GameUpdateNotify = true;         // (0.99.39) a card when an installed game has an update waiting (ThemeApi.GameUpdates.cs)
         public int GameUpdateWhen = 0;               // 0 at start-up and every time its page opens, 1 only at start-up, 2 once on its page (per update)
         public List<string> GameUpdateSeen;          // (GameUpdateWhen 2) the updates already told about: store | id | build
+        public bool SteamUpdatesQuiet = false;       // Steam started quietly when no game is running, so its updates download by themselves (ThemeApi.GameUpdatesQuiet.cs)
+        public bool SteamUpdatesOnBattery = false;   // ... on battery too (otherwise it waits for the charger)
         public int SessionReminderMinutes = 120;
         public int ButtonIcons = 0;                // 0 automatic, 1 Xbox, 2 PlayStation, 3 Switch, 4 keyboard
         // Look and feel › Look packs / Theme Studio (ThemeApi.LookPacks.cs): colours, fonts, cards, panels, top bar, buttons
