@@ -124,7 +124,7 @@ namespace KippixHelper
                         var nfe = Keyboard.FocusedElement as FrameworkElement;
                         bool ours = openPanel == "welcome" ? TourNavOurs(nfe) : ProfileReorderMoving;
                         if (ours && NavIsEcho(ud)) { e.Handled = true; padHandled = e; navDoneEvent = e; return; }   // (0.99.14) a copy of the press just acted on
-                        bool done = openPanel == "welcome" ? (TourListStep(nfe, ud) || TourTileStep(nfe, ud)) : ProfileMoveKey(ud);
+                        bool done = openPanel == "welcome" ? TourUpDown(nfe, ud) : ProfileMoveKey(ud);
                         if (done) { e.Handled = true; padHandled = e; navDoneEvent = e; NavMoved(ud); return; }
                     }
                 }

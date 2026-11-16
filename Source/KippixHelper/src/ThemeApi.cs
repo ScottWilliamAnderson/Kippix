@@ -1274,8 +1274,15 @@ namespace KippixHelper
                     bool ours = openPanel == "welcome" ? TourNavOurs(fe) : ProfileReorderMoving;
                     if (ours && IsPadRelease(e)) { e.Handled = true; return; }   // (0.99.14) the controller's let-go: nothing moves (it moved twice per press)
                     if (ours && NavIsEcho(ud)) { e.Handled = true; navDoneEvent = e; return; }
-                    if (openPanel == "welcome" && (TourListStep(fe, ud) || TourTileStep(fe, ud))) { e.Handled = true; navDoneEvent = e; NavMoved(ud); return; }   // (0.99.11 / 0.99.12)
+                    if (openPanel == "welcome" && TourUpDown(fe, ud)) { e.Handled = true; navDoneEvent = e; NavMoved(ud); return; }   // (0.99.11 / 0.99.12)
                     if (openPanel == "profile" && ProfileMoveKey(ud)) { e.Handled = true; navDoneEvent = e; NavMoved(ud); return; }   // (0.99.11) moving a row
+                }
+                // Getting started › Pick a look's boxes and Next: Left / Right too (once per press, like Up / Down)
+                if (openPanel == "welcome" && (e.Key == Key.Left || e.Key == Key.Right) && TourLookNavOurs(fe))
+                {
+                    int lr = e.Key == Key.Left ? -2 : 2;   // (told apart from Up / Down's -1 / 1)
+                    if (IsPadRelease(e) || NavIsEcho(lr)) { e.Handled = true; return; }
+                    if (TourColStep(fe, e.Key) || TourNextBack(fe, e.Key)) { e.Handled = true; NavMoved(lr); return; }
                 }
                 var panel = UiTools.FindByName(Application.Current.MainWindow, PanelElement(openPanel));
                 if (panel == null || !panel.IsAncestorOf(focused)) return;

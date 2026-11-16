@@ -1022,9 +1022,98 @@ namespace KippixHelper
                 else TourScrollTo(list, scroller, r, j > 0 && rowsIn[j - 1].IsHeader ? rowsIn[j - 1] : null);
                 return true;
             }
-            if (dir > 0) return false;   // the last row: on down to Back / Skip / Next
+            if (dir > 0) return TourToNext(fe, Key.Down);   // the last row: on down to Next (or, without it, WPF's own guess)
             if (scroller != null) scroller.ScrollToTop();
             return true;
+        }
+
+        // ---------------- Pick a look's boxes, and every step's Next: the D-pad ----------------
+
+        private static readonly string[] TourColNames = { "KX_TourCol1", "KX_TourCol2", "KX_TourCol3" };
+        private FrameworkElement tourNextFrom;   // the box / row the highlight left for Next
+        private Key tourNextVia;                 // and the direction it left in
+
+        /// <summary>Up / Down anywhere in Getting started that is ours: a list's rows, Pick a look's boxes, Next.</summary>
+        private bool TourUpDown(FrameworkElement fe, int dir)
+        {
+            Key key = dir < 0 ? Key.Up : Key.Down;
+            return TourListStep(fe, dir) || TourTileStep(fe, dir) || TourColStep(fe, key) || TourNextBack(fe, key);
+        }
+
+        /// <summary>
+        /// Pick a look's boxes: Up / Down along a column, Left / Right to the box beside it, and on to Next from the last box
+        /// of a column (Down) or from the last column (Right). The columns had no handler of their own, so WPF's guess (the
+        /// nearest control that way) took the highlight to another column's box or to Back, not to Next.
+        /// </summary>
+        private bool TourColStep(FrameworkElement fe, Key key)
+        {
+            if (!IsTourTiles || IsTourProfileOpen || fe == null) return false;
+            var row = fe.DataContext as PickRow;
+            var cols = new[] { TourCol1, TourCol2, TourCol3 };
+            int c = row != null ? Array.FindIndex(cols, x => x.Contains(row)) : -1;
+            if (c < 0) return false;
+            int i = cols[c].IndexOf(row);
+            if (key == Key.Up || key == Key.Down)
+            {
+                i += key == Key.Up ? -1 : 1;
+                if (i >= cols[c].Count) return TourToNext(fe, key);
+            }
+            else
+            {
+                c += key == Key.Left ? -1 : 1;
+                if (c >= cols.Length || (c >= 0 && cols[c].Count == 0)) return TourToNext(fe, key);
+                if (c >= 0) i = Math.Min(i, cols[c].Count - 1);
+            }
+            if (i < 0 || c < 0) return true;   // the top box, the first column: the highlight stays
+            PlaySound("move");
+            UiTools.FocusItem(TourColNames[c], cols[c][i]);
+            return true;
+        }
+
+        /// <summary>The highlight onto Next, remembering where it came from. False when Next isn't on screen.</summary>
+        private bool TourToNext(FrameworkElement from, Key via)
+        {
+            if (!UiTools.FocusByNameIfVisible("KX_TourNext")) return false;
+            tourNextFrom = from;
+            tourNextVia = via;
+            PlaySound("move");
+            return true;
+        }
+
+        /// <summary>
+        /// Next (or Skip): Up goes back to the box / row the highlight came from (on Pick a look, otherwise the last box).
+        /// Left from Next does the same when the highlight came by Right; if not it goes along the bottom to Skip / Back.
+        /// </summary>
+        private bool TourNextBack(FrameworkElement fe, Key key)
+        {
+            if (fe == null || IsTourProfileOpen || (fe.Name != "KX_TourNext" && fe.Name != "KX_TourSkip")) return false;
+            if (key != Key.Up && !(key == Key.Left && fe.Name == "KX_TourNext" && tourNextVia == Key.Right && tourNextFrom != null)) return false;
+            if (tourNextFrom != null && tourNextFrom.IsVisible)
+            {
+                PlaySound("move");
+                tourNextFrom.BringIntoView();
+                Keyboard.Focus(tourNextFrom);
+                return true;
+            }
+            if (!IsTourTiles) return false;
+            var cols = new[] { TourCol1, TourCol2, TourCol3 };
+            for (int c = cols.Length - 1; c >= 0; c--)
+            {
+                if (cols[c].Count == 0) continue;
+                PlaySound("move");
+                UiTools.FocusItem(TourColNames[c], cols[c][cols[c].Count - 1]);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>The highlight is on one of Pick a look's boxes, or on Next / Skip: the four directions are ours.</summary>
+        private bool TourLookNavOurs(FrameworkElement fe)
+        {
+            if (fe == null || IsTourProfileOpen) return false;
+            if (fe.Name == "KX_TourNext" || fe.Name == "KX_TourSkip") return true;
+            var row = fe.DataContext as PickRow;
+            return row != null && IsTourTiles && (TourCol1.Contains(row) || TourCol2.Contains(row) || TourCol3.Contains(row));
         }
 
         /// <summary>
@@ -1111,6 +1200,7 @@ namespace KippixHelper
         /// <summary>(0.99.14) The highlight is on a Getting started list (or Pick a look's old tiles): Up / Down are ours.</summary>
         private bool TourNavOurs(FrameworkElement fe)
         {
+            if (TourLookNavOurs(fe)) return true;
             if (fe == null || IsTourProfileOpen || !(fe.DataContext is PickRow)) return false;
             ObservableCollection<PickRow> rows;
             return TourListOf(fe, out rows) != null;
