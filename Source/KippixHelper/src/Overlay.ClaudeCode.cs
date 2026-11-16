@@ -20,6 +20,8 @@ namespace KippixOverlay
     internal static class ClaudeCode
     {
         private const int TimeoutMs = 8 * 60 * 1000;
+        // (left to itself it answers a well-known game from memory: the tips are only worth having checked)
+        private const string SearchFirst = "Before you answer, always look this game's achievements up with web search (and open a guide or wiki page with web fetch when the search results alone don't say how) and base every tip on what you found; answer from memory only for what you could not find. ";
         private static readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue, RecursionLimit = 256 };
 
         /// <summary>Where the claude program is: the path given, else on PATH, else its usual places. Null: not found.</summary>
@@ -75,7 +77,7 @@ namespace KippixOverlay
             string tools = c.ClaudeCodeWebSearch ? "WebSearch,WebFetch" : "";
             string args = "-p --safe-mode --output-format json --no-session-persistence --model " + model +
                           " --tools \"" + tools + "\"" + (tools.Length > 0 ? " --allowedTools \"" + tools + "\"" : "") +
-                          " --system-prompt \"You answer with exactly what is asked for and nothing else.\"";
+                          " --system-prompt \"" + (tools.Length > 0 ? SearchFirst : "") + "You answer with exactly what is asked for and nothing else.\"";
 
             string folder = Path.Combine(Path.GetTempPath(), "KippixClaudeCode");
             Directory.CreateDirectory(folder);
@@ -158,8 +160,11 @@ namespace KippixOverlay
             var usage = root.ContainsKey("usage") ? root["usage"] as Dictionary<string, object> : null;
             answer.InputTokens = N(usage, "input_tokens");
             answer.OutputTokens = N(usage, "output_tokens");
-            var served = usage != null && usage.ContainsKey("server_tool_use") ? usage["server_tool_use"] as Dictionary<string, object> : null;
-            answer.SearchCalls = (int)N(served, "web_search_requests");
+            // (its searches are run by a helper model, so they are counted per model, not in "usage")
+            var perModel = root.ContainsKey("modelUsage") ? root["modelUsage"] as Dictionary<string, object> : null;
+            if (perModel != null)
+                foreach (var m in perModel.Values)
+                    answer.SearchCalls += (int)N(m as Dictionary<string, object>, "webSearchRequests");
             // (CostUsd stays 0: it's the plan's allowance, not credit; the spending cap is OpenAI's)
             Playnite.SDK.LogManager.GetLogger().Info("Achievement guides: Claude Code (" + model + ") answered: " + text.Length + " characters, " + answer.SearchCalls + " web searches, stopped for: " + (S(root, "stop_reason") ?? "?"));
             return answer;
