@@ -1496,6 +1496,7 @@ namespace KippixHelper
             if (openPanel == "options" && optionsPage == "galleryfolders" && GallerySettingsBack()) return;
             if (openPanel == "options" && optionsPage == "picker" && PickerBack()) return;
             if (CollectionsBack()) return;
+            if (GameEditBack()) return;   // (Edit this game: a list → its rows → the More menu)
             if (BoardSettingsBack()) return;
             if (openPanel == "options" && BringPartBack()) return;   // (0.92) Bring a part into view: the page choice → the list
             if (openPanel == "options" && (optionsPage == "gamemore" || optionsPage == "gamestatus" || optionsPage == "dethistory") && GameMoreBack()) return;

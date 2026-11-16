@@ -839,6 +839,7 @@ namespace KippixHelper
             GameMoreRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecThisGame", "THIS GAME") });
             AddHomeRows(g);
             AddShareCardRow(g);   // Share card (ThemeApi.ShareCards.cs)
+            AddGameEditRow(g);    // Edit this game (ThemeApi.GameEdit.cs)
             string store = StorePageFor(g);
             var links = g.Links == null ? new List<Link>()
                       : g.Links.Where(l => l != null && !string.IsNullOrEmpty(l.Url) && l.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase)

@@ -117,8 +117,10 @@ namespace KippixHelper
 
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
         {
-            if (!OverlayRunning) return new List<GameMenuItem>();
-            return Overlay.GetGameMenuItems(args);
+            var items = new List<GameMenuItem>();
+            try { var edit = Theme != null ? Theme.GameEditMenuItem(args) : null; if (edit != null) items.Add(edit); } catch (Exception) { }   // fullscreen: Edit this game (ThemeApi.GameEdit.cs)
+            if (OverlayRunning) items.AddRange(Overlay.GetGameMenuItems(args));
+            return items;
         }
 
         public override void OnGameStopped(OnGameStoppedEventArgs args)
