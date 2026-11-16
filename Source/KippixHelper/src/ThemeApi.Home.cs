@@ -446,6 +446,7 @@ namespace KippixHelper
             try { LiveSelectionChanged(); } catch (Exception) { }   // live backgrounds / animated art (ThemeApi.LiveBackground.cs)
             try { TileBgSelected(game); } catch (Exception) { }   // (0.88) Background › The game's tile
             try { HomeExtrasSelected(game, false); } catch (Exception) { }   // (r13) the info line's players online / friends (ThemeApi.HomeInfoExtras.cs)
+            AppsPageSelected();   // an app's page: "Open", no achievements or save backups (ThemeApi.AppsRow.cs)
             try { LookGameSelected(game); FolderAccentFollow(); if (detailsOpen) UpdateGamePageMore(); } catch (Exception) { }
             try { if (detailsOpen && game != null) GamePageUpdateCheck(game); } catch (Exception) { }
             try { if (detailsOpen) DetProgressRefresh(); } catch (Exception) { }   // (0.99.48)   // (0.99.39) another game on the page

@@ -250,7 +250,7 @@ namespace KippixHelper
 
         private void NotifyDetails()
         {
-            foreach (string n in new[] { "DetShowLogo", "DetShowInfo", "DetShowDescription", "DetShowAchButton", "DetShowDate", "DetShowHints", "DetBlackBackground", "DetShowBackground",
+            foreach (string n in new[] { "DetShowLogo", "DetShowInfo", "DetShowDescription", "DetShowAchButton", "DetAchButtonShown", "DetShowDate", "DetShowHints", "DetBlackBackground", "DetShowBackground",
                                          "DetShowOptionsButton", "DetShowTrailerControls", "DetPlacementEnabled", "DetMediaPlacementEnabled", "FriendsSourceText", "DetLayoutText", "DetDesignText", "DetLogoPositionEnabled", "DetLogoOverInfo", "DetMediaColumn", "DetMediaColumnSpan",
                                          "DetMediaAlignment", "DetMediaVAlignment", "DetInfoAlignment", "DetBlockAlignment", "DetLogoInnerAlignment",
                                          "DetShadeLeft", "DetShadeRight", "DetShadeCentre",

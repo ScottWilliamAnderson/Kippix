@@ -132,6 +132,41 @@ namespace KippixHelper
             built.Insert(built.Count > 0 && built[0].Item1 == "running" ? 1 : 0, Tuple.Create("apps", AppsCategoryName, apps));
         }
 
+        // ---------------- an app's own page ----------------
+
+        /// <summary>
+        /// The game page is an app's (an entry in the apps' category, whether or not the Apps row is on): its button reads "Open"
+        /// (Views/GameDetails.xaml), and there's no achievements button, How long to beat or Save backups on it.
+        /// </summary>
+        public bool DetIsApp
+        {
+            get
+            {
+                try
+                {
+                    var g = SelectedGameNow();
+                    if (g == null || g.CategoryIds == null || g.CategoryIds.Count == 0) return false;
+                    Guid cat = appsCatId != Guid.Empty ? appsCatId : AppsCategoryId();
+                    return cat != Guid.Empty && g.CategoryIds.Contains(cat);
+                }
+                catch (Exception) { return false; }
+            }
+        }
+        /// <summary>"Open" in place of Playnite's "Play" (an app that isn't installed keeps Playnite's "Install").</summary>
+        public bool DetPlayOpens { get { var g = SelectedGameNow(); return g != null && g.IsInstalled && DetIsApp; } }
+        public bool DetAchButtonShown { get { return settings.DetShowAchButton && !DetIsApp; } }
+
+        private bool appsPageWas;
+
+        /// <summary>From GameSelectedNow: another game is selected.</summary>
+        private void AppsPageSelected()
+        {
+            bool app = DetIsApp;
+            if (app == appsPageWas) return;
+            appsPageWas = app;
+            foreach (string n in new[] { "DetIsApp", "DetPlayOpens", "DetAchButtonShown", "ShowDetSaves", "ShowDetHltb", "ShowDetAch", "DetInfoShowHltb" }) Notify(n);
+        }
+
         /// <summary>The Extra rows page: under the Apps switch, which category it takes (the keyboard changes it).</summary>
         private void AddAppsRowChoice()
         {

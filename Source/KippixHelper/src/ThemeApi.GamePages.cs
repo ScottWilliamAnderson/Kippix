@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -748,7 +748,7 @@ namespace KippixHelper
         public bool DetInfoShowPlatform { get { return DetInfoOn("platform"); } }
         public bool DetInfoShowSource { get { return DetInfoOn("source"); } }
         /// <summary>How long to beat in the info (the How long to beat card stays as it is): the times switched on, when the game has them.</summary>
-        public bool DetInfoShowHltb { get { return DetInfoOn("hltb") && !string.IsNullOrEmpty(DetInfoHltbText); } }
+        public bool DetInfoShowHltb { get { return DetInfoOn("hltb") && !string.IsNullOrEmpty(DetInfoHltbText) && !DetIsApp; } }
         /// <summary>(0.88) the "HowLongToBeat" label at the start of that line (off: just the times)</summary>
         public bool DetInfoShowHltbLabel { get { return DetInfoOn("hltblabel"); } }
         public string DetInfoHltbText
