@@ -451,6 +451,7 @@ namespace KippixHelper
             lastSelectAt = DateTime.Now;   // (the start-up black screen waits for the background to settle)
             PreviewSelectionChanged();
             if (Running.Any) Notify("DetPlaySwitches");   // (issue #11) the game page's Play button reads "Switch to" for a game that's running
+            try { LogoBalanceApply(); } catch (Exception) { }   // the logo's box for this game (ThemeApi.LogoBalance.cs)
             try { LiveSelectionChanged(); } catch (Exception) { }   // live backgrounds / animated art (ThemeApi.LiveBackground.cs)
             try { HomeVideoSelectionChanged(game); } catch (Exception) { }   // (issue #13) the last game's video goes at once (ThemeApi.HomeVideo.cs)
             try { ShufflePageCover(game); } catch (Exception) { }   // Shuffle covers: the game page moved to another game

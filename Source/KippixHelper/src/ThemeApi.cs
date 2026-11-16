@@ -323,6 +323,7 @@ namespace KippixHelper
             BgFollowLayout();
             TickTime("per layout");
             SortShuffleTick();   // (Sort and show > Shuffle: under the kept-in-place spots)
+            try { LogoBalanceApply(); } catch (Exception) { }   // (the game page's logo, and a logo file that changed)
             ApplySlotPins(false);
             TickTime("pins");
             AppsRowTick();   // (the Apps row: ThemeApi.AppsRow.cs)
