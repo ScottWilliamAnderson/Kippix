@@ -3509,7 +3509,7 @@
     <sys:String x:Key="LOC_KX_HomeVideo">Gameplay video behind the games</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoSub">A muted clip of the highlighted game plays over its background after a moment (Row layout)</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoMode">Where the video plays</sys:String>
-    <sys:String x:Key="LOC_KX_HomeVideoModeSub">Full screen replaces the background; Picture in picture keeps it and plays the clip in a small box above the games</sys:String>
+    <sys:String x:Key="LOC_KX_HomeVideoModeSub">Over the whole background, or in a small box above the games</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoModeFull">Full screen</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoModePip">Picture in picture</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoDownload">Download a trailer when there's no video</sys:String>
