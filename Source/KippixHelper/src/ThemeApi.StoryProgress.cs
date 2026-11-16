@@ -83,7 +83,7 @@ namespace KippixHelper
                     catch (Exception) { }
                     string status = null;
                     try { var cs = game.CompletionStatus; if (cs != null) status = cs.Name; } catch (Exception) { }
-                    r = StoryProgress.Estimate(list, game.Playtime, story, extras, complete, status, extra);
+                    r = StoryProgress.Estimate(list, game.Playtime, story, extras, complete, status, extra, StoryProgress.LabelsOf(game));
                 }
                 catch (Exception ex) { logger.Warn("Kippix: story progress (" + game.Name + "): " + ex.Message); }
                 lock (progressCache) { progressCache[game.Id] = Tuple.Create(DateTime.Now, r); progressLoading.Remove(game.Id); }
