@@ -1683,6 +1683,9 @@
     <sys:String x:Key="LOC_KX_GameUpdateNotify">Tell me when a game has an update</sys:String>
     <sys:String x:Key="LOC_KX_GameUpdateNotifySub">Installed Steam, Epic and GOG games, when their launcher has an update waiting</sys:String>
     <sys:String x:Key="LOC_KX_GameUpdateWhen">How often</sys:String>
+    <sys:String x:Key="LOC_KX_SteamQuiet">Let Steam update games in the background</sys:String>
+    <sys:String x:Key="LOC_KX_SteamQuietSub">Starts Steam quietly when no game is running, so updates download by themselves</sys:String>
+    <sys:String x:Key="LOC_KX_SteamQuietBattery">Also on battery</sys:String>
     <sys:String x:Key="LOC_KX_UpdWhenAll">At start-up and every visit</sys:String>
     <sys:String x:Key="LOC_KX_UpdWhenBoot">Only at start-up</sys:String>
     <sys:String x:Key="LOC_KX_UpdWhenOnce">Once, on its page</sys:String>

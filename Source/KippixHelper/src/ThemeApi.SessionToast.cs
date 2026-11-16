@@ -1,4 +1,4 @@
-using System;
+sing System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -319,7 +319,7 @@ namespace KippixHelper
         private void NotifyNotify()
         {
             foreach (string n in new[] { "SessionSummary", "NotifyCover", "NotifySessionLine", "NotifyTotalLine", "NotifyOther", "NotifyPosText", "NotifyStyleText", "NotifySizeText", "NotifySecondsText",
-                                         "SessionReminder", "ReminderText", "GameUpdateNotify", "GameUpdateWhenText" })
+                                         "SessionReminder", "ReminderText", "GameUpdateNotify", "GameUpdateWhenText", "SteamUpdatesQuiet", "SteamUpdatesOnBattery", "SteamUpdatesBatteryRow" })
                 Notify(n);
         }
 

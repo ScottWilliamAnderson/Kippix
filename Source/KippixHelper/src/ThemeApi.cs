@@ -210,6 +210,7 @@ namespace KippixHelper
             StartLibraryWatch();
             ScheduleWishlistCheck();
             ScheduleGameUpdateCheck();
+            ScheduleSteamQuiet();
             HookSteamPriorityAuto();   // (0.99.42) new Steam games: High Priority on their own   // (0.99.39) games with an update waiting: a card once Playnite's up
             if (IsFullscreen)
             {
