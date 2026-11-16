@@ -1806,6 +1806,11 @@ namespace KippixOverlay
                            "Estimated OpenAI cost: about $" + est.ToString("0.00") + " (rough estimate)." +
                            (c.GuideSpendCapUsd > 0 ? "\nIt will stop if it reaches your cap of $" + c.GuideSpendCapUsd.ToString("0.00") + "." : "");
             }
+            else if (c.GuideProvider == 3)
+            {
+                question = "Download guides for " + work.Count + " games (" + total + " achievements) with Claude Code?\n\n" +
+                           "This uses your Claude plan's usage allowance. If its limit is reached, the download stops and keeps everything so far. Run it again later and it finishes the rest.";
+            }
             else
             {
                 question = "Download guides for " + work.Count + " games (" + total + " achievements) with Gemini's free tier?\n\n" +
@@ -2064,6 +2069,7 @@ namespace KippixOverlay
                 DateTime until;
                 if (c.GuideProvider == 1 && why != null && why.Contains("too much at once")) until = DateTime.UtcNow.AddMinutes(30);
                 else if (c.GuideProvider == 1) until = DateTime.UtcNow.AddHours(12);
+                else if (c.GuideProvider == 3) until = DateTime.UtcNow.AddHours(5);   // (a Claude plan's allowance comes back within about five hours)
                 else
                 {
                     // Gemini's free limit resets at midnight Pacific time (about 8am UK)

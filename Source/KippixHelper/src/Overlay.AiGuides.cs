@@ -145,7 +145,7 @@ namespace KippixOverlay
         public double CostUsd;
     }
 
-    /// <summary>Talks to OpenAI (Responses API) or Google Gemini. Blocking; call off the UI thread.</summary>
+    /// <summary>Talks to OpenAI (Responses API) or Google Gemini, or hands the question to Claude Code (Overlay.ClaudeCode.cs). Blocking; call off the UI thread.</summary>
     internal static class AiClient
     {
         static AiClient()
@@ -170,8 +170,9 @@ namespace KippixOverlay
 
         public static AiAnswer Ask(OverlayConfig c, string prompt)
         {
-            if (c.GuideProvider != 1 && c.GuideProvider != 2)
+            if (c.GuideProvider < 1 || c.GuideProvider > 3)
                 throw new InvalidOperationException("Choose an AI provider in the add-on settings first.");
+            if (c.GuideProvider == 3) return ClaudeCode.Ask(c, prompt);
 
             // Models to try: the chosen one, then (Gemini only) lighter ones that are often less busy.
             var models = new List<string> { c.GuideProvider == 1 ? c.OpenAiModel.Trim() : c.GeminiModel.Trim() };
@@ -411,7 +412,10 @@ namespace KippixOverlay
                 OpenAiWebSearch = false,
                 GeminiKey = c.GeminiKey,
                 GeminiModel = c.GeminiModel,
-                GeminiWebSearch = false
+                GeminiWebSearch = false,
+                ClaudeCodePath = c.ClaudeCodePath,
+                ClaudeCodeModel = c.ClaudeCodeModel,
+                ClaudeCodeWebSearch = false
             };
             var a = Ask(copy, "Reply with the single word OK.");
             return (a.Text ?? "").Trim();
@@ -527,9 +531,9 @@ namespace KippixOverlay
             if (guides.Items == null) guides.Items = new Dictionary<string, AchievementGuide>();
             guides.GameName = gameName;
             guides.Provider = OverlayConfig.GuideProviderNames[c.GuideProvider];
-            guides.Model = c.GuideProvider == 1 ? c.OpenAiModel : c.GeminiModel;
+            guides.Model = c.GuideProvider == 1 ? c.OpenAiModel : c.GuideProvider == 3 ? c.ClaudeCodeModel : c.GeminiModel;
 
-            bool search = c.GuideProvider == 1 ? c.OpenAiWebSearch : c.GeminiWebSearch;
+            bool search = c.GuideProvider == 1 ? c.OpenAiWebSearch : c.GuideProvider == 3 ? c.ClaudeCodeWebSearch : c.GeminiWebSearch;
             double spent = 0;
             var list = achievements.Where(a => !string.IsNullOrEmpty(a.Name)).ToList();
             int batches = (list.Count + BatchSize - 1) / BatchSize;

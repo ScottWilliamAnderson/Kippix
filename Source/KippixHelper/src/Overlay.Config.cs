@@ -69,13 +69,16 @@ namespace KippixOverlay
         public bool ShowStoryProgress { get; set; }   // (0.99.48) "Story ~60%" under HowLongToBeat on the Now playing tile
 
         // Achievement guides (AI)
-        public int GuideProvider { get; set; }          // 0 off, 1 OpenAI, 2 Gemini
+        public int GuideProvider { get; set; }          // 0 off, 1 OpenAI, 2 Gemini, 3 Claude Code
         public string OpenAiKey { get; set; }
         public string OpenAiModel { get; set; }
         public bool OpenAiWebSearch { get; set; }
         public string GeminiKey { get; set; }
         public string GeminiModel { get; set; }
         public bool GeminiWebSearch { get; set; }
+        public string ClaudeCodePath { get; set; }      // claude.exe; empty: looked for (PATH and its usual places)
+        public string ClaudeCodeModel { get; set; }
+        public bool ClaudeCodeWebSearch { get; set; }
         public bool AutoDownloadGuides { get; set; }
         public bool UpdateGuidesOnStartup { get; set; }     // look for new games when Playnite opens
         public bool GuideUpdateInstalledOnly { get; set; }  // that update (and the overlay's) only covers installed games
@@ -130,6 +133,9 @@ namespace KippixOverlay
             GeminiKey = "";
             GeminiModel = "gemini-flash-latest";
             GeminiWebSearch = true;
+            ClaudeCodePath = "";
+            ClaudeCodeModel = "sonnet";
+            ClaudeCodeWebSearch = true;
             AutoDownloadGuides = true;
             UpdateGuidesOnStartup = true;
             GuideUpdateInstalledOnly = true;
@@ -140,7 +146,7 @@ namespace KippixOverlay
             OpenAiSearchPricePerCall = 0.01;
         }
 
-        public static readonly string[] GuideProviderNames = { "Off", "OpenAI", "Gemini (free)" };
+        public static readonly string[] GuideProviderNames = { "Off", "OpenAI", "Gemini (free)", "Claude Code (your Claude plan)" };
 
         public bool GuidesReady
         {
@@ -148,6 +154,7 @@ namespace KippixOverlay
             {
                 if (GuideProvider == 1) return !string.IsNullOrWhiteSpace(OpenAiKey);
                 if (GuideProvider == 2) return !string.IsNullOrWhiteSpace(GeminiKey);
+                if (GuideProvider == 3) return ClaudeCode.Find(ClaudeCodePath) != null;
                 return false;
             }
         }
@@ -206,9 +213,11 @@ namespace KippixOverlay
             QuickReplies.RemoveAll(string.IsNullOrWhiteSpace);
             if (DiscordClientId == null) DiscordClientId = "";
             if (DiscordClientSecret == null) DiscordClientSecret = "";
-            if (GuideProvider < 0 || GuideProvider > 2) GuideProvider = 0;
+            if (GuideProvider < 0 || GuideProvider > 3) GuideProvider = 0;
             if (OpenAiKey == null) OpenAiKey = "";
             if (GeminiKey == null) GeminiKey = "";
+            if (ClaudeCodePath == null) ClaudeCodePath = "";
+            if (string.IsNullOrWhiteSpace(ClaudeCodeModel)) ClaudeCodeModel = "sonnet";
             if (string.IsNullOrWhiteSpace(OpenAiModel)) OpenAiModel = "gpt-5-mini";
             if (string.IsNullOrWhiteSpace(GeminiModel)) GeminiModel = "gemini-flash-latest";
             if (OpenAiInputPricePerM <= 0) OpenAiInputPricePerM = 0.25;
