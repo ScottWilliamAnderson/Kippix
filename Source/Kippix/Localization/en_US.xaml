@@ -4445,6 +4445,7 @@
     <sys:String x:Key="LOC_KX_TourColLayout">LAYOUT</sys:String>
     <sys:String x:Key="LOC_KX_TourColDesign">DESIGN</sys:String>
     <sys:String x:Key="LOC_KX_TourColPreset">PRESET</sys:String>
+    <sys:String x:Key="LOC_KX_TourZoomHint">Preview the highlighted one full screen</sys:String>
     <sys:String x:Key="LOC_KX_TourMissLayout">Pick a layout, then its design and a preset, to carry on.</sys:String>
     <sys:String x:Key="LOC_KX_TourMissDesign">Pick a design for Row, then a preset, to carry on.</sys:String>
     <sys:String x:Key="LOC_KX_TourMissPreset">Pick a preset to carry on.</sys:String>
