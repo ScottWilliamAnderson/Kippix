@@ -210,9 +210,35 @@ namespace KippixHelper
             return c;
         }
 
+        // Putting a colour on costs about 40 ms on the screen's thread (everything drawn with the accent hears of it), and on the
+        // home screen that was in every move, before the highlight could be drawn on the next game. A game highlighted in
+        // passing doesn't get its colour now: the colour goes on once the highlight has rested on a game.
+        private const int AccentRestMs = 160;
+        private DispatcherTimer accentRest;
+        private string accentRestPath;
+        private int accentRestGen;
+
         private void ApplyAccentFor(string path, bool now)
         {
             if (!settings.AccentFromGame || ui == null) return;
+            if (!now && IsFullscreen && !detailsOpen)
+            {
+                accentRestPath = path;
+                accentRestGen = ++accentGen;   // (a colour still being worked out for the game before isn't put on)
+                if (accentRest == null)
+                {
+                    accentRest = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromMilliseconds(AccentRestMs) };
+                    accentRest.Tick += (s, e) =>
+                    {
+                        accentRest.Stop();
+                        if (accentRestGen == accentGen) ApplyAccentFor(accentRestPath, true);   // (unless something else set or cleared the colour meanwhile)
+                    };
+                }
+                accentRest.Stop();
+                accentRest.Start();
+                return;
+            }
+            if (accentRest != null) accentRest.Stop();
             int gen = ++accentGen;
             int strength = settings.AccentStrength;
             Color? known;
