@@ -157,7 +157,8 @@ namespace KippixHelper
                     want = settings.ListSide == 0 ? new Thickness(half, 0, 96, mid) : new Thickness(96, 0, half, mid);
                 }
                 else want = new Thickness(72, 0, 72, bottom);
-                if (want != gameInfoMargin)
+                bool library = LibraryOpen;   // (the library view: the logo, info and filter name are away, and stay where the home screen has them)
+                if (want != gameInfoMargin && !library)
                 {
                     gameInfoMargin = want;
                     Notify("GameInfoMargin");
@@ -169,8 +170,8 @@ namespace KippixHelper
                     // the list: the filter name sits just above the logo and info, in the same fixed spot
                     above = below = new Thickness(want.Left, 0, want.Right, want.Bottom + 330 + 16);
                 }
-                if (above != filterAboveMargin) { filterAboveMargin = above; Notify("FilterAboveMargin"); }
-                if (below != filterBelowMargin) { filterBelowMargin = below; Notify("FilterBelowMargin"); }
+                if (above != filterAboveMargin && !library) { filterAboveMargin = above; Notify("FilterAboveMargin"); }
+                if (below != filterBelowMargin && !library) { filterBelowMargin = below; Notify("FilterBelowMargin"); }
                 // Row › Lower with Loop: the carousel sits exactly where Playnite's row is (and the tiles are in it)
                 if (CarouselOn) { CarouselUpdate(); return; }
                 // tiles before the games: Always show puts them up once the cards are there; otherwise follow the card size

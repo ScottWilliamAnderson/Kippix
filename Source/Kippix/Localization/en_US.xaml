@@ -1581,6 +1581,9 @@
     <sys:String x:Key="LOC_KX_SecListMode">LIST</sys:String>
     <sys:String x:Key="LOC_KX_SecJustMode">MOSAIC</sys:String>
     <sys:String x:Key="LOC_KX_LibraryDown">Down opens the library</sys:String>
+    <sys:String x:Key="LOC_KX_LibPlayed">{0} played</sys:String>
+    <sys:String x:Key="LOC_KX_LibLast">Last played {0}</sys:String>
+    <sys:String x:Key="LOC_KX_LibNever">Not played yet</sys:String>
     <sys:String x:Key="LOC_KX_LibraryDownSub">Down from your games, when there is nothing further below, shows every game as a mosaic. B goes back</sys:String>
     <sys:String x:Key="LOC_KX_LayoutJustified">Mosaic</sys:String>
     <sys:String x:Key="LOC_KX_JustRows">Rows on screen</sys:String>

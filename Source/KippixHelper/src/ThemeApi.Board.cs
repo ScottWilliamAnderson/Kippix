@@ -680,7 +680,7 @@ namespace KippixHelper
                     if (el == null) continue;
                     // (Folder: the folder tiles aren't games, so no game info / button hints under them; Row › Tall / Full Screen:
                     // the cards have the screen unless Row's "Show the logo, game info and hints" is on)
-                    bool hide = on || (n == "KX_GameInfo" && CarHidesInfo);
+                    bool hide = on || (n == "KX_GameInfo" && (CarHidesInfo || LibraryOpen));   // (the library view has its own one-line header)
                     if (hide) { if (el.Visibility != Visibility.Collapsed) { el.Visibility = Visibility.Collapsed; if (on) ui.BeginInvoke(new Action(BoardFocusIfLost), DispatcherPriority.ContextIdle); } }
                     else if (el.ReadLocalValue(UIElement.VisibilityProperty) != DependencyProperty.UnsetValue) el.ClearValue(UIElement.VisibilityProperty);
                 }

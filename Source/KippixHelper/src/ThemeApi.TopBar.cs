@@ -96,6 +96,7 @@ namespace KippixHelper
                 bool hide = (settings.AutoHideTopBar || RowFullUnderBar) && !topBarActive && openPanel == null;
 
                 Fade(UiTools.FindByName(win, "KX_TopLeft"), hide ? 0 : 1);
+                LibraryHeaderPlace();   // the library view's header: over the profile's corner while that's away, beside it otherwise
                 Fade(UiTools.FindByName(win, "KX_TopShade"), hide ? 0 : 1);
                 // right side: hidden parts also fold away, so whatever stays slides together to the right edge
                 FoldAway(UiTools.FindByName(win, "PART_ButtonNotifications"), hide, settings.ShortcutsVertical);
