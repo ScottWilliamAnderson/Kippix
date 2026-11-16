@@ -391,6 +391,9 @@
                                         <!-- Installed only (Sort and show): Kippix's own, on top of Playnite's filter -->
                                         <TextBlock Text="{DynamicResource LOC_KX_InstalledOnly}" Style="{StaticResource KX_TextDim}" Margin="22,0,0,0" VerticalAlignment="Center"
                                                    Visibility="{PluginSettings Plugin=Kippix, Path=InstalledOnlyOn, FallbackValue=Collapsed}" />
+                                        <!-- Shuffle (Sort and show): the games in a random order -->
+                                        <TextBlock Text="{DynamicResource LOC_KX_SortShuffled}" Style="{StaticResource KX_TextDim}" Margin="22,0,0,0" VerticalAlignment="Center"
+                                                   Visibility="{PluginSettings Plugin=Kippix, Path=SortShuffleOn, FallbackValue=Collapsed}" />
                                         </StackPanel>
                                         <StackPanel x:Name="PART_ElemProgressIndicator" Orientation="Horizontal" Margin="22,0,0,0" VerticalAlignment="Center">
                                             <ContentControl Style="{DynamicResource ProgressIndicator}" Focusable="False" Width="22" Height="22" />

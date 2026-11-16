@@ -319,6 +319,7 @@ namespace KippixHelper
             TickTime("extras");
             BgFollowLayout();
             TickTime("per layout");
+            SortShuffleTick();   // (Sort and show > Shuffle: under the kept-in-place spots)
             ApplySlotPins(false);
             TickTime("pins");
             if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly) { InstalledOnlyHook(); ApplyListFilter(false); }   // Playnite may have put its own filter back
