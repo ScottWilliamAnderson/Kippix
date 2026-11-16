@@ -302,7 +302,7 @@ namespace KippixHelper
             {
                 case 1: return new Thickness(gridTilesRoom, 0, 0, 16 + settings.CardOffset);
                 case 2: return settings.ListSide == 0 ? new Thickness(64, 0, 0, ListBottom) : new Thickness(0, 0, 64, ListBottom);
-                case 6: return new Thickness(0, 0, 0, 16 + settings.CardOffset);   // the mosaic: across the screen, like the grid without its tiles
+                case 6: return new Thickness(justLeft, justTop, 0, justBottom);   // the mosaic: across the screen, where ApplyJustified worked out (ThemeApi.Justified.cs)
             }
             return new Thickness(left, 0, 0, -55 + settings.CardOffset);
         }
@@ -313,7 +313,8 @@ namespace KippixHelper
         {
             get
             {
-                if (LayoutNow == 1 || LayoutNow == 6) return HorizontalAlignment.Center;
+                if (LayoutNow == 1) return HorizontalAlignment.Center;
+                if (LayoutNow == 6) return HorizontalAlignment.Left;
                 if (LayoutNow == 2) return settings.ListSide == 0 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
                 return HorizontalAlignment.Stretch;
             }
