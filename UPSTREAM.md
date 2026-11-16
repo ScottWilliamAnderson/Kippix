@@ -1,6 +1,6 @@
 # Changes in this fork, ready to propose upstream
 
-Every change is one branch from `upstream/main` (Kipping0/Kippix at `a1f2326`), so each can be opened as its own pull request. `scott` is the integration branch (all of them merged) and is what runs on the device. Nothing has been proposed upstream yet.
+Every change is one branch from `upstream/main` (Kipping0/Kippix 1.0.2, `ff1c428`), so each can be opened as its own pull request. `scott` is the integration branch (all of them merged) and is what runs on the device. Nothing has been proposed upstream yet.
 
 "Verified" means it was run on a ROG Xbox Ally X (1920x1080, Playnite 10.64 fullscreen) and checked on screen. "Compiled" means it builds and is merged, and was not looked at on screen after its last commit.
 
@@ -24,7 +24,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/tour-last-preset-dpad` | Tour: D-pad could not reach Next from the presets. | Verified |
 | `fix/tour-grid-board-preset-pictures` | Tour presets kept the other layout's pictures after Grid <-> Board. | Verified |
 | `fix/tour-picture-row-refresh` | Tour "Choose a picture" row did not show the picture just chosen. | Verified (a newly chosen picture showed on the row at once) |
-| `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Not verified (the row shows "Signed in" correctly; the refresh right after signing in needs a sign-out and sign-in) |
+| `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Verified (with the step open, the store sign-in state was switched out and in: the row followed at once and the add-ons were asked again; a live sign-out was not done, as it would also sign out the Steam library) |
 | `fix/tour-store-no-games-wording` | "0 games · couldn't tell" for an add-on with no games. | Verified |
 | `fix/browser-close-focus` | Closing a page opened from a menu put the highlight on a hidden button. | Verified |
 | `fix/back-highlight-far-card` | Back from the game page after LB / RB: no card highlighted when the game was far along the row. | Verified |
