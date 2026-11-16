@@ -370,7 +370,10 @@ namespace KippixHelper
             if (g == null || gameEditBusy) return;
             string key = replace ? "metaall" : "metafill";
             Guid id = g.Id;
-            Confirm(replace ? Loc("LOC_KX_EditMetaAllAsk", "Download it all again?") : Loc("LOC_KX_EditMetaFillAsk", "Download what's missing?"),
+            // (filling in what's missing takes nothing away: its Download button isn't in the warning red; replacing it all is)
+            Action<string, string, string, Action> ask = Confirm;
+            if (!replace) ask = ConfirmPlain;
+            ask(replace ? Loc("LOC_KX_EditMetaAllAsk", "Download it all again?") : Loc("LOC_KX_EditMetaFillAsk", "Download what's missing?"),
                     string.Format(replace ? Loc("LOC_KX_EditMetaAllText", "{0}: its cover, background, description, genres and release date are replaced with what {1} has, matched by name. Its name and everything else stay as they are.")
                                           : Loc("LOC_KX_EditMetaFillText", "{0}: a cover, background, description, genres or release date it doesn't have yet are taken from {1}, matched by name. What it has stays as it is."),
                                   g.Name, GameEditSourceNames(g)),
