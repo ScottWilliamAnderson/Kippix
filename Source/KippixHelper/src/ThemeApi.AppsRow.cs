@@ -20,6 +20,8 @@ namespace KippixHelper
         private Guid appsCatId;         // the category with a row of its own now (Guid.Empty: none)
         private bool appsRowOpen;       // the highlight is in the Apps row: Playnite's list lets them through
         private bool appsRowFlipping;   // the list changing because of that: the rows aren't built again for it
+        private volatile bool appsInGames;   // what's shown now is apps and nothing else (favourites that are all apps, an "Apps" filter, a search): they stay in the games row
+        private bool appsCheckQueued;
 
         private bool AppsRowWanted
         {
@@ -51,8 +53,50 @@ namespace KippixHelper
             Guid want = AppsRowWanted ? AppsCategoryId() : Guid.Empty;
             if (want == appsCatId) return;
             appsCatId = want;
-            if (want == Guid.Empty) appsRowOpen = false;
+            if (want == Guid.Empty) { appsRowOpen = false; appsInGames = false; }
             ApplyListFilter(true);
+            AppsRowMergeCheck();
+        }
+
+        /// <summary>From Playnite's list each time it's filled again (a saved filter chosen, a search): the check below, once it's done.</summary>
+        private void AppsRowListChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (appsCatId == Guid.Empty || appsCheckQueued || ui == null) return;
+            if (e != null && e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset) return;
+            appsCheckQueued = true;
+            // (ahead of the next frame, so a filter that is all apps doesn't show "No games found" first)
+            ui.BeginInvoke(new Action(() => { appsCheckQueued = false; AppsRowMergeCheck(); }), System.Windows.Threading.DispatcherPriority.Normal);
+        }
+
+        /// <summary>
+        /// Taking the apps out must not leave the games row empty: when what Playnite's filter shows is apps and nothing else
+        /// (favourites that are all apps, a saved filter for the apps' own category, a search for one of them), they stay in the
+        /// games row, and there is no Apps row repeating them under it.
+        /// </summary>
+        private void AppsRowMergeCheck()
+        {
+            try
+            {
+                bool merge = false;
+                var view = listFilterView;
+                if (appsCatId != Guid.Empty && folderFilter == null && view != null && listWrapFilter != null && ReferenceEquals(view.Filter, listWrapFilter))
+                {
+                    var orig = listOrigFilter;
+                    bool games = false, apps = false;
+                    foreach (var o in view.SourceCollection)
+                    {
+                        if (profileNow != null && !ProfileAllowsId(EntryId(o))) continue;
+                        if (orig != null && !orig(o)) continue;
+                        if (IsAppsRowGame(FolderEntryGame(o))) apps = true; else { games = true; break; }
+                    }
+                    merge = apps && !games;
+                }
+                if (merge == appsInGames) return;
+                appsInGames = merge;
+                if (view != null) view.Refresh();
+                RebuildExtraRowsSoon();
+            }
+            catch (Exception ex) { logger.Warn("Kippix: apps row: " + ex.Message); }
         }
 
         /// <summary>The highlight went into or out of the Apps row (GoToExtraRow, LeaveExtraRows): Playnite's list lets the apps in, or not.</summary>
@@ -84,6 +128,7 @@ namespace KippixHelper
             // (not out of Running now: an app that's running is still running. It took the terminal out of that row, and the row with it)
             foreach (var b in built) if (b.Item1 != "running") b.Item3.RemoveAll(g => ids.Contains(g.Id));
             built.RemoveAll(b => b.Item3.Count == 0);
+            if (appsInGames) return;   // (they are the games row now: not a second time under it)
             built.Insert(built.Count > 0 && built[0].Item1 == "running" ? 1 : 0, Tuple.Create("apps", AppsCategoryName, apps));
         }
 

@@ -483,7 +483,11 @@ namespace KippixHelper
                 var view = HomeListView();
                 if (view == null) return;
                 bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null || appsCatId != Guid.Empty;
-                if (!ReferenceEquals(view, listFilterView)) { listFilterView = view; listWrapFilter = null; listOrigFilter = null; }
+                if (!ReferenceEquals(view, listFilterView))
+                {
+                    listFilterView = view; listWrapFilter = null; listOrigFilter = null;
+                    ((System.Collections.Specialized.INotifyCollectionChanged)view).CollectionChanged += AppsRowListChanged;   // (ThemeApi.AppsRow.cs)
+                }
                 bool ours = listWrapFilter != null && ReferenceEquals(view.Filter, listWrapFilter);
                 if (!want)
                 {
@@ -509,7 +513,7 @@ namespace KippixHelper
                             if (inFolder != null) return inFolder.Contains(id);
                             // the Apps row (ThemeApi.AppsRow.cs): its apps aren't in the games row; while the highlight is in that row they
                             // all are in the list, whatever Playnite's filter says, so they can be selected
-                            if (appsCatId != Guid.Empty) { var app = FolderEntryGame(o); if (IsAppsRowGame(app)) return appsRowOpen && !app.Hidden; }
+                            if (appsCatId != Guid.Empty && !appsInGames) { var app = FolderEntryGame(o); if (IsAppsRowGame(app)) return appsRowOpen && !app.Hidden; }
                             if (slotsAlwaysShow && SlotOf(id) > 0) return true;
                         }
                         catch (Exception) { }
