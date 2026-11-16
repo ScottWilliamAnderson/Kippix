@@ -91,11 +91,18 @@ namespace KippixHelper
 
         /// <summary>The switch shows while the background is the game's art (the other backgrounds have their own trailer / nothing to play over).</summary>
         public bool HomeVideoRowShown { get { return settings.HomeBgMode == 0; } }
+        /// <summary>A handheld saving battery pauses live backgrounds; a small muted clip costs little, so it can be let through.</summary>
+        public bool HomeVideoOnBattery
+        {
+            get { return settings.HomeVideoOnBattery; }
+            set { if (settings.HomeVideoOnBattery == value) return; settings.HomeVideoOnBattery = value; SaveSettings(); Notify("HomeVideoOnBattery"); hvGame = Guid.Empty; }
+        }
+
         public bool HomeVideoDownloadShown { get { return settings.HomeBgMode == 0 && settings.HomeVideo; } }
 
         private void NotifyHomeVideo()
         {
-            foreach (string n in new[] { "HomeVideo", "HomeVideoDownload", "HomeVideoMediaDir", "HomeVideoDelayMs", "HomeVideoRowShown", "HomeVideoDownloadShown" }) Notify(n);
+            foreach (string n in new[] { "HomeVideo", "HomeVideoDownload", "HomeVideoOnBattery", "HomeVideoMediaDir", "HomeVideoDelayMs", "HomeVideoRowShown", "HomeVideoDownloadShown" }) Notify(n);
         }
 
         /// <summary>The layouts it plays in: Row only for now (add the others here once they've been tried).</summary>
@@ -183,7 +190,7 @@ namespace KippixHelper
             if (detailsOpen) return "the game page is open";
             if (openPanel != null) return "a panel is open";
             if (libraryLoading || ambientOn || HomeBgBlack || IntroCovering || stageOpacity < 1) return "the home background is covered";
-            if (LiveBatteryPause()) return "handheld mode pauses live backgrounds (on battery)";
+            if (!settings.HomeVideoOnBattery && LiveBatteryPause()) return "handheld mode pauses live backgrounds (on battery)";
             if (NightNoAutoplayNow) return "night mode holds autoplay back";
             if (previewPlaying || previewShown) return "the trailer preview is playing";
             return null;

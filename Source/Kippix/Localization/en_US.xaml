@@ -3510,6 +3510,8 @@
     <sys:String x:Key="LOC_KX_HomeVideoSub">A muted clip of the highlighted game plays over its background after a moment (Row layout)</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoDownload">Download a trailer when there's no video</sys:String>
     <sys:String x:Key="LOC_KX_HomeVideoDownloadSub">Steam games without a saved video get their store trailer</sys:String>
+    <sys:String x:Key="LOC_KX_HomeVideoOnBattery">Play it on battery too</sys:String>
+    <sys:String x:Key="LOC_KX_HomeVideoOnBatterySub">Handheld mode pauses live backgrounds on battery; this lets the clip through</sys:String>
     <sys:String x:Key="LOC_KX_DocTitle">Kippix Doctor</sys:String>
     <sys:String x:Key="LOC_KX_FtHint">Any button hides this   ·   Tips can be switched off in Settings › Help</sys:String>
     <sys:String x:Key="LOC_KX_FtReset">Tips will show again, the next time each screen opens.</sys:String>
