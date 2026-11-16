@@ -235,6 +235,17 @@
         <Setter Property="Foreground" Value="{DynamicResource KX_TextDimBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource KX_FontDim}" />
     </Style>
+    <!-- a row that steps through values on A: what A changes it to, dim, after the value it has now ("Lower  ›  Tall").
+         The helper's ...TextNext properties give the text (ThemeApi.CycleNext.cs); with none, nothing shows. -->
+    <Style x:Key="KX_CycleNext" TargetType="TextBlock" BasedOn="{StaticResource KX_TextDim}">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="10,0,0,0" />
+        <Setter Property="MaxWidth" Value="260" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Style.Triggers>
+            <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed" /></Trigger>
+        </Style.Triggers>
+    </Style>
     <!-- small heading over a group of rows in the options -->
     <Style x:Key="KX_SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource KX_Text}">
         <Setter Property="Foreground" Value="{DynamicResource KX_TextDimBrush}" />
