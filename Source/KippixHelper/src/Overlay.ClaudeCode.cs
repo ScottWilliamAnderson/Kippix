@@ -161,6 +161,7 @@ namespace KippixOverlay
             var served = usage != null && usage.ContainsKey("server_tool_use") ? usage["server_tool_use"] as Dictionary<string, object> : null;
             answer.SearchCalls = (int)N(served, "web_search_requests");
             // (CostUsd stays 0: it's the plan's allowance, not credit; the spending cap is OpenAI's)
+            Playnite.SDK.LogManager.GetLogger().Info("Achievement guides: Claude Code (" + model + ") answered: " + text.Length + " characters, " + answer.SearchCalls + " web searches, stopped for: " + (S(root, "stop_reason") ?? "?"));
             return answer;
         }
 
