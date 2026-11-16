@@ -49,8 +49,17 @@ namespace KippixHelper
             if (name == "PART_ButtonContext") return own ?? Loc("LOC_KX_Play", "Play");
             // a part that is one button (a lower page card, the description): its name; a button inside a part: its own words
             string part = DetPartAt(b);
-            if (part != null && part != "buttons" && part != "media" && Array.IndexOf(DetNames(part), name) >= 0) return DetPartName(part);
-            return own ?? (part != null && part != "buttons" && part != "media" ? DetPartName(part) : null);
+            if (part != null && part != "buttons" && part != "media" && Array.IndexOf(DetNames(part), name) >= 0) return HintCase(DetPartName(part));
+            return own ?? (part != null && part != "buttons" && part != "media" ? HintCase(DetPartName(part)) : null);
+        }
+
+        /// <summary>A card's name as a hint reads: the lower page's headings are in capitals ("HOW LONG TO BEAT"), the hint says "How long to beat".</summary>
+        private static string HintCase(string s)
+        {
+            if (string.IsNullOrEmpty(s) || s.Length < 2) return s;
+            var c = System.Globalization.CultureInfo.CurrentCulture;
+            if (s != s.ToUpper(c) || s == s.ToLower(c)) return s;
+            return s.Substring(0, 1) + s.Substring(1).ToLower(c);
         }
     }
 }
