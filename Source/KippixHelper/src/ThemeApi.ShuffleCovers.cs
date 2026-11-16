@@ -74,11 +74,17 @@ namespace KippixHelper
             return pick ?? own;
         }
 
-        /// <summary>Which period it is: the day's number, or how many times Playnite has started with this on.</summary>
+        /// <summary>Which period it is: the number of the day, the hour or the ten minutes, or how many times Playnite has started with this on.</summary>
         private long ShufflePeriodNow()
         {
             ShuffleStart();
-            return settings.ShuffleCoversEvery == 1 ? DateTime.Today.Ticks / TimeSpan.TicksPerDay : settings.ShuffleCoversRun;
+            switch (settings.ShuffleCoversEvery)
+            {
+                case 1: return DateTime.Today.Ticks / TimeSpan.TicksPerDay;
+                case 2: return DateTime.Now.Ticks / TimeSpan.TicksPerHour;
+                case 3: return DateTime.Now.Ticks / (TimeSpan.TicksPerMinute * 10);
+                default: return settings.ShuffleCoversRun;
+            }
         }
 
         /// <summary>Once a session, the first time it's used: this start is counted, and every record is read on a worker.</summary>
@@ -311,7 +317,7 @@ namespace KippixHelper
         private bool shuffleTickSeen, shuffleTickOn;
         private long shuffleTickPeriod = -1;
 
-        /// <summary>From the tick: switched on or off, a new day, or another "how often": what's on screen picks again.</summary>
+        /// <summary>From the tick: switched on or off, a new day, hour or ten minutes, or another "how often": what's on screen picks again.</summary>
         private void ShuffleTick()
         {
             bool on = ShuffleOn;
@@ -333,6 +339,26 @@ namespace KippixHelper
 
         // ---------------- Settings › Home settings › Background › BackgroundChanger › Covers ----------------
 
+        // (in the order they are offered: each start, each day, each hour, every ten minutes; left running for days, a handheld only gets new covers from the timed ones)
+        private static readonly int[] ShuffleEveryOrder = { 0, 1, 2, 3 };
+
+        private string ShuffleEveryName(int every)
+        {
+            switch (every)
+            {
+                case 1: return Loc("LOC_KX_BcShuffleDay", "Each day");
+                case 2: return Loc("LOC_KX_BcShuffleHour", "Each hour");
+                case 3: return Loc("LOC_KX_BcShuffleTenMin", "Every ten minutes");
+                default: return Loc("LOC_KX_BcShuffleStart", "Each time Playnite starts");
+            }
+        }
+
+        private static int ShuffleEveryNext(int every)
+        {
+            int at = Array.IndexOf(ShuffleEveryOrder, every);
+            return ShuffleEveryOrder[(at + 1) % ShuffleEveryOrder.Length];
+        }
+
         private void ShuffleRows(ObservableCollection<PickRow> rows)
         {
             bool on = settings.ShuffleCovers;
@@ -340,12 +366,11 @@ namespace KippixHelper
                 Loc("LOC_KX_BcShuffleOn", "A game with covers in it shows a different one each time (its own cover takes its turn too), on its tile and its game page"), Loc("LOC_KX_BcShuffleOff", "Off: each game's own cover"),
                 () => { settings.ShuffleCovers = !on; SaveSettings(); PlaySound("move"); BcRowsAgain("bcshuffle"); }));
             if (!on) return;
-            bool daily = settings.ShuffleCoversEvery == 1;
             rows.Add(new PickRow
             {
                 Key = "bcshuffleevery", Icon = "clock", Indent = 42, Text = Loc("LOC_KX_BcShuffleEvery", "A new cover"),
-                Sub = daily ? Loc("LOC_KX_BcShuffleDay", "Each day") : Loc("LOC_KX_BcShuffleStart", "Each time Playnite starts"),
-                Command = new RelayCommand(_ => { settings.ShuffleCoversEvery = daily ? 0 : 1; SaveSettings(); PlaySound("move"); BcRowsAgain("bcshuffleevery"); })
+                Sub = ShuffleEveryName(settings.ShuffleCoversEvery),
+                Command = new RelayCommand(_ => { settings.ShuffleCoversEvery = ShuffleEveryNext(settings.ShuffleCoversEvery); SaveSettings(); PlaySound("move"); BcRowsAgain("bcshuffleevery"); })
             });
         }
     }

@@ -4376,6 +4376,8 @@
     <sys:String x:Key="LOC_KX_BcShuffleEvery">A new cover</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffleStart">Each time Playnite starts</sys:String>
     <sys:String x:Key="LOC_KX_BcShuffleDay">Each day</sys:String>
+    <sys:String x:Key="LOC_KX_BcShuffleHour">Each hour</sys:String>
+    <sys:String x:Key="LOC_KX_BcShuffleTenMin">Every ten minutes</sys:String>
     <sys:String x:Key="LOC_KX_BcMore">Adding pictures and videos to a game is in BackgroundChanger itself</sys:String>
     <sys:String x:Key="LOC_KX_BcMoreSub">Playnite's desktop mode: right-click a game › BackgroundChanger</sys:String>
     <sys:String x:Key="LOC_KX_BcModeFav">Your favourite (or the first)</sys:String>
