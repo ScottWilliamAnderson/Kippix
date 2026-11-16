@@ -67,8 +67,8 @@ namespace KippixHelper
             });
             rows.Add(new PickRow
             {
-                Key = "onetile", Icon = "layout", IsSwitch = true, IsSelected = settings.OneTilePerGame, Text = Loc("LOC_KX_OneTile", "One tile per game"),
-                Sub = Loc("LOC_KX_OneTileSub", "A game you have more than once shows once: the installed copy, else the one you played last"),
+                Key = "onetile", Icon = "layout", IsSwitch = true, IsSelected = settings.OneTilePerGame, Text = Loc("LOC_KX_OneTilePerGame", "One tile per game"),
+                Sub = Loc("LOC_KX_OneTilePerGameSub", "A game you have more than once shows once: the installed copy, else the one you played last"),
                 Command = new RelayCommand(_ => SetOneTilePerGame(!settings.OneTilePerGame))
             });
             rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SortShowSort", "SORT BY") });
