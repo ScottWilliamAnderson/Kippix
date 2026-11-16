@@ -523,7 +523,7 @@
     <sys:String x:Key="LOC_KX_Editions">Editions</sys:String>
     <sys:String x:Key="LOC_KX_HideFree">Hide free games</sys:String>
     <sys:String x:Key="LOC_KX_ReadMore">Read it all</sys:String>
-    <sys:String x:Key="LOC_KX_RowRecent">Recently viewed</sys:String>
+    <sys:String x:Key="LOC_KX_RowRecent">Recently added</sys:String>
     <sys:String x:Key="LOC_KX_RowSoon">Coming soon</sys:String>
     <sys:String x:Key="LOC_KX_SecStoreRows">FRONT PAGE ROWS</sys:String>
     <sys:String x:Key="LOC_KX_SecTilePreview">TRAILER PREVIEW ON GAME TILES</sys:String>
