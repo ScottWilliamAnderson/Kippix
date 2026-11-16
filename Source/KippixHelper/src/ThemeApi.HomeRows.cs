@@ -769,8 +769,11 @@ namespace KippixHelper
                 if (host == null || list == null || root == null) return;
                 double coverBottom;
                 double top = CoverTop(list, root, out coverBottom);
-                if (double.IsNaN(top)) top = root.ActualHeight - rowTileH - 60;
-                else if (mainRowShift != null) top -= mainRowShift.Y;   // where the row sits, not where it's sliding to
+                // (nothing to measure while Playnite's list is being filled again, as it is each time the highlight goes into or out
+                //  of the Apps row: then where the covers were last, not a guess. The guess put the Apps row 30 px higher than the
+                //  games, with its highlighted tile over the row's name)
+                if (double.IsNaN(top)) top = !double.IsNaN(lastCoverTop) ? lastCoverTop : root.ActualHeight - rowTileH - 60;
+                else { if (mainRowShift != null) top -= mainRowShift.Y; lastCoverTop = top; }   // where the row sits, not where it's sliding to
                 double pitch = RowTitleH + rowTileH + RowGap;
                 // row k (1-based) sits with its tiles where the cover row's tiles are
                 double y = extraRowAt == 0 ? top + rowTileH + 70 - RowTitleH : top - RowTitleH - (extraRowAt - 1) * pitch;
@@ -826,6 +829,7 @@ namespace KippixHelper
         }
         private TranslateTransform mainRowShift;
         private double lastRowsTop = double.NaN;
+        private double lastCoverTop = double.NaN;   // where the games row's covers were when last measured (LayoutExtraRows)
         private TranslateTransform carRowShift;
 
         /// <summary>The carousel slides up with Playnite's row (its own translate, beside Free move's).</summary>
@@ -843,6 +847,20 @@ namespace KippixHelper
                 else { var g2 = new TransformGroup(); g2.Children.Add(cur); g2.Children.Add(carRowShift); host.RenderTransform = g2; }
             }
             carRowShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(y, new Duration(TimeSpan.FromMilliseconds(animate && !ReduceMotionNow ? 320 : 0))) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        }
+
+        /// <summary>
+        /// The controller's B in a row under the games: back up to the game you left, as Up from the first row and the keyboard's
+        /// Esc do. (The controller's B never reaches ExtraRowKey: it went to B's job on the home screen, the first game. From
+        /// the Apps row that was an app in the games row, which then left the row and took the highlight with it.)
+        /// </summary>
+        private bool ExtraRowBackKey(KeyEventArgs e)
+        {
+            if (extraRowAt == 0 || !ShowExtraRows || e.IsRepeat || IsPadRelease(e) || !IsBackKey(e)) return false;
+            if (confirmOpen || kbOpen || freeMove || IsMasterMoving || descReaderOpen) return false;
+            PlaySound("back");
+            LeaveExtraRows(true);
+            return true;
         }
 
         /// <summary>Down from the games into the first extra row; Up / Down between rows; Up from the first back to the games.</summary>
