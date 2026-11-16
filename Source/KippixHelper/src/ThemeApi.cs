@@ -319,6 +319,7 @@ namespace KippixHelper
             TickTime("extras");
             BgFollowLayout();
             TickTime("per layout");
+            try { LogoBalanceApply(); } catch (Exception) { }   // (the game page's logo, and a logo file that changed)
             ApplySlotPins(false);
             TickTime("pins");
             if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null) ApplyListFilter(false);   // Playnite may have put its own filter back
