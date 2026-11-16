@@ -27,7 +27,7 @@ namespace KippixHelper
     public class JustifiedPanel : VirtualizingPanel, IScrollInfo
     {
         private static readonly ILogger logger = LogManager.GetLogger();
-        private const double MinAspect = 0.45, MaxAspect = 2.4, DefaultAspect = 2.0 / 3.0;
+        private const double MinAspect = 0.5, MaxAspect = 1.6, DefaultAspect = 2.0 / 3.0;   // (a banner is cropped to 1.6 : 1, never wider)
         private const double MaxStretch = 1.3, MinSqueeze = 0.8;   // how far a row's tiles go from their pictures' shapes to fill the width
         private const int BufferRows = 2;           // rows kept made above and below the ones in view
         private const int AheadPerPass = 4;         // tiles made ahead in one idle pass
@@ -64,7 +64,7 @@ namespace KippixHelper
         private Func<object, double> aspectOf;
         private double rowHeight = 240, edgePadding, bottomRoom;
 
-        /// <summary>An item's width / height (clamped to 0.45 - 2.4 here).</summary>
+        /// <summary>An item's width / height (clamped to 0.5 - 1.6 here).</summary>
         public Func<object, double> AspectOf { get { return aspectOf; } set { aspectOf = value; InvalidateModel(); } }
         /// <summary>The height of every row (the tile's own margins included).</summary>
         public double RowHeight { get { return rowHeight; } set { if (Math.Abs(rowHeight - value) < 0.5) return; rowHeight = value; InvalidateModel(); } }
