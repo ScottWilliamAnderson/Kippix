@@ -4842,4 +4842,22 @@
     <sys:String x:Key="LOC_KX_EditDesktopAsk">Switch to desktop mode?</sys:String>
     <sys:String x:Key="LOC_KX_EditDesktopText">Playnite leaves fullscreen and opens its desktop window. Come back with F11 or its menu.</sys:String>
     <sys:String x:Key="LOC_KX_EditDesktopYes">Switch</sys:String>
+    <sys:String x:Key="LOC_KX_AddGame">Add an app or game</sys:String>
+    <sys:String x:Key="LOC_KX_AddGameSub">From the Start menu, or a file you choose</sys:String>
+    <sys:String x:Key="LOC_KX_AddHeader">WHAT TO ADD</sys:String>
+    <sys:String x:Key="LOC_KX_AddBrowse">Browse for a file…</sys:String>
+    <sys:String x:Key="LOC_KX_AddBrowseTitle">The program to add</sys:String>
+    <sys:String x:Key="LOC_KX_AddStartMenu">FROM THE START MENU</sys:String>
+    <sys:String x:Key="LOC_KX_AddLooking">Looking…</sys:String>
+    <sys:String x:Key="LOC_KX_AddNoneFound">No shortcuts were found</sys:String>
+    <sys:String x:Key="LOC_KX_AddAlready">Your library already has one with this name</sys:String>
+    <sys:String x:Key="LOC_KX_AddKindApp">App</sys:String>
+    <sys:String x:Key="LOC_KX_AddKindGame">Game</sys:String>
+    <sys:String x:Key="LOC_KX_AddKindAppSub">Gets the category “{0}”</sys:String>
+    <sys:String x:Key="LOC_KX_AddKindGameSub">No category: it sits with your games</sys:String>
+    <sys:String x:Key="LOC_KX_AddDetailsHeader">ADD THIS</sys:String>
+    <sys:String x:Key="LOC_KX_AddNameAsk">Its name in your library</sys:String>
+    <sys:String x:Key="LOC_KX_AddKind">Add as: {0}</sys:String>
+    <sys:String x:Key="LOC_KX_AddNow">Add it to the library</sys:String>
+    <sys:String x:Key="LOC_KX_AddLibraryHeader">LIBRARY</sys:String>
 </ResourceDictionary>

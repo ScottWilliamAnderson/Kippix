@@ -83,6 +83,7 @@ namespace KippixHelper
         private void AddGameEditRow(Game g)
         {
             gameEditLevel = null;
+            gameAddLevel = null;
             if (g == null) return;
             var game = g;
             GameMoreRows.Add(new PickRow
@@ -116,6 +117,7 @@ namespace KippixHelper
                 GameMoreTitle = g.Name;
                 Notify("GameMoreTitle");
                 if (collectionsShown) { collectionsShown = false; Notify("GameCollectionsShown"); Notify("GameMoreListShown"); }
+                gameAddLevel = null;
                 moreSnapshot = null;
                 gameEditId = g.Id;
                 gameEditLevel = "edit";
@@ -145,6 +147,7 @@ namespace KippixHelper
         /// <summary>B: from a list to the edit rows, from the edit rows to the More menu (or, opened by itself, closed).</summary>
         private bool GameEditBack()
         {
+            if (GameAddBack()) return true;   // (Add an app or game: ThemeApi.GameAdd.cs)
             if (openPanel != "options" || optionsPage != "gamemore" || gameEditLevel == null) return false;
             var g = GameEditGame();
             if (gameEditLevel == "list" && g != null) { PlaySound("back"); ShowGameEdit(g, gameEditFromMore, "list:" + gameEditList); return true; }
@@ -252,6 +255,8 @@ namespace KippixHelper
                     try { api.MainView.ToggleFullscreenView(); } catch (Exception ex) { logger.Warn("Kippix: desktop mode: " + ex.Message); }
                 }))
             });
+            rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_AddLibraryHeader", "LIBRARY") });
+            rows.Add(GameAddMenuRow(false));   // (ThemeApi.GameAdd.cs)
             return rows;
         }
 

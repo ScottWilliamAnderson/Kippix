@@ -190,6 +190,7 @@ namespace KippixHelper
         {
             ProfileRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecYourGames", "YOUR GAMES") });
             foreach (string k in new[] { "pick", "splitscreen", "storage", "health" }) AddPageMenuRow(k);
+            ProfileRows.Add(GameAddMenuRow(true));   // Add an app or game (ThemeApi.GameAdd.cs)
             ProfileRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecNews", "NEWS") });
             AddPageMenuRow("news");
             ProfileRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecThisPc", "THIS PC") });
