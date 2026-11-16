@@ -100,7 +100,7 @@ namespace KippixHelper
                                 w.Lines = heads.Select(h =>
                                 {
                                     string link = h.Item3;
-                                    return new WidgetLine { Label = h.Item1, Value = h.Item2, Bar = -1, Command = link != null && w.IsInteractive ? new RelayCommand(x => { PlaySound("select"); OpenBrowser(link); }) : null };
+                                    return new WidgetLine { Label = h.Item1, Value = h.Item2, Bar = -1, Command = link != null && w.IsInteractive ? new RelayCommand(x => { PlaySound("select"); OpenLink(link); }) : null };
                                 }).ToList();
                                 w.Status = heads.Count == 0 ? Loc("LOC_KX_WgFeedEmpty", "No headlines in that feed") : "";
                             });

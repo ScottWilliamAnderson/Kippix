@@ -266,6 +266,8 @@ namespace KippixHelper
         public string ItadApiKey = "";             // IsThereAnyDeal key pasted in desktop settings, DPAPI encrypted
         public int BrowserCursorSpeed = 3;         // 1 slowest .. 5 fastest
         public double BrowserZoom = 0;             // Chromium zoom level (0 = 100%, each 1 = x1.2)
+        public bool BrowserAutoKeyboard = true;    // the keyboard comes up when you press A on a text box on a page
+        public int LinksOpenIn = 0;                // links to read (news, a game's links, guides): 0 the theme's browser, 1 Windows' default browser
         public bool StoreResellers = false;
         public bool StoreHideOwned = false;        // hide games already in the Playnite library from store lists
         public bool StoreHideFree = false;         // hide free games from store lists (not the wishlist or "Free games")

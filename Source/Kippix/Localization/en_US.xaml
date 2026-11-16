@@ -402,6 +402,12 @@
     <sys:String x:Key="LOC_KX_StoreTrailerSound">Trailers with sound</sys:String>
     <sys:String x:Key="LOC_KX_SecBrowser">BROWSER</sys:String>
     <sys:String x:Key="LOC_KX_CursorSpeed">Cursor speed</sys:String>
+    <sys:String x:Key="LOC_KX_BrowserAutoKb">Keyboard when you pick a text box</sys:String>
+    <sys:String x:Key="LOC_KX_BrowserAutoKbSub">Press A on a text box on a page and the keyboard comes up. Done types it in. Off: Y brings it up</sys:String>
+    <sys:String x:Key="LOC_KX_LinksOpenIn">Open links in</sys:String>
+    <sys:String x:Key="LOC_KX_LinksOpenInSub">News, a game's links, guides and other pages to read. Signing in and the Store's pages stay in the built-in browser</sys:String>
+    <sys:String x:Key="LOC_KX_LinksInTheme">Built-in browser</sys:String>
+    <sys:String x:Key="LOC_KX_LinksInDefault">Default browser</sys:String>
     <sys:String x:Key="LOC_KX_BrowserHelp"></sys:String>
     <sys:String x:Key="LOC_KX_StoreSettings">Store settings</sys:String>
     <sys:String x:Key="LOC_KX_StoreLoadingMore">Loading more…</sys:String>

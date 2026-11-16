@@ -1479,8 +1479,8 @@ namespace KippixHelper
                 Sub = Loc("LOC_KX_TipsOnSub", "A small card the first time a screen opens (Free edit, the Store, your profile, folders…)"),
                 Command = new RelayCommand(_ => { TipsOn = !TipsOn; PlaySound("move"); TourRowsAgain("tips"); })
             });
-            if (!string.IsNullOrEmpty(GuideUrl)) rows.Add(new PickRow { Key = "guide", Icon = "link", Text = Loc("LOC_KX_OpenGuide", "Open the guide"), Command = new RelayCommand(_ => { welcomeResume = null; settings.WelcomeDone = true; SaveSettings(); ClosePanels(); OpenBrowser(GuideUrl); }) });
-            if (!string.IsNullOrEmpty(GitHubUrl)) rows.Add(new PickRow { Key = "github", Icon = "link", Text = "GitHub", Sub = GitHubUrl, Command = new RelayCommand(_ => { settings.WelcomeDone = true; SaveSettings(); ClosePanels(); OpenBrowser(GitHubUrl); }) });
+            if (!string.IsNullOrEmpty(GuideUrl)) rows.Add(new PickRow { Key = "guide", Icon = "link", Text = Loc("LOC_KX_OpenGuide", "Open the guide"), Command = new RelayCommand(_ => { welcomeResume = null; settings.WelcomeDone = true; SaveSettings(); ClosePanels(); OpenLink(GuideUrl); }) });
+            if (!string.IsNullOrEmpty(GitHubUrl)) rows.Add(new PickRow { Key = "github", Icon = "link", Text = "GitHub", Sub = GitHubUrl, Command = new RelayCommand(_ => { settings.WelcomeDone = true; SaveSettings(); ClosePanels(); OpenLink(GitHubUrl); }) });
         }
 
         /// <summary>A picture for a step, if the theme has one (Welcome\hello.png, Welcome\tips.png).</summary>

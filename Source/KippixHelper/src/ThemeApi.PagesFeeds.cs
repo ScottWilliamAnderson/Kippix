@@ -236,7 +236,7 @@ namespace KippixHelper
                     Text = p.Title, ImagePath = SteamHeader(p.AppId), Wide = true, Key = url,
                     Sub = p.Game + "   ·   " + (p.When > DateTime.MinValue ? AgoText(p.When) : "") + (p.Summary.Length > 0 ? "\n" + p.Summary : ""),
                     Right = p.Official ? "" : p.Label,
-                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(url)) OpenBrowser(url); })
+                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(url)) OpenLink(url); })
                 });
             }
             SetPageStatus(posts.Count == 0

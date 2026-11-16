@@ -300,7 +300,7 @@ namespace KippixHelper
             communitySharedKind = null;
             string post = shared != null ? CommunityPostUrl(shared) : null;
             if (post != null)
-                PageChips.Insert(0, new PickRow { Key = "c:post", Icon = "link", Text = Loc("LOC_KX_OpenSharePage", "Open the sharing page"), Command = new RelayCommand(_ => { PlaySound("select"); OpenBrowser(post); }) });
+                PageChips.Insert(0, new PickRow { Key = "c:post", Icon = "link", Text = Loc("LOC_KX_OpenSharePage", "Open the sharing page"), Command = new RelayCommand(_ => { PlaySound("select"); OpenLink(post); }) });
             string note = communityStatus;
             communityStatus = null;
 
@@ -502,7 +502,7 @@ namespace KippixHelper
             {
                 AddPageHeader(Loc("LOC_KX_SecSharing", "SHARING"));
                 AddMineRow("m:post", "link", Loc("LOC_KX_OpenSharePage", "Open the sharing page"), Loc("LOC_KX_OpenSharePageSub", "Kippix's GitHub page: post the files you saved, with a line about them"),
-                           () => { PlaySound("select"); OpenBrowser(postAll); });
+                           () => { PlaySound("select"); OpenLink(postAll); });
             }
             NotifyPageLists();
         }
@@ -569,7 +569,7 @@ namespace KippixHelper
             {
                 AddPageHeader(Loc("LOC_KX_SecSharing", "SHARING"));
                 PageRows.Add(new PageRow { Key = "u:post", Icon = "link", Text = Loc("LOC_KX_OpenSharePage", "Open the sharing page"), Sub = Loc("LOC_KX_OpenSharePageSub", "Kippix's GitHub page: post the files you saved, with a line about them"),
-                                           Command = new RelayCommand(_ => { PlaySound("select"); OpenBrowser(post); }) });
+                                           Command = new RelayCommand(_ => { PlaySound("select"); OpenLink(post); }) });
             }
             SetPageStatus(string.Format(Loc("LOC_KX_CommunityUploadNote", "Nothing is uploaded from here: it's saved in {0} with a picture and its gallery entry, ready for you to post. Every one is checked before it goes in the gallery."), ShareFolder));
             CommunityChooserFocus("u:" + communityTab);

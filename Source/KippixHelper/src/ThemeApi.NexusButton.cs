@@ -50,7 +50,7 @@ namespace KippixHelper
             if (string.IsNullOrEmpty(url)) return;
             FindModManagers();
             bool vortex = ShowModsVortex, mo2 = ShowModsMo2;
-            if (!vortex && !mo2) { PlaySound("select"); OpenBrowser(url); return; }
+            if (!vortex && !mo2) { PlaySound("select"); OpenLink(url); return; }
             var g = PanelGame();
             if (g == null) return;
             PlaySound("select");
@@ -70,7 +70,7 @@ namespace KippixHelper
             {
                 Text = Loc("LOC_KX_ModsOpenNexus", "Open on Nexus Mods"), Sub = Loc("LOC_KX_NexusChoiceWebSub", "The game's page, in the browser"),
                 Icon = "globe", Key = "nexusweb",
-                Command = new RelayCommand(_ => { ClosePanels(); OpenBrowser(page); })
+                Command = new RelayCommand(_ => { ClosePanels(); OpenLink(page); })
             });
             if (vortex)
                 GameMoreRows.Add(new PickRow

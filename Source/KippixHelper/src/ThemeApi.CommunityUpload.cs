@@ -152,7 +152,7 @@ namespace KippixHelper
                     Key = "sent:" + item.Number, Icon = CommunityKindIcon(item.Kind), Text = item.Name,
                     Sub = CommunityKindOne(item.Kind) + "   ·   " + item.At.ToString("d MMM yyyy", CultureInfo.CurrentCulture),
                     Right = state,
-                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(item.Url)) { PlaySound("select"); OpenBrowser(item.Url); } })
+                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(item.Url)) { PlaySound("select"); OpenLink(item.Url); } })
                 });
             }
             RefreshUploadStates();

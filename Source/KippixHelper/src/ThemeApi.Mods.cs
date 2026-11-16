@@ -54,7 +54,7 @@ namespace KippixHelper
         private ICommand openModsNexusCommand, openVortexCommand, openMo2Command;
         public ICommand OpenModsNexusCommand
         {
-            get { return openModsNexusCommand ?? (openModsNexusCommand = new RelayCommand(_ => { if (string.IsNullOrEmpty(detModsUrl)) return; PlaySound("select"); OpenBrowser(detModsUrl); })); }
+            get { return openModsNexusCommand ?? (openModsNexusCommand = new RelayCommand(_ => { if (string.IsNullOrEmpty(detModsUrl)) return; PlaySound("select"); OpenLink(detModsUrl); })); }
         }
         public ICommand OpenVortexCommand { get { return openVortexCommand ?? (openVortexCommand = new RelayCommand(_ => StartModManager(vortexExe, "Vortex"))); } }
         public ICommand OpenMo2Command { get { return openMo2Command ?? (openMo2Command = new RelayCommand(_ => StartModManager(mo2Exe, "Mod Organizer 2"))); } }

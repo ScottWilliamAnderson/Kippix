@@ -504,7 +504,7 @@ namespace KippixHelper
                 var g = PanelGame();
                 if (g == null) return;
                 PlaySound("select");
-                OpenBrowser("https://howlongtobeat.com/?q=" + Uri.EscapeDataString(g.Name));
+                OpenLink("https://howlongtobeat.com/?q=" + Uri.EscapeDataString(g.Name));
             });
             DetAchCommand = new RelayCommand(_ => { PlaySound("select"); if (OpenGameAchievementsCommand != null && OpenGameAchievementsCommand.CanExecute(null)) OpenGameAchievementsCommand.Execute(null); });
             DetScoresCommand = new RelayCommand(_ =>
@@ -513,7 +513,7 @@ namespace KippixHelper
                 if (g == null) return;
                 PlaySound("select");
                 var link = g.Links != null ? g.Links.FirstOrDefault(l => l != null && !string.IsNullOrEmpty(l.Url) && (l.Url.IndexOf("metacritic.com", StringComparison.OrdinalIgnoreCase) >= 0 || l.Url.IndexOf("opencritic.com", StringComparison.OrdinalIgnoreCase) >= 0)) : null;
-                OpenBrowser(link != null ? link.Url : "https://www.metacritic.com/search/" + Uri.EscapeDataString(g.Name) + "/");
+                OpenLink(link != null ? link.Url : "https://www.metacritic.com/search/" + Uri.EscapeDataString(g.Name) + "/");
             });
             OpenDescReaderCommand = new RelayCommand(_ => OpenDescReader());
             ShowLowerPageCommand = new RelayCommand(_ => { if (detailsOpen && ShowDetMore) { PlaySound("move"); DetailsScrollTo(!detMoreDown, true); } });

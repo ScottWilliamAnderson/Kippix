@@ -162,7 +162,7 @@ namespace KippixHelper
         {
             if (string.IsNullOrEmpty(url)) { PlaySound("back"); SetHelpStatus(Loc("LOC_KX_HelpSoon", "That link is coming soon.")); return; }
             PlaySound("select");
-            OpenBrowser(url);
+            OpenLink(url);
         }
 
         // ---------------- updates ----------------

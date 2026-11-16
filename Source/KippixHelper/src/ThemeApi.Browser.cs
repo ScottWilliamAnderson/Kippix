@@ -21,7 +21,8 @@ namespace KippixHelper
     /// It's Playnite's own Chromium (CefSharp, already loaded and signed in wherever Playnite's library logins are),
     /// made by reflection so the add-on doesn't depend on one CefSharp version.
     /// Controller: left stick moves a cursor, A clicks (hold to drag), right stick scrolls, D-pad sends arrow keys,
-    /// Y types with Playnite's keyboard, LB / RB zoom, X reloads, B goes back a page (or closes), View / Start close.
+    /// Y types with the theme's keyboard (it also comes up by itself when A is pressed on a text box), LB / RB zoom,
+    /// X reloads, B goes back a page (or closes), View / Start close.
     /// Only exists while it's open: closing it disposes the browser and stops the cursor timer.
     /// </summary>
     public partial class ThemeApi
@@ -65,6 +66,32 @@ namespace KippixHelper
         }
 
         // ---------------- open / close ----------------
+
+        public bool BrowserAutoKeyboard
+        {
+            get { return settings.BrowserAutoKeyboard; }
+            set { if (SetSetting(ref settings.BrowserAutoKeyboard, value)) Notify("BrowserAutoKeyboard"); }
+        }
+        public ICommand CycleLinksOpenInCommand { get { return cycleLinksOpenIn ?? (cycleLinksOpenIn = new RelayCommand(_ => { settings.LinksOpenIn = settings.LinksOpenIn == 0 ? 1 : 0; SaveSettings(); Notify("LinksOpenInText"); })); } }
+        private ICommand cycleLinksOpenIn;
+        public string LinksOpenInText { get { return settings.LinksOpenIn == 0 ? Loc("LOC_KX_LinksInTheme", "Built-in browser") : Loc("LOC_KX_LinksInDefault", "Default browser"); } }
+
+        /// <summary>
+        /// A link to read (a news post, a game's link, a guide, a mod's page): in the theme's browser, or in Windows' default
+        /// browser when that's chosen (Store settings › Browser › Open links in). What has to stay in the theme's browser
+        /// (signing in, where Playnite's own browser keeps the sign-in; the Store's pages, which have their own setting;
+        /// a streaming service set to open in the theme) calls OpenBrowser itself.
+        /// </summary>
+        internal void OpenLink(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return;
+            if (settings.LinksOpenIn == 1 && (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+            {
+                try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); return; }
+                catch (Exception ex) { logger.Warn("Kippix: the default browser didn't open " + url + ": " + ex.Message); }
+            }
+            OpenBrowser(url);
+        }
 
         /// <summary>Shows a web page in the theme's browser (or Windows' default browser if Playnite's can't be used).</summary>
         internal void OpenBrowser(string url)
@@ -164,6 +191,13 @@ namespace KippixHelper
                 // our keys at the browser itself, before Playnite's own window shortcuts see them
                 browser.AddHandler(Keyboard.KeyDownEvent, new KeyEventHandler((s, e) => BrowserKey(e)), true);
                 browser.AddHandler(Keyboard.KeyUpEvent, new KeyEventHandler((s, e) => BrowserKey(e)), true);
+                // a text box on the page pressed (A, a tap, a click): the keyboard comes up (BrowserTextBoxPicked)
+                browser.AddHandler(UIElement.PreviewMouseDownEvent, new MouseButtonEventHandler((s, e) => browserPressAt = DateTime.UtcNow), true);
+                browser.AddHandler(UIElement.PreviewMouseUpEvent, new MouseButtonEventHandler((s, e) => browserPressAt = DateTime.UtcNow), true);
+                browser.AddHandler(UIElement.PreviewTouchDownEvent, new EventHandler<TouchEventArgs>((s, e) => browserPressAt = DateTime.UtcNow), true);
+                browser.AddHandler(UIElement.PreviewTouchUpEvent, new EventHandler<TouchEventArgs>((s, e) => browserPressAt = DateTime.UtcNow), true);
+                HookBrowserEvent("FrameLoadEnd", "BrowserFrameLoaded");
+                HookBrowserEvent("ConsoleMessage", "BrowserConsoleMessage");
                 // pop-ups and "new tab" links open in this same browser (a separate window couldn't be used with the controller)
                 try
                 {
@@ -186,6 +220,77 @@ namespace KippixHelper
                 browser = null;
                 return false;
             }
+        }
+
+        // ---------------- the keyboard by itself ----------------
+        //
+        // Typing needed Y first: nothing said a text box had been picked. Now every page (and every frame in it) gets a few
+        // lines of script that say so on the page's console when a text box has the page's focus after a press, and the
+        // browser's console messages are listened to. Only a press of yours counts (within a moment of it): a page that puts
+        // the cursor in its search box by itself, or the box getting its focus back when the keyboard closes, brings up nothing.
+        // The keyboard is the one Y opens: Done types the text into the box, B closes it.
+
+        private const string TextBoxMark = "__kxkb:1";
+        private const string TextBoxScript =
+            "(function(){if(window.__kxkb)return;window.__kxkb=1;" +
+            "function ed(t){if(!t||!t.tagName)return false;var n=t.tagName.toLowerCase();" +
+            "if(n==='textarea')return !t.readOnly&&!t.disabled;" +
+            "if(n==='input'){var y=(t.getAttribute('type')||'text').toLowerCase();return !t.readOnly&&!t.disabled&&['text','search','email','password','url','tel','number'].indexOf(y)>=0;}" +
+            "return !!t.isContentEditable;}" +
+            "function act(){var a=document.activeElement;while(a&&a.shadowRoot&&a.shadowRoot.activeElement)a=a.shadowRoot.activeElement;return a;}" +
+            "function say(){if(ed(act()))console.log('" + TextBoxMark + "');}" +
+            "document.addEventListener('focusin',say,true);document.addEventListener('mouseup',say,true);document.addEventListener('touchend',function(){setTimeout(say,50);},true);})();";
+
+        private DateTime browserPressAt = DateTime.MinValue;
+
+        /// <summary>One of the browser's own events (its argument type is CefSharp's: the handler takes any EventArgs).</summary>
+        private void HookBrowserEvent(string name, string method)
+        {
+            try
+            {
+                var ev = browserType.GetEvent(name);
+                var m = typeof(ThemeApi).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic);
+                if (ev == null || m == null) return;
+                ev.AddEventHandler(browser, Delegate.CreateDelegate(ev.EventHandlerType, this, m));
+            }
+            catch (Exception ex) { logger.Warn("Kippix: browser " + name + " (the keyboard won't come up by itself): " + ex.Message); }
+        }
+
+        /// <summary>A frame finished loading (on Chromium's thread): it gets the script.</summary>
+        private void BrowserFrameLoaded(object sender, EventArgs e)
+        {
+            try
+            {
+                var fp = e.GetType().GetProperty("Frame");
+                object frame = fp != null ? fp.GetValue(e, null) : null;
+                if (frame == null) return;
+                var run = frame.GetType().GetMethod("ExecuteJavaScriptAsync", new[] { typeof(string), typeof(string), typeof(int) });
+                if (run == null)
+                    foreach (var i in frame.GetType().GetInterfaces()) { run = i.GetMethod("ExecuteJavaScriptAsync", new[] { typeof(string), typeof(string), typeof(int) }); if (run != null) break; }
+                if (run != null) run.Invoke(frame, new object[] { TextBoxScript, "about:blank", 1 });
+            }
+            catch (Exception) { }
+        }
+
+        /// <summary>The page's console (on Chromium's thread): our script's line.</summary>
+        private void BrowserConsoleMessage(object sender, EventArgs e)
+        {
+            try
+            {
+                var mp = e.GetType().GetProperty("Message");
+                if (mp == null || !string.Equals(mp.GetValue(e, null) as string, TextBoxMark, StringComparison.Ordinal)) return;
+                OnUi(BrowserTextBoxPicked);
+            }
+            catch (Exception) { }
+        }
+
+        private void BrowserTextBoxPicked()
+        {
+            if (!settings.BrowserAutoKeyboard || openPanel != "browser" || browser == null || kbOpen) return;
+            if ((DateTime.UtcNow - browserPressAt).TotalMilliseconds > 1500) return;   // (not from a press of yours)
+            browserPressAt = DateTime.MinValue;
+            Dbg("browser: a text box was pressed, the keyboard comes up");
+            AskBrowserText();
         }
 
         private Type FindBrowserType()

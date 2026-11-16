@@ -100,7 +100,7 @@ namespace KippixHelper
                 {
                     if (string.IsNullOrEmpty(detNewsAppId)) return;
                     PlaySound("select");
-                    OpenBrowser("https://store.steampowered.com/news/app/" + detNewsAppId);
+                    OpenLink("https://store.steampowered.com/news/app/" + detNewsAppId);
                 }));
             }
         }
@@ -169,7 +169,7 @@ namespace KippixHelper
                     Meta = feed.Length > 0 && when.Length > 0 ? when + "  ·  " + feed : when + feed,
                     Text = NewsClean(FStr(d, "contents"), 260),
                     Url = link,
-                    Command = new RelayCommand(_ => { PlaySound("select"); OpenBrowser(link); })
+                    Command = new RelayCommand(_ => { PlaySound("select"); OpenLink(link); })
                 });
             }
             return r;
@@ -242,7 +242,7 @@ namespace KippixHelper
             PageTitle = name.Length > 0 ? string.Format(Loc("LOC_KX_GameNewsTitle", "{0}: news"), name) : Loc("LOC_KX_PageNews", "Game news");
             PageSub = Loc("LOC_KX_GameNewsSub", "Updates and patch notes from Steam");
             string all = "https://store.steampowered.com/news/app/" + appId;
-            AddPageChip(Loc("LOC_KX_GameNewsAll", "All of its news on Steam"), "globe", () => { PlaySound("select"); OpenBrowser(all); });
+            AddPageChip(Loc("LOC_KX_GameNewsAll", "All of its news on Steam"), "globe", () => { PlaySound("select"); OpenLink(all); });
             GameNewsCacheEntry hit;
             lock (gameNewsCache) gameNewsCache.TryGetValue(appId, out hit);
             if (hit != null && (DateTime.UtcNow - hit.At).TotalMinutes < 60) { FillGameNewsPage(hit.Posts); return; }
@@ -273,7 +273,7 @@ namespace KippixHelper
                 {
                     Text = post.Title, Icon = "news", Key = post.Url,
                     Sub = post.Meta + (string.IsNullOrEmpty(post.Text) ? "" : (post.Meta.Length > 0 ? "\n" : "") + post.Text),
-                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(post.Url)) { PlaySound("select"); OpenBrowser(post.Url); } })
+                    Command = new RelayCommand(_ => { if (!string.IsNullOrEmpty(post.Url)) { PlaySound("select"); OpenLink(post.Url); } })
                 });
             }
             SetPageStatus(posts.Count == 0 ? Loc("LOC_KX_GameNewsEmpty", "No news for this game on Steam yet.") : "");
