@@ -3566,6 +3566,7 @@
     <sys:String x:Key="LOC_KX_TourWorking">working</sys:String>
     <sys:String x:Key="LOC_KX_TourUnknown">couldn't tell</sys:String>
     <sys:String x:Key="LOC_KX_TourGames">{0} games</sys:String>
+    <sys:String x:Key="LOC_KX_TourNoGames">No games from it yet</sys:String>
     <sys:String x:Key="LOC_KX_TourSteamStoreSub">For the Store's wishlist</sys:String>
     <sys:String x:Key="LOC_KX_TourDesktop">Set up stores in desktop mode</sys:String>
     <sys:String x:Key="LOC_KX_TourDesktopSub">Switches to desktop mode; the tour returns next time</sys:String>

@@ -935,7 +935,9 @@ namespace KippixHelper
                 rows.Add(new PickRow
                 {
                     Key = "lib:" + s.Plugin.Id, Icon = s.SignedIn == false ? "flag" : s.SignedIn == true ? "check" : "store", IsSelected = false, IsInfo = true,
-                    Text = s.Name, Sub = string.Format(Loc("LOC_KX_TourGames", "{0} games"), s.Games) + "   ·   " + state   // (0.99.10: just a list, as it was)
+                    // (an add-on with no games that can't say if it's signed in read "0 games · couldn't tell": it says what that means)
+                    Text = s.Name, Sub = s.Checked && s.SignedIn == null && s.Games == 0 ? Loc("LOC_KX_TourNoGames", "No games from it yet")
+                                       : string.Format(Loc("LOC_KX_TourGames", "{0} games"), s.Games) + "   ·   " + state   // (0.99.10: just a list, as it was)
                 });
             }
             rows.Add(new PickRow
