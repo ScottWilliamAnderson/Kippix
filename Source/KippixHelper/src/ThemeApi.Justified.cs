@@ -621,6 +621,7 @@ namespace KippixHelper
             LeaveExtraRows(false);
             libraryFromMode = settings.HomeLayoutMode;
             libraryOpen = true;
+            if (appsCatId != Guid.Empty) ApplyListFilter(true);   // (the Apps row keeps its apps out of the games row, not out of the library)
             carWhy = "the library view was opened";
             PlaySound("select");
             logger.Info("Kippix: mosaic: library view opened (over layout " + libraryFromMode + ")");
@@ -641,6 +642,7 @@ namespace KippixHelper
             if (was) JustCommit();   // (back on the game the highlight was on)
             libraryOpen = false;
             if (!was) return false;
+            if (appsCatId != Guid.Empty) ApplyListFilter(true);   // (the apps go back to their own row)
             if (sound) PlaySound("back");
             carWhy = "the library view was closed";
             logger.Info("Kippix: mosaic: library view closed");
