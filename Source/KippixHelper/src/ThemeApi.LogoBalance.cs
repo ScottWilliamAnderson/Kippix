@@ -171,7 +171,7 @@ namespace KippixHelper
             if ((string)cc.GetValue(LogoDoneProperty) == done) return;
             cc.SetValue(LogoDoneProperty, done);
             var area = VisualTreeHelper.GetParent(cc) as FrameworkElement;
-            bool ourArea = area != null && area.Name == "KX_LogoArea";
+            bool ourArea = area != null && (area.Name == "KX_LogoArea" || area.Name == "DetLogo");   // (the home screen's and the game page's: as high as the old box)
             if (fit == null)
             {
                 cc.MaxWidth = first.Width; cc.MaxHeight = first.Height;
