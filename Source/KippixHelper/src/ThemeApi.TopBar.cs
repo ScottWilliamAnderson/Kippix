@@ -107,10 +107,27 @@ namespace KippixHelper
                     foreach (var item in Shortcuts)
                     {
                         var c = list.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
-                        FoldAway(c, hide && !item.StayVisible && !(item.IsClock && settings.TopBarKeepClock), settings.ShortcutsVertical);
+                        bool away = hide && !item.StayVisible && !(item.IsClock && settings.TopBarKeepClock);
+                        FoldAway(c, away, settings.ShortcutsVertical);
+                        // what stays while the bar is away (the clock, a shortcut kept visible) has lost the shade behind the bar: a
+                        // soft shadow of its own keeps it readable over bright art, with no box round it
+                        if (c != null)
+                        {
+                            bool alone = hide && !away;
+                            if (alone && c.Effect == null) c.Effect = KeptShadow;
+                            else if (!alone && ReferenceEquals(c.Effect, KeptShadow)) c.Effect = null;
+                        }
                     }
             }
             catch (Exception ex) { logger.Error(ex, "Kippix: top bar fade failed"); }
+        }
+
+        private static readonly System.Windows.Media.Effects.DropShadowEffect KeptShadow = MakeKeptShadow();
+        private static System.Windows.Media.Effects.DropShadowEffect MakeKeptShadow()
+        {
+            var e = new System.Windows.Media.Effects.DropShadowEffect { Color = Colors.Black, ShadowDepth = 0, BlurRadius = 9, Opacity = 1 };
+            e.Freeze();
+            return e;
         }
 
         /// <summary>Fades an element out and shrinks its width to nothing (or brings it back), animated.</summary>
