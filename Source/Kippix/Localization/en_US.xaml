@@ -4813,8 +4813,17 @@
     <sys:String x:Key="LOC_KX_SortShowScore">Your rating</sys:String>
     <sys:String x:Key="LOC_KX_SortShowRelease">Release date</sys:String>
     <sys:String x:Key="LOC_KX_SortShowAdded">Recently added</sys:String>
-    <sys:String x:Key="LOC_KX_SortShowDown">Highest or newest first  ·  press again to turn it round</sys:String>
-    <sys:String x:Key="LOC_KX_SortShowUp">Lowest or oldest first (A to Z)  ·  press again to turn it round</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowTurn">press again to turn it round</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayAZ">A to Z</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayZA">Z to A</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayRecent">Most recent first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayLongAgo">Longest ago first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayMost">Most played first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayLeast">Least played first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayHighest">Highest first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayLowest">Lowest first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayNewest">Newest first</sys:String>
+    <sys:String x:Key="LOC_KX_SortWayOldest">Oldest first</sys:String>
     <sys:String x:Key="LOC_KX_SortShowOther">Sorted by {0} now (set in Playnite's filters)</sys:String>
     <sys:String x:Key="LOC_KX_SortShowFolders">Folders have their own Sort by and Installed games choices</sys:String>
 </ResourceDictionary>

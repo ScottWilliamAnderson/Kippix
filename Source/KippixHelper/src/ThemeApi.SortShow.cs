@@ -43,6 +43,19 @@ namespace KippixHelper
             }
         }
 
+        /// <summary>Which way round the order that's on is, in that order's own words ("A to Z", "Highest first", "Newest first").</summary>
+        private string SortShowWay(SortOrder o, bool down)
+        {
+            switch (o)
+            {
+                case SortOrder.Name: return down ? Loc("LOC_KX_SortWayZA", "Z to A") : Loc("LOC_KX_SortWayAZ", "A to Z");
+                case SortOrder.LastActivity: return down ? Loc("LOC_KX_SortWayRecent", "Most recent first") : Loc("LOC_KX_SortWayLongAgo", "Longest ago first");
+                case SortOrder.Playtime: return down ? Loc("LOC_KX_SortWayMost", "Most played first") : Loc("LOC_KX_SortWayLeast", "Least played first");
+                case SortOrder.UserScore: return down ? Loc("LOC_KX_SortWayHighest", "Highest first") : Loc("LOC_KX_SortWayLowest", "Lowest first");
+                default: return down ? Loc("LOC_KX_SortWayNewest", "Newest first") : Loc("LOC_KX_SortWayOldest", "Oldest first");
+            }
+        }
+
         private void BuildSortShowRows(List<PickRow> rows)
         {
             rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SortShowShow", "SHOW") });
@@ -63,7 +76,7 @@ namespace KippixHelper
                 rows.Add(new PickRow
                 {
                     Key = "sort:" + o, Icon = "sort", IsSelected = on, Text = SortShowName(o),
-                    Sub = on ? (down ? Loc("LOC_KX_SortShowDown", "Highest or newest first  ·  press again to turn it round") : Loc("LOC_KX_SortShowUp", "Lowest or oldest first (A to Z)  ·  press again to turn it round")) : null,
+                    Sub = on ? SortShowWay(o, down) + "  ·  " + Loc("LOC_KX_SortShowTurn", "press again to turn it round") : null,
                     Command = new RelayCommand(_ => SetSortShow(order))
                 });
             }
