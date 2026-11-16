@@ -620,6 +620,16 @@ namespace KippixHelper
                     bool ready = LibraryOpen ? justList != null && justPanel != null : justList == null;
                     if (!ready && tries < 6) { LibraryFocusSoon(tries + 1); return; }
                     FocusSelectedCard();
+                    // closed with the highlight on a game the row hadn't made a card for yet (far along it): the list itself got the
+                    // focus and no card showed as chosen. Asked again once the row has laid itself out.
+                    var got = Keyboard.FocusedElement as ListBox;
+                    if (!LibraryOpen && got != null && got.Name == "PART_ListGameItems" && got.Items.Count > 0)
+                    {
+                        // (Playnite's row doesn't bring a card it hasn't made into view by itself: it is scrolled there)
+                        var card = RealizeListItem(got, Math.Max(0, got.SelectedIndex), true);
+                        if (card != null) Keyboard.Focus(card);
+                        else if (tries < 12) LibraryFocusSoon(tries + 1);
+                    }
                 }
                 catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, highlight: " + ex.Message); }
             }), tries == 0 ? DispatcherPriority.ContextIdle : DispatcherPriority.ApplicationIdle);
