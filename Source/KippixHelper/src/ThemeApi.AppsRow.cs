@@ -58,7 +58,9 @@ namespace KippixHelper
         /// <summary>The highlight went into or out of the Apps row (GoToExtraRow, LeaveExtraRows): Playnite's list lets the apps in, or not.</summary>
         private void AppsRowSync()
         {
-            bool open = appsCatId != Guid.Empty && extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count && ExtraRowsList[extraRowAt - 1].Key == "apps";
+            // (Running now too: a running app's tile is in that row, and Playnite can only select it if it's in its list)
+            string at = extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count ? ExtraRowsList[extraRowAt - 1].Key : null;
+            bool open = appsCatId != Guid.Empty && (at == "apps" || at == "running");
             if (open == appsRowOpen) return;
             appsRowOpen = open;
             try { appsRowFlipping = true; ApplyListFilter(true); }
@@ -79,7 +81,8 @@ namespace KippixHelper
                           .OrderByDescending(g => LastPlayedNow(g) ?? DateTime.MinValue).ThenBy(g => g.SortingName ?? g.Name).Take(40).ToList();
             if (apps.Count == 0) return;
             var ids = new HashSet<Guid>(apps.Select(g => g.Id));
-            foreach (var b in built) b.Item3.RemoveAll(g => ids.Contains(g.Id));
+            // (not out of Running now: an app that's running is still running. It took the terminal out of that row, and the row with it)
+            foreach (var b in built) if (b.Item1 != "running") b.Item3.RemoveAll(g => ids.Contains(g.Id));
             built.RemoveAll(b => b.Item3.Count == 0);
             built.Insert(built.Count > 0 && built[0].Item1 == "running" ? 1 : 0, Tuple.Create("apps", AppsCategoryName, apps));
         }
