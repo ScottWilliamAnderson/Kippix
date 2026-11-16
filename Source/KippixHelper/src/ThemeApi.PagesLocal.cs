@@ -282,6 +282,18 @@ namespace KippixHelper
             for (int i = 0; i < k; i++) GameMoreRows.Insert(i, fresh[i]);
             for (int i = k + 1; i < fresh.Count; i++) GameMoreRows.Add(fresh[i]);
             ui.BeginInvoke(new Action(RestoreMenuFocus), DispatcherPriority.Input);   // (if the highlight slipped out anyway, it comes back)
+            // the row that kept the highlight can now be further down than the menu shows (rows went in above it: after Add an app
+            // or game, Download what's missing was under the bottom edge): the menu scrolls to it
+            ui.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    var list = UiTools.FindByName(Application.Current.MainWindow, "KX_GameMoreList") as ItemsControl;
+                    var c = list != null ? list.ItemContainerGenerator.ContainerFromItem(keep) as FrameworkElement : null;
+                    if (c != null) c.BringIntoView();
+                }
+                catch (Exception) { }
+            }), DispatcherPriority.Loaded);
         }
 
         /// <summary>The row of this list that has the highlight (null if none of them has).</summary>
