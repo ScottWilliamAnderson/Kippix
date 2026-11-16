@@ -143,6 +143,11 @@ namespace KippixHelper
                 JustPrewarmSoon();
             }
             justList = list;
+            if (!ReferenceEquals(list, libraryHeaderList))
+            {
+                libraryHeaderList = list;
+                list.SelectionChanged += (so, se) => LibraryHeaderFor(list.SelectedItem);   // the library view's header names the selected game
+            }
             var panel = now as JustifiedPanel;
             if (!ReferenceEquals(panel, justPanel))
             {
@@ -380,6 +385,98 @@ namespace KippixHelper
         public ICommand CloseLibraryViewCommand { get; private set; }
         public bool LibraryDownOpens { get { return settings.LibraryDownOpens; } set { if (SetSetting(ref settings.LibraryDownOpens, value)) Notify("LibraryDownOpens"); } }
 
+        // While it's open the home screen's own logo, info line, hints, filter name and widgets are away (they'd sit half under
+        // the top of the screen, over the games), and one line on the top bar says what's shown and which game the highlight is
+        // on (Main.xaml, KX_LibraryHeader). Closing it puts them back where they were.
+        private string libraryTitle = "", libraryInfo = "";
+        private ListBox libraryHeaderList;
+        public string LibraryTitle { get { return libraryTitle; } }
+        public string LibraryInfo { get { return libraryInfo; } }
+
+        /// <summary>The header's game: its name, and its platform, time played and when it was last played.</summary>
+        private void LibraryHeaderFor(object entry)
+        {
+            if (!LibraryOpen) return;
+            string title = "", info = "";
+            try
+            {
+                var g = EntryGame(entry);
+                if (g != null)
+                {
+                    title = g.Name ?? "";
+                    var parts = new List<string>();
+                    var platforms = g.Platforms;
+                    if (platforms != null && platforms.Count > 0 && platforms[0] != null && !string.IsNullOrEmpty(platforms[0].Name)) parts.Add(platforms[0].Name);
+                    if (g.Playtime >= 60) parts.Add(string.Format(Loc("LOC_KX_LibPlayed", "{0} played"), KippixOverlay.GameData.FormatPlaytime(g.Playtime)));
+                    if (g.LastActivity.HasValue)
+                    {
+                        string when = KippixOverlay.GameData.FormatLastPlayed(g.LastActivity);
+                        if (when.StartsWith("Today", StringComparison.Ordinal) || when.StartsWith("Yesterday", StringComparison.Ordinal)) when = char.ToLowerInvariant(when[0]) + when.Substring(1);
+                        parts.Add(string.Format(Loc("LOC_KX_LibLast", "Last played {0}"), when));
+                    }
+                    else parts.Add(Loc("LOC_KX_LibNever", "Not played yet"));
+                    info = string.Join("   \u00B7   ", parts.ToArray());
+                }
+            }
+            catch (Exception) { }
+            if (title != libraryTitle) { libraryTitle = title; Notify("LibraryTitle"); }
+            if (info != libraryInfo) { libraryInfo = info; Notify("LibraryInfo"); }
+        }
+
+        /// <summary>
+        /// The header starts at the games' left edge (72). It's in the top bar, after the profile button's corner: while that is
+        /// faded out (Auto-hide top bar) the header is drawn over it, and beside it while it shows.
+        /// </summary>
+        private void LibraryHeaderPlace()
+        {
+            try
+            {
+                if (!LibraryOpen) return;
+                var win = Application.Current != null ? Application.Current.MainWindow : null;
+                var header = win != null ? UiTools.FindByName(win, "KX_LibraryHeader") : null;
+                var corner = win != null ? UiTools.FindByName(win, "KX_TopLeft") : null;
+                if (header == null || corner == null) return;
+                bool cornerAway = settings.AutoHideTopBar && !topBarActive && openPanel == null;
+                double x = cornerAway || corner.ActualWidth < 1 ? 8 - corner.ActualWidth : 14;
+                var shift = header.RenderTransform as TranslateTransform;
+                if (shift == null || shift.IsFrozen) { header.RenderTransform = new TranslateTransform(x, 0); return; }
+                if (ReduceMotionNow || !header.IsVisible) { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.X = x; }
+                else shift.BeginAnimation(TranslateTransform.XProperty, new System.Windows.Media.Animation.DoubleAnimation(x, new Duration(TimeSpan.FromMilliseconds(180))) { EasingFunction = new System.Windows.Media.Animation.CubicEase() });
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, its header: " + ex.Message); }
+        }
+
+        /// <summary>Opened or closed: the home screen's own parts go or come back (the logo and info: BoardApplyMode).</summary>
+        private void LibraryLandingChanged(bool closed)
+        {
+            Notify("ShowWidgets");
+            try
+            {
+                var win = Application.Current != null ? Application.Current.MainWindow : null;
+                if (win == null) return;
+                // (the filter name's Visibility is bound, so it's put out of sight by its opacity)
+                var filter = UiTools.FindByName(win, "KX_FilterAbove");
+                if (filter != null)
+                {
+                    filter.BeginAnimation(UIElement.OpacityProperty, null);
+                    if (closed) filter.ClearValue(UIElement.OpacityProperty); else filter.Opacity = 0;
+                }
+                if (!closed || ReduceMotionNow) return;
+                // back on the home screen: its logo, info and filter name come in softly, once the row is back in place
+                foreach (string n in new[] { "KX_GameInfo", "KX_FilterAbove" })
+                {
+                    var el = UiTools.FindByName(win, n);
+                    if (el == null) continue;
+                    var fade = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames { FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop };
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.Zero)));
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(140))));
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(el.Opacity, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(400))));
+                    el.BeginAnimation(UIElement.OpacityProperty, fade);
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, the home screen's own parts: " + ex.Message); }
+        }
+
         /// <summary>Over Row, Grid or the List (the layouts that show Playnite's own list), on the home screen.</summary>
         private bool OpenLibraryView()
         {
@@ -393,8 +490,11 @@ namespace KippixHelper
             PlaySound("select");
             logger.Info("Kippix: mosaic: library view opened (over layout " + libraryFromMode + ")");
             JustPerfFrames(true);
+            try { var games = UiTools.FindByName(Application.Current.MainWindow, "PART_ListGameItems") as ListBox; if (games != null) LibraryHeaderFor(games.SelectedItem); } catch (Exception) { }
             HomeModeChanged();
+            LibraryHeaderPlace();
             Notify("IsLibraryOpen");
+            LibraryLandingChanged(false);
             LibraryFocusSoon(0);
             return true;
         }
@@ -412,6 +512,7 @@ namespace KippixHelper
             JustPerfFrames(false);
             HomeModeChanged();
             Notify("IsLibraryOpen");
+            LibraryLandingChanged(true);
             LibraryFocusSoon(0);
             return true;
         }
