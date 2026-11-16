@@ -41,7 +41,9 @@ namespace KippixHelper
             string tip = b.ToolTip as string;
             if (!string.IsNullOrWhiteSpace(tip)) return tip.Trim();
             string own = b.Content as string;
-            if (string.IsNullOrWhiteSpace(own))
+            // (a button shown with words of its own, as Play is on a running game's page ("Switch to") or an app's ("Open"): the
+            //  words on screen, not Playnite's Content behind them)
+            if (string.IsNullOrWhiteSpace(own) || b.ContentTemplate != null)
             {
                 var text = UiTools.FindChild<TextBlock>(b);
                 own = text != null ? text.Text : null;
