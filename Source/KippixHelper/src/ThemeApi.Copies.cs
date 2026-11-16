@@ -385,7 +385,7 @@ namespace KippixHelper
                 else
                     GameMoreRows.Add(new PickRow
                     {
-                        Text = string.Format(Loc("LOC_KX_CopyShow", "Show the {0} copy instead"), CopyFrom(o)), Sub = sub, Icon = "use", Key = "copy:" + o.Id,
+                        Text = string.Format(Loc("LOC_KX_CopyShow", "Show the {0} copy instead"), CopyFrom(o)), Sub = sub, Icon = o.PluginId != Guid.Empty ? "store" : "controller", Key = "copy:" + o.Id,
                         Command = new RelayCommand(_ =>
                         {
                             if (settings.CopyPicks == null) settings.CopyPicks = new List<string>();
@@ -399,7 +399,14 @@ namespace KippixHelper
                 GameMoreRows.Add(new PickRow
                 {
                     Text = Loc("LOC_KX_CopyAuto", "Choose the copy for me again"), Sub = Loc("LOC_KX_CopyAutoSub", "The installed one, else the one you played last"), Icon = "refresh", Key = "copyauto",
-                    Command = new RelayCommand(_ => { settings.CopyPicks.RemoveAll(ids.Contains); CopyChoiceMade(Guid.Empty); })
+                    Command = new RelayCommand(_ =>
+                    {
+                        settings.CopyPicks.RemoveAll(ids.Contains);
+                        // (the page goes to the copy that's the tile now)
+                        CopyChoiceMade(Guid.Empty);
+                        CopyGroup now;
+                        if (CopyGroupsNow().TryGetValue(g.Id, out now) && now.Ids[0] != g.Id) CopyGoTo(now.Ids[0]);
+                    })
                 });
             GameMoreRows.Add(new PickRow
             {
@@ -421,10 +428,14 @@ namespace KippixHelper
             PlaySound("select");
             ClosePanels();
             CopiesAgain(true);
-            if (showNow == Guid.Empty) return;
+            if (showNow != Guid.Empty) CopyGoTo(showNow);
+        }
+
+        private void CopyGoTo(Guid id)
+        {
             ui.BeginInvoke(new Action(() =>
             {
-                try { api.MainView.SelectGame(showNow); } catch (Exception) { }
+                try { api.MainView.SelectGame(id); } catch (Exception) { }
             }), DispatcherPriority.Loaded);
         }
     }
