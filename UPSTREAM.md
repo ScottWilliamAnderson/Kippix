@@ -23,7 +23,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/tour-stores-list-scroll` | Tour lists longer than the screen scrolled to the bottom on every move. | Verified |
 | `fix/tour-last-preset-dpad` | Tour: D-pad could not reach Next from the presets. | Verified |
 | `fix/tour-grid-board-preset-pictures` | Tour presets kept the other layout's pictures after Grid <-> Board. | Verified |
-| `fix/tour-picture-row-refresh` | Tour "Choose a picture" row did not show the picture just chosen. | Partly verified (the row shows the current picture; choosing a new one was not tried) |
+| `fix/tour-picture-row-refresh` | Tour "Choose a picture" row did not show the picture just chosen. | Verified (a newly chosen picture showed on the row at once) |
 | `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Not verified (the row shows "Signed in" correctly; the refresh right after signing in needs a sign-out and sign-in) |
 | `fix/tour-store-no-games-wording` | "0 games · couldn't tell" for an add-on with no games. | Verified |
 | `fix/browser-close-focus` | Closing a page opened from a menu put the highlight on a hidden button. | Verified |
