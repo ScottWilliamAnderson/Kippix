@@ -100,11 +100,14 @@ namespace KippixHelper
                 return Covers.Get(g);
             };
             p.SmoothScroll = !ReduceMotionNow;
-            if (justRowHeight > 0) p.TargetRowHeight = justRowHeight;
+            if (justRowHeight > 0) p.RowHeight = justRowHeight;
             p.EdgePadding = justEdge;
+            p.BottomRoom = JustBottomRoom;
         }
 
+        private const double JustBottomRoom = 12;      // under the last row in view, inside the list: the highlight's edge and glow
         private double justRowHeight, justEdge = 16;
+        private double justLeft = 48, justTop, justBottom = 16;   // the list's own margins (CardsMargin)
 
         /// <summary>From ApplyCardLayout, before anything that needs Playnite's own panel. True: Mosaic is on and has sized the list.</summary>
         private bool JustifiedLayout(ListBox list)
@@ -143,31 +146,42 @@ namespace KippixHelper
             var panel = now as JustifiedPanel;
             if (!ReferenceEquals(panel, justPanel))
             {
-                if (justPanel != null) justPanel.ContainersGenerated -= OnJustContainers;
+                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
                 justPanel = panel;
-                if (panel != null) panel.ContainersGenerated += OnJustContainers;
+                if (panel != null) { panel.ContainersGenerated += OnJustContainers; panel.MarginsChanged += OnJustMargins; }
             }
 
-            // the list's size: the screen's width less a margin each side, and (as the grid) the height between the logo and
-            // info under the top bar and the bottom edge. With the logo, the info line and the hints all switched off there's
-            // nothing above the games to keep clear of, and the mosaic takes that room too.
+            // The list's size. Across: the pictures run from the left margin every home screen has (72) to the clock's right
+            // edge. Down: a whole number of rows, all one height, between the logo and info under the top bar and the bottom
+            // edge (with the logo, the info line and the hints all switched off, from just under the top bar). The library view
+            // has the whole screen under the top bar's line: its header is on that line (Main.xaml, KX_LibraryHeader).
             var root = VisualTreeHelper.GetParent(list) as FrameworkElement;
             double screenW = root != null && root.ActualWidth > 0 ? root.ActualWidth : 1920;
             double screenH = root != null && root.ActualHeight > 0 ? root.ActualHeight : 1080;
-            double above = settings.ShowLogo || settings.ShowGameInfo || settings.ShowButtonHints ? 230 : 56;
-            double avail = Math.Max(300, screenH - 104 - above - Math.Max(0, settings.CardOffset) - 16);
-            double rowH = Math.Floor(avail / JustRowsNow);
+            bool lib = LibraryOpen;
+            double mx = panel != null ? panel.TileMarginX : 0, my = panel != null ? panel.TileMarginY : 0;   // (a tile's own margins: its slot is its picture plus these)
+            double picsTop = lib ? 108 : 104 + (settings.ShowLogo || settings.ShowGameInfo || settings.ShowButtonHints ? 230 : 56);
+            double picsBottom = screenH - (lib ? 30 : 16 + Math.Max(0, settings.CardOffset));
+            double picsLeft = 72, picsRight = screenW - 60;
+            int rowsNow = JustRowsNow;
+            double rowH = Math.Floor((Math.Max(300, picsBottom - picsTop) + my) / rowsNow);
             double grow = settings.Look != null && settings.Look.FocusScale > 100 ? settings.Look.FocusScale / 100.0 - 1 : 0.06;
             justRowHeight = rowH;
             justEdge = Math.Round(rowH * grow * 0.6 + 8);   // (the highlighted tile grows sideways too: room at the edges)
             if (panel != null)
             {
-                panel.TargetRowHeight = rowH;
+                panel.RowHeight = rowH;
                 panel.EdgePadding = justEdge;
+                panel.BottomRoom = JustBottomRoom;
                 panel.SmoothScroll = !ReduceMotionNow;
             }
-            double w = Math.Floor(screenW - 128 + justEdge * 2);
-            double h = Math.Round(rowH * JustRowsNow + TopRoomFor(rowH));
+            double w = Math.Round(picsRight - picsLeft + mx + justEdge * 2);
+            double h = Math.Round(rowH * rowsNow + TopRoomFor(rowH) + JustBottomRoom);
+            justLeft = Math.Round(picsLeft - mx / 2 - justEdge);
+            justBottom = Math.Round(screenH - (picsTop - my / 2 + rowH * rowsNow) - JustBottomRoom);
+            // (the list is in the screen's part under the top bar's row, 104 high: where it starts above that, a top margin of
+            // less than nothing, or WPF cuts the list off there: the highlighted tile's top edge, in the first row)
+            justTop = Math.Min(0, Math.Floor(screenH - justBottom - h - 104));
             if (Math.Abs(h - cardsHeight) >= 1) { cardsHeight = h; Notify("CardsHeight"); ApplyHomeLayoutSoon(); }
             if (double.IsNaN(cardsWidth) || Math.Abs(w - cardsWidth) >= 1) { cardsWidth = w; Notify("CardsWidth"); }
             if (gridTilesRoom != 0) gridTilesRoom = 0;
@@ -182,7 +196,7 @@ namespace KippixHelper
             {
                 var was = justList;
                 var template = justOriginalPanel;
-                if (justPanel != null) justPanel.ContainersGenerated -= OnJustContainers;
+                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
                 justPanel = null;
                 justList = null;
                 justOriginalPanel = null;
@@ -456,6 +470,11 @@ namespace KippixHelper
         }
 
         /// <summary>New tiles in the mosaic: dressed like any other card (badges; shapes and wide art taken off reused ones).</summary>
+        private void OnJustMargins(object sender, EventArgs e)
+        {
+            ApplyCardLayoutSoon();   // (the list is sized from the tiles' own margins: known once the first tile is made)
+        }
+
         private void OnJustContainers(object sender, EventArgs e)
         {
             if (AnyBadges || badgesEverOn) RefreshBadgesSoon();
