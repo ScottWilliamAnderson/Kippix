@@ -663,7 +663,9 @@ namespace KippixHelper
                             int col = 0;
                             var tiles = ExtraRowsList[at - 1].Tiles;
                             for (int i = 0; i < tiles.Count; i++) if (tiles[i].GameId == wasGame) { col = i; break; }
-                            if (StatusScreenUp()) { extraRowAt = at; extraFocused = tiles[col]; }   // (Playnite's status screen has the highlight: back on the tile when it closes)
+                            // (a game page or a menu over the rows has the highlight as well, e.g. editing the game of a row's tile, which
+                            //  builds the rows again: taking the highlight back to the row closed the game page under the menu)
+                            if (StatusScreenUp() || openPanel != null || detailsOpen || confirmOpen || kbOpen) { extraRowAt = at; extraFocused = tiles[col]; }   // (Playnite's status screen has the highlight: back on the tile when it closes)
                             else ui.BeginInvoke(new Action(() => GoToExtraRow(at, col)), DispatcherPriority.Loaded);
                         }
                     }
