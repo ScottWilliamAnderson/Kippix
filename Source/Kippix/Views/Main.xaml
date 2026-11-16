@@ -398,8 +398,10 @@
                                     <!-- the library view (every game as a mosaic: ThemeApi.Justified.cs): one line for what the home screen says with its logo,
                                          info line and filter name, which are away while it's open. What's shown (Playnite's filter, or the row / folder name
                                          that stands in for it), then the highlighted game and a few words about it. It starts where the games do; the
-                                         helper moves it along when the profile button is showing (LibraryHeaderPlace) -->
-                                    <StackPanel x:Name="KX_LibraryHeader" Grid.Column="1" HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Height="44" IsHitTestVisible="False"
+                                         helper moves it along when the profile button is showing (LibraryHeaderPlace). A dock panel, so that in
+                                         less room than it asks for (the shortcuts showing: the helper sets its MaxWidth to what's free before them
+                                         and the clock) the game's name ends in "…" and its few words go first, instead of running under the icons -->
+                                    <DockPanel x:Name="KX_LibraryHeader" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Height="44" IsHitTestVisible="False"
                                                 Visibility="{PluginSettings Plugin=Kippix, Path=IsLibraryOpen, FallbackValue=Collapsed}">
                                         <Path Data="{StaticResource KX_IconFilter}" Style="{StaticResource KX_InfoIcon}" VerticalAlignment="Center" />
                                         <Grid VerticalAlignment="Center">
@@ -422,7 +424,7 @@
                                                    MaxWidth="560" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                                         <TextBlock Text="{PluginSettings Plugin=Kippix, Path=LibraryInfo}" Style="{StaticResource KX_TextSub}" Margin="24,0,0,0"
                                                    MaxWidth="560" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                    </StackPanel>
+                                    </DockPanel>
 
                                     <!-- right: shortcuts in your saved order, then options, clock, notifications -->
                                     <StackPanel x:Name="KX_TopRight" Grid.Column="2" Orientation="{PluginSettings Plugin=Kippix, Path=ShortcutsOrientation, FallbackValue=Horizontal}"
