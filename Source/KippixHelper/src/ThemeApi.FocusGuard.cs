@@ -57,6 +57,10 @@ namespace KippixHelper
                 if (!lookFullscreen || !IsMainWindow(sender)) return;
                 var f = e.NewFocus as FrameworkElement;
                 if (f == null || openPanel == null) return;
+                // (Getting started scrolls its own lists: TourListStep / TourScrollTo. And its highlighted row is drawn above its
+                //  neighbours (Panel.ZIndex), which puts it last in the visual tree: here every row looked like the last one, so
+                //  each move sent a list longer than the screen, like Your stores, to its bottom and the highlight out of view)
+                if (openPanel == "welcome") return;
                 ScrollViewer sv = null;
                 for (DependencyObject d = VisualTreeHelper.GetParent(f); d != null; d = VisualTreeHelper.GetParent(d))
                 {
