@@ -358,6 +358,43 @@ namespace KippixHelper
         public Brush BatteryBrush { get { return batteryBrush; } }
         public bool ShowBattery { get { return settings.PinBattery && hasController; } }
 
+        // Which battery the top bar shows (Top bar settings): the controller's, or this device's own (a handheld, a laptop).
+        private bool batteryCharging, batteryIsDevice;
+        private ICommand cycleBatterySourceCommand;
+
+        /// <summary>Charging or plugged in: a small bolt beside the battery.</summary>
+        public bool BatteryCharging { get { return batteryCharging; } }
+        public string BatterySourceText { get { return settings.BatterySource == 1 ? Loc("LOC_KX_BatterySourceDevice", "This device") : Loc("LOC_KX_BatterySourceController", "Controller"); } }
+        public ICommand CycleBatterySourceCommand
+        {
+            get
+            {
+                if (cycleBatterySourceCommand == null) cycleBatterySourceCommand = new RelayCommand(_ =>
+                {
+                    settings.BatterySource = settings.BatterySource == 1 ? 0 : 1;
+                    SaveSettings();
+                    PlaySound("move");
+                    Notify("BatterySourceText");
+                    RefreshBattery();
+                });
+                return cycleBatterySourceCommand;
+            }
+        }
+
+        /// <summary>This device's own battery as "87%" ("87%⚡" plugged in). Null: it has none (a desktop PC).</summary>
+        private static string ReadDeviceBattery()
+        {
+            try
+            {
+                var ps = System.Windows.Forms.SystemInformation.PowerStatus;
+                if ((ps.BatteryChargeStatus & System.Windows.Forms.BatteryChargeStatus.NoSystemBattery) != 0 || ps.BatteryChargeStatus == System.Windows.Forms.BatteryChargeStatus.Unknown) return null;
+                int pct = (int)Math.Round(ps.BatteryLifePercent * 100);
+                if (pct < 0 || pct > 100) return null;
+                return pct + "%" + (ps.PowerLineStatus == System.Windows.Forms.PowerLineStatus.Online ? "⚡" : "");
+            }
+            catch (Exception) { return null; }
+        }
+
         private string sdlBattery;
         private DateTime sdlBatteryAt = DateTime.MinValue;
 
@@ -384,17 +421,21 @@ namespace KippixHelper
 
         private void RefreshBattery()
         {
-            string raw = ReadControllerBattery();
+            // this device's own battery when that's what the top bar shows (a PC without one: the controller's, as before)
+            string raw = settings.BatterySource == 1 ? ReadDeviceBattery() : null;
+            bool device = raw != null;
+            if (raw == null) raw = ReadControllerBattery();
 
             bool has = raw != null;
             string text = "";
             double fraction = 0;
             Brush brush = WhiteBrush;
+            bool charging = false;
 
             if (has)
             {
                 string t = raw.Trim();
-                bool charging = t.IndexOf('⚡') >= 0;
+                charging = t.IndexOf('⚡') >= 0;
                 t = t.Replace("⚡", "").Trim();
                 int pct;
                 if (t.EndsWith("%") && int.TryParse(t.TrimEnd('%'), NumberStyles.Integer, CultureInfo.InvariantCulture, out pct))
@@ -419,16 +460,19 @@ namespace KippixHelper
             }
 
             double fill = Math.Round(fraction * BatteryFillMax, 1);
-            if (has != hasController || text != batteryText || fill != batteryFill || brush != batteryBrush)
+            if (has != hasController || text != batteryText || fill != batteryFill || brush != batteryBrush || charging != batteryCharging || device != batteryIsDevice)
             {
                 hasController = has;
                 batteryText = text;
                 batteryFill = fill;
                 batteryBrush = brush;
+                batteryCharging = charging;
+                batteryIsDevice = device;
                 Notify("BatteryText");
                 Notify("HasBatteryText");
                 Notify("BatteryFillWidth");
                 Notify("BatteryBrush");
+                Notify("BatteryCharging");
                 Notify("ShowBattery");
                 UpdateShortcutStatus();
             }

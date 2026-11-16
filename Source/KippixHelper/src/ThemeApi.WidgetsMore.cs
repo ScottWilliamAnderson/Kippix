@@ -41,7 +41,7 @@ namespace KippixHelper
                 if (d.IsReady) lines.Add(new WidgetLine { Label = string.Format(Loc("LOC_KX_PcFree", "Free on {0}"), sys.TrimEnd('\\')), Value = KippixOverlay.Capture.DriveSize(d.AvailableFreeSpace) });
             }
             catch (Exception) { }
-            if (!string.IsNullOrEmpty(BatteryText)) lines.Add(new WidgetLine { Label = Loc("LOC_KX_PcController", "Controller"), Value = BatteryText });
+            if (!string.IsNullOrEmpty(BatteryText)) lines.Add(new WidgetLine { Label = batteryIsDevice ? Loc("LOC_KX_PcBattery", "Battery") : Loc("LOC_KX_PcController", "Controller"), Value = BatteryText });
             w.Lines = lines;
             w.Status = "";
         }
