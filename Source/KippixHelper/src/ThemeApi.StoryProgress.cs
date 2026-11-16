@@ -130,7 +130,7 @@ namespace KippixHelper
             foreach (string n in new[] { "HomeProgressText", "HomeShowProgress", "HomeProgressBar", "HomeProgressOpacity" }) Notify(n);
         }
         private string StoryWaitText { get { return string.Format(Loc("LOC_KX_StpStory", "Story ~{0}%"), "…"); } }
-        private bool homeProgressHas, homeProgressNone;
+        private bool homeProgressHas, homeProgressNone = true;   // (not shown until the first figure is in)
         public double HomeProgressOpacity { get { return 1.0; } }   // (0.99.65: never faded away now)
 
         /// <summary>The game page's line (the page opened, or another game on it).</summary>
