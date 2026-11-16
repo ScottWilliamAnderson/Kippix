@@ -59,6 +59,18 @@ namespace KippixHelper
             return new string[0];
         }
 
+        /// <summary>
+        /// A part's name as a row or a page title reads: the lower page's cards are named by their headings, which are in
+        /// capitals ("HOW LONG TO BEAT"); in a list beside "Save backups" and "Mods" that reads "How long to beat".
+        /// </summary>
+        private string DetPartRowName(string key)
+        {
+            string s = DetPartName(key);
+            var c = System.Globalization.CultureInfo.CurrentCulture;
+            if (string.IsNullOrEmpty(s) || s.Length < 2 || s != s.ToUpper(c) || s == s.ToLower(c)) return s;
+            return s.Substring(0, 1) + s.Substring(1).ToLower(c);
+        }
+
         private string DetPartName(string key)
         {
             switch (key)
@@ -484,7 +496,7 @@ namespace KippixHelper
         public ICommand CycleDescSourceCommand { get; private set; }
         public bool IsOptionsDetHistory { get { return optionsPage == "dethistory"; } }
         public bool IsOptionsDetPart { get { return optionsPage == "detpart"; } }
-        public string DetPartTitle { get { return DetPartName(detPartKey ?? ""); } }
+        public string DetPartTitle { get { return DetPartRowName(detPartKey ?? ""); } }
         private string detPartKey;
         /// <summary>A row opening one part's own settings (CommandParameter: logo, info, desc, media, friends, buttons, or a card).</summary>
         public ICommand OpenDetPartCommand { get; private set; }
@@ -573,7 +585,7 @@ namespace KippixHelper
             string key = k;
             var bits = new List<string> { DetPartOn(k) ? Loc("LOC_KX_Shown", "Shown") : Loc("LOC_KX_Hidden", "Hidden") };
             if (DetIsSection(k) && !DetInteractive(k)) bits.Add(Loc("LOC_KX_JustForShow", "just for show"));
-            return new PickRow { Text = DetPartName(k), Sub = string.Join("  ·  ", bits), Icon = DetPartIcon(k), Key = "part:" + k, Command = new RelayCommand(_ => OpenDetPart(key)) };
+            return new PickRow { Text = DetPartRowName(k), Sub = string.Join("  ·  ", bits), Icon = DetPartIcon(k), Key = "part:" + k, Command = new RelayCommand(_ => OpenDetPart(key)) };
         }
 
         private void OpenDetPart(string key)
