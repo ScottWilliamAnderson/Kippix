@@ -455,7 +455,7 @@
     <sys:String x:Key="LOC_KX_StoreTrailersAuto">Play at the top</sys:String>
     <sys:String x:Key="LOC_KX_RegionAuto">Automatic (Windows region: {0})</sys:String>
     <sys:String x:Key="LOC_KX_RegionAutoShort">Automatic ({0})</sys:String>
-    <sys:String x:Key="LOC_KX_OpenInTheme">Kippix's browser</sys:String>
+    <sys:String x:Key="LOC_KX_OpenInTheme">Built-in browser</sys:String>
     <sys:String x:Key="LOC_KX_OpenInApp">The store's app / web browser</sys:String>
     <sys:String x:Key="LOC_KX_Speed1">Slowest</sys:String>
     <sys:String x:Key="LOC_KX_Speed2">Slow</sys:String>
@@ -2112,7 +2112,7 @@
     <sys:String x:Key="LOC_KX_SplashRow">Let Splash Screen show when a game starts</sys:String>
     <sys:String x:Key="LOC_KX_SplashRowOn">Kippix's launch screen stays plain so the two don't clash</sys:String>
     <sys:String x:Key="LOC_KX_SteamTrailersInfo">Noticed: the game page's trailer is Kippix's own player, so it isn't added twice (Steam Trailers' menu items still work)</sys:String>
-    <sys:String x:Key="LOC_KX_WebExplorerInfo">Noticed: web pages open in Kippix's own browser, so Web Explorer isn't added to the screens as well</sys:String>
+    <sys:String x:Key="LOC_KX_WebExplorerInfo">Noticed: web pages open in the built-in browser, so Web Explorer isn't added to the screens as well</sys:String>
     <sys:String x:Key="LOC_KX_AddonsNone">None of the supported add-ons is installed</sys:String>
     <sys:String x:Key="LOC_KX_SecSaves">Save backups</sys:String>
     <sys:String x:Key="LOC_KX_PageSplit">Split screen</sys:String>
@@ -4636,7 +4636,7 @@
     <sys:String x:Key="LOC_KX_GitHubCodeRight">Your code</sys:String>
     <sys:String x:Key="LOC_KX_GitHubOrHere">OR ON THIS SCREEN</sys:String>
     <sys:String x:Key="LOC_KX_GitHubOpenHere">Open the sign-in page here</sys:String>
-    <sys:String x:Key="LOC_KX_GitHubOpenHereSub">In Kippix's browser: sign in, type the code, Authorise, then come back</sys:String>
+    <sys:String x:Key="LOC_KX_GitHubOpenHereSub">In the built-in browser: sign in, type the code, Authorise, then come back</sys:String>
     <sys:String x:Key="LOC_KX_GitHubWhatHappens">WHAT KIPPIX CAN DO</sys:String>
     <sys:String x:Key="LOC_KX_GitHubWhat">Only send your uploads to the gallery</sys:String>
     <sys:String x:Key="LOC_KX_GitHubWhatSub">GitHub asks you to allow access to public repositories: Kippix uses it to make your copy of the gallery and propose your upload from it. The sign-in stays on this PC, encrypted, and you can remove it any time (Yours, or github.com › Settings › Applications).</sys:String>

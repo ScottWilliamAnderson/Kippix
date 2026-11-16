@@ -237,7 +237,7 @@ namespace KippixHelper
                 PageRows.Add(new PageRow
                 {
                     Key = "gh:here", Icon = "link", Text = Loc("LOC_KX_GitHubOpenHere", "Open the sign-in page here"),
-                    Sub = Loc("LOC_KX_GitHubOpenHereSub", "In Kippix's browser: sign in, type the code, Authorise, then come back"),
+                    Sub = Loc("LOC_KX_GitHubOpenHereSub", "In the built-in browser: sign in, type the code, Authorise, then come back"),
                     Command = new RelayCommand(_ => { PlaySound("select"); OpenBrowser(ghCode != null ? ghCode.Uri : "https://github.com/login/device"); })
                 });
             }

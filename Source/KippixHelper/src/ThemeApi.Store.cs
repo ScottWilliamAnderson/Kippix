@@ -1449,7 +1449,7 @@ namespace KippixHelper
                 return r != null ? r[1] : settings.StoreCountry;
             }
         }
-        public string StoreOpenInText { get { return settings.StoreOpenIn == 0 ? Loc("LOC_KX_OpenInTheme", "Kippix's browser") : Loc("LOC_KX_OpenInApp", "The store's app / web browser"); } }
+        public string StoreOpenInText { get { return settings.StoreOpenIn == 0 ? Loc("LOC_KX_OpenInTheme", "Built-in browser") : Loc("LOC_KX_OpenInApp", "The store's app / web browser"); } }
         public string StoreTrailersText
         {
             get
