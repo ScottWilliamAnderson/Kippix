@@ -92,7 +92,7 @@ namespace KippixOverlay
                         foreach (var a in ach) list.Add(new KippixHelper.ProgressAch { Name = a.Name, Description = a.Description, Unlocked = a.Unlocked, Rarity = a.Rarity });
                     string status = null;
                     try { if (g != null && g.CompletionStatus != null) status = g.CompletionStatus.Name; } catch (Exception) { }
-                    var r = KippixHelper.StoryProgress.Estimate(list, playedHours * 3600, hltb != null ? hltb.Story : 0, hltb != null ? hltb.Extras : 0, hltb != null ? hltb.Completionist : 0, status, null);
+                    var r = KippixHelper.StoryProgress.Estimate(list, playedHours * 3600, hltb != null ? hltb.Story : 0, hltb != null ? hltb.Extras : 0, hltb != null ? hltb.Completionist : 0, status, null, KippixHelper.StoryProgress.LabelsOf(g));
                     if (r != null) extra.Children.Add(StatRow("\uE7C1", r.Percent / 100.0, r.Short));   // (0.99.50: just "Story ~60%")
                 }
                 catch (Exception) { }
