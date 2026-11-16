@@ -34,7 +34,7 @@ namespace KippixHelper
         /// <summary>A game (not an app or a tool kept in the library) is running: Steam isn't started under it.</summary>
         private bool SteamQuietGameRunning()
         {
-            try { return api.Database.Games.Any(g => g != null && g.IsRunning); }
+            try { return api.Database.Games.Any(g => g != null && g.IsRunning && !IsAppsRowGame(g))   /* (apps, from the Apps row, are fine) */; }
             catch (Exception) { return true; }
         }
 
