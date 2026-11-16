@@ -192,6 +192,7 @@ namespace KippixHelper
                 if (img.MaxWidth < box.Width) img.MaxWidth = box.Width;
                 if (img.MaxHeight < box.Height) img.MaxHeight = box.Height;
             }
+            else cc.SetValue(LogoDoneProperty, null);   // (its picture isn't made yet: at the next tick)
         }
 
         /// <summary>Once, on a worker: every logo measured, so moving along the row never waits for one.</summary>
