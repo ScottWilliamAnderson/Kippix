@@ -23,17 +23,17 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/tour-stores-list-scroll` | Tour lists longer than the screen scrolled to the bottom on every move. | Verified |
 | `fix/tour-last-preset-dpad` | Tour: D-pad could not reach Next from the presets. | Verified |
 | `fix/tour-grid-board-preset-pictures` | Tour presets kept the other layout's pictures after Grid <-> Board. | Verified |
-| `fix/tour-picture-row-refresh` | Tour "Choose a picture" row did not show the picture just chosen. | Compiled (needs a personal picture to test) |
-| `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Compiled (needs a sign-in to test) |
-| `fix/tour-store-no-games-wording` | "0 games · couldn't tell" for an add-on with no games. | Compiled |
+| `fix/tour-picture-row-refresh` | Tour "Choose a picture" row did not show the picture just chosen. | Partly verified (the row shows the current picture; choosing a new one was not tried) |
+| `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Not verified (the row shows "Signed in" correctly; the refresh right after signing in needs a sign-out and sign-in) |
+| `fix/tour-store-no-games-wording` | "0 games · couldn't tell" for an add-on with no games. | Verified |
 | `fix/browser-close-focus` | Closing a page opened from a menu put the highlight on a hidden button. | Verified |
 | `fix/browser-one-name` | Two names for the built-in browser. | Verified |
 | `fix/keyboard-keycaps-legible` | Keyboard key caps in the hints were squeezed and unreadable. | Verified |
 | `fix/top-bar-kept-items-legible` | The clock that stays when the bar hides was unreadable over bright art. | Verified |
-| `fix/more-below-hint-late` | "More below" hint missing when the lower page fills in late. | Compiled |
-| `fix/row-recently-added-name` | The recently added row was listed as "Recently viewed". | Compiled |
-| `fix/game-part-names-case` | Lower-page part names listed in capitals. | Compiled |
-| `fix/touch-found-space` | Missing space in "A touch screen was found.Tap to choose". | Compiled |
+| `fix/more-below-hint-late` | "More below" hint missing when the lower page fills in late. | Partly verified (the hint matched the lower page on 7 game pages; the late-filling case itself was not isolated) |
+| `fix/row-recently-added-name` | The recently added row was listed as "Recently viewed". | Verified |
+| `fix/game-part-names-case` | Lower-page part names listed in capitals. | Verified |
+| `fix/touch-found-space` | Missing space in "A touch screen was found.Tap to choose". | Verified |
 | `fix/story-progress-hide-empty` | "Story ~?%" shown for apps and games with nothing to go by. | Verified |
 | `fix/story-progress-relevance` (on `fix/story-progress-hide-empty`) | "Story ~99%" from play time on multiplayer-only games and on games played past their story length. | Verified |
 | `fix/game-page-info-layout` | Game page info lines overlapped the logo and buttons. | Verified |
