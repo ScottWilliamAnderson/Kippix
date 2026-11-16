@@ -437,6 +437,7 @@ namespace KippixHelper
         {
             lastSelectAt = DateTime.Now;   // (the start-up black screen waits for the background to settle)
             PreviewSelectionChanged();
+            try { LogoBalanceApply(); } catch (Exception) { }   // the logo's box for this game (ThemeApi.LogoBalance.cs)
             try { LiveSelectionChanged(); } catch (Exception) { }   // live backgrounds / animated art (ThemeApi.LiveBackground.cs)
             try { TileBgSelected(game); } catch (Exception) { }   // (0.88) Background › The game's tile
             try { HomeExtrasSelected(game, false); } catch (Exception) { }   // (r13) the info line's players online / friends (ThemeApi.HomeInfoExtras.cs)
