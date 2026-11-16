@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -184,6 +184,19 @@ namespace KippixHelper
 
         public static Dictionary<string, Guid[]> Assign(List<BoardCard> cards, Dictionary<string, List<Guid>> pools, int maxPages, bool repeat, out int pages)
         {
+            return Assign(cards, pools, maxPages, repeat, false, out pages);
+        }
+
+        /// <summary>
+        /// (1.0.2) slide: past the edge every tile moves along one game, not a whole page. Each source's tiles (in reading order:
+        /// top to bottom, left to right) show a window of its games that moves on by one each step, so a tile takes the game the
+        /// tile after it had and one new game comes in at the end. Steps until the last game reaches the last tile.
+        /// Paging (not slide, the Board): a game already shown on an earlier page is passed over while its source still has ones
+        /// not shown yet, so the next page is all new games (sources overlap: "played" and "installed" games are in "all" too).
+        /// </summary>
+        public static Dictionary<string, Guid[]> Assign(List<BoardCard> cards, Dictionary<string, List<Guid>> pools, int maxPages, bool repeat, bool slide, out int pages)
+        {
+            if (slide && repeat) return AssignSlide(cards, pools, maxPages, out pages);
             var ordered = cards.Where(c => c.Kind == "pinned" || c.Kind == "filter").ToList();
             var pinned = ordered.Where(c => c.Kind == "pinned").ToList();
             var fill = ordered.Where(c => c.Kind != "pinned").ToList();
@@ -209,6 +222,7 @@ namespace KippixHelper
             var restQ = repeat && pinned.Any(c => !c.EveryPage) && pools.TryGetValue("all", out restPool) && restPool != null
                         ? restPool.Where(id => !pinnedIds.Contains(id)).Distinct().ToList() : new List<Guid>();
             int restAt = 0;
+            var seen = new HashSet<Guid>();   // (1.0.2) on an earlier page
             for (int p = 0; p < pages; p++)
             {
                 var used = new HashSet<Guid>();
@@ -228,7 +242,7 @@ namespace KippixHelper
                     if (repeat)
                     {
                         // round again from its first game once it has run out (the layout stays whole on every page)
-                        Guid got = TakeNext(q, ref i, used);
+                        Guid got = TakeFresh(q, ref i, used, seen);
                         if (got != Guid.Empty) { result[c.Id][p] = got; lastFilled = p; }
                         cursor[src] = i;
                         continue;
@@ -241,15 +255,82 @@ namespace KippixHelper
                     foreach (var c in pinned)
                     {
                         if (c.EveryPage || GameOf(c) == Guid.Empty) continue;
-                        Guid got = TakeNext(restQ, ref restAt, used);   // its spot shows the next of all games after the first page
+                        Guid got = TakeFresh(restQ, ref restAt, used, seen);   // its spot shows the next of all games after the first page
                         if (got != Guid.Empty) result[c.Id][p] = got;
                     }
+                foreach (var g in used) seen.Add(g);
             }
             // no empty pages at the end (games skipped as already shown can leave one)
             if (fill.Count > 0 && lastFilled + 1 < pages)
             {
                 pages = lastFilled + 1;
                 foreach (var k in result.Keys.ToList()) result[k] = result[k].Take(pages).ToArray();
+            }
+            return result;
+        }
+
+        /// <summary>(1.0.2) The next game in q not on this page nor an earlier one; when every game left has been shown, the next not on this page.</summary>
+        private static Guid TakeFresh(List<Guid> q, ref int at, HashSet<Guid> used, HashSet<Guid> seen)
+        {
+            if (q == null || q.Count == 0) return Guid.Empty;
+            int start = at < 0 || at >= q.Count ? 0 : at;
+            for (int k = start; k < q.Count; k++)
+            {
+                var g = q[k];
+                if (used.Contains(g) || seen.Contains(g)) continue;
+                at = k + 1;
+                used.Add(g);
+                return g;
+            }
+            return TakeNext(q, ref at, used);   // (all shown already: round again)
+        }
+
+        /// <summary>(1.0.2) Slide one at a time: see Assign.</summary>
+        private static Dictionary<string, Guid[]> AssignSlide(List<BoardCard> cards, Dictionary<string, List<Guid>> pools, int maxPages, out int pages)
+        {
+            var ordered = cards.Where(c => c.Kind == "pinned" || c.Kind == "filter").ToList();
+            var pinned = ordered.Where(c => c.Kind == "pinned").ToList();
+            var fill = ordered.Where(c => c.Kind != "pinned").OrderBy(c => c.Y).ThenBy(c => c.X).ToList();
+            var pinnedIds = new HashSet<Guid>(pinned.Select(GameOf).Where(g => g != Guid.Empty));
+            var groups = new List<Tuple<List<BoardCard>, List<Guid>>>();
+            pages = 1;
+            foreach (var grp in fill.GroupBy(c => c.Source ?? "all"))
+            {
+                List<Guid> pool;
+                if (!pools.TryGetValue(grp.Key, out pool) || pool == null) pool = new List<Guid>();
+                var q = pool.Where(id => !pinnedIds.Contains(id)).Distinct().ToList();
+                var list = grp.ToList();
+                groups.Add(Tuple.Create(list, q));
+                if (q.Count > list.Count) pages = Math.Max(pages, q.Count - list.Count + 1);
+            }
+            pages = Math.Max(1, Math.Min(pages, Math.Max(1, maxPages)));
+            // the source with the most tiles first: its games slide cleanly, and the others pass over what it shows
+            groups = groups.OrderByDescending(g => g.Item1.Count).ToList();
+            var result = new Dictionary<string, Guid[]>();
+            foreach (var c in ordered) result[c.Id] = new Guid[pages];
+            for (int p = 0; p < pages; p++)
+            {
+                var used = new HashSet<Guid>();
+                foreach (var c in pinned)
+                {
+                    if (p > 0 && !c.EveryPage) continue;
+                    var g = GameOf(c);
+                    if (g == Guid.Empty) continue;
+                    result[c.Id][p] = g;
+                    used.Add(g);
+                }
+                foreach (var gr in groups)
+                {
+                    var q = gr.Item2;
+                    if (q.Count == 0) continue;
+                    // a source with no more games than tiles stays put; a longer one moves on by one each step (round again at its end)
+                    int at = q.Count > gr.Item1.Count ? p % q.Count : 0;
+                    foreach (var c in gr.Item1)
+                    {
+                        Guid got = TakeNext(q, ref at, used);
+                        if (got != Guid.Empty) result[c.Id][p] = got;
+                    }
+                }
             }
             return result;
         }
@@ -768,7 +849,8 @@ namespace KippixHelper
                     var all = api.Database.Games.Where(g => g != null && !g.Hidden && ProfileAllowsGame(g) && !CopyBehind(g.Id)).ToList();
                     pools = new Dictionary<string, List<Guid>>();
                     foreach (string k in keys) pools[k] = BoardSourceGames(k, all, shown, order, shelves);
-                    plan = BoardPlan.Assign(planCards, pools, 300, repeat, out pages);
+                    bool slide = repeat && settings.BoardSlideOne;   // (1.0.2) one game at a time
+                    plan = BoardPlan.Assign(planCards, pools, slide ? 3000 : 300, repeat, slide, out pages);
                 }
                 catch (Exception ex) { logger.Warn("Kippix: board games: " + ex.Message); }
                 OnUi(() =>
@@ -1751,7 +1833,25 @@ namespace KippixHelper
             BoardFillPage();
             BoardMakeDots();
             Notify("BoardPageText");
+            if (BoardSlidesOne) { BoardNudge(dir); return; }   // (1.0.2) one game along: the highlight stays on the tile at the edge
             BoardSlideIn(dir, from);
+        }
+
+        private bool BoardSlidesOne { get { return settings.BoardSlideOne && !IsManualMode; } }
+
+        /// <summary>(1.0.2) One game along: the games give a little push that way (the highlight stays where it is).</summary>
+        private void BoardNudge(Key dir)
+        {
+            PlaySound("move");
+            var board = boardHooked;
+            if (board == null || settings.ReduceMotion) return;
+            double dx = dir == Key.Right ? 28 : dir == Key.Left ? -28 : 0, dy = dir == Key.Down ? 28 : dir == Key.Up ? -28 : 0;
+            var t = board.RenderTransform as TranslateTransform;
+            if (t == null || t.IsFrozen) { t = new TranslateTransform(); board.RenderTransform = t; }
+            var d = Motion(160);
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+            t.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(dx, 0, d) { EasingFunction = ease });
+            t.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(dy, 0, d) { EasingFunction = ease });
         }
 
         /// <summary>A new page slides in from the side you went to; the highlight goes to the tile nearest where you came in.</summary>
@@ -3190,6 +3290,11 @@ namespace KippixHelper
                     Sub = settings.BoardPageAxis == 1 ? Loc("LOC_KX_BoardAxisUD", "Up / Down past the edge") : Loc("LOC_KX_BoardAxisLR", "Left / Right past the edge"),
                     Command = new RelayCommand(_ => { settings.BoardPageAxis = 1 - settings.BoardPageAxis; BoardMakeDots(); BoardChanged(false); BoardRowsAgain(BuildBoardRows, "axis"); PlaySound("move"); })
                 });
+                // (1.0.2) a whole page, or one game at a time
+                rows.Add(BoardSwitch("forward", "slideone", Loc("LOC_KX_BoardSlideOne", "One game at a time"), settings.BoardSlideOne,
+                                     Loc("LOC_KX_BoardSlideOneOn", "Past the edge, every tile moves along one game and one new game comes in"),
+                                     Loc("LOC_KX_BoardSlideOneOff", "Off: past the edge, a whole page of new games"),
+                                     () => { settings.BoardSlideOne = !settings.BoardSlideOne; boardPage = 0; BoardChanged(true); BoardRowsAgain(BuildBoardRows, "slideone"); PlaySound("move"); }));
                 rows.Add(new PickRow
                 {
                     Key = "indicator", Icon = "dots", Text = Loc("LOC_KX_BoardIndicator", "Page indicator"),

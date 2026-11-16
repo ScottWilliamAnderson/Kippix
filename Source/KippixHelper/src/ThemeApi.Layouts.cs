@@ -76,7 +76,7 @@ namespace KippixHelper
             "HomeLayoutMode", "GridRows", "GridColumns", "JustRows", "LibraryDownOpens", "ListRows", "ListTileH", "ListTileW", "ListInfoShare", "ListInfoItems", "ListShowInfo", "ListShowName", "HomeBgMode", "HomeBgColor", "HomeBgImage", "BgPerLayout", "BgLayoutKey", "HomePlacePerLayout", "HomeTileBgScale", "HomeBgOffsetX", "HomeBgOffsetY", "HomeFadeDir", "HomeFadeReach", "ListSide", "ExtraRows", "ExtraRowKeys", "BadgeInstalled", "BadgeNew", "BadgeAch", "BadgeHltb", "BadgeFeatures", "BadgeFeatHide", "BadgeStore",
             "AccentFromGame", "AccentStrength", "BackgroundMotion", "MotionSpeed", "MotionAmount", "DepthMode", "LiveSlideWeb",
             "Look", "LookPack",   // the look (Look packs / Theme Studio): in saved, community and profile layouts
-            "TriArrange", "TriSpacing", "TriAlternate", "BoardSeeded", "ManualCards", "ManualGroups", "ManualPlacement", "FreeCards", "ManualPages", "FreePages", "CardSpacing", "ManualCols", "ManualRows", "ManualSnap", "BoardPresets", "BoardCards", "BoardCols", "BoardRows", "BoardSnap", "BoardPageAxis", "BoardIndicator", "BoardLiveSeconds", "Presets", "PresetBase", "PresetOnScreen"
+            "TriArrange", "TriSpacing", "TriAlternate", "BoardSeeded", "ManualCards", "ManualGroups", "ManualPlacement", "FreeCards", "ManualPages", "FreePages", "CardSpacing", "ManualCols", "ManualRows", "ManualSnap", "BoardPresets", "BoardCards", "BoardCols", "BoardRows", "BoardSnap", "BoardPageAxis", "BoardSlideOne", "BoardIndicator", "BoardLiveSeconds", "Presets", "PresetBase", "PresetOnScreen"
         };
         private static readonly HashSet<string> GameLayoutFields = new HashSet<string>
         {

@@ -88,7 +88,7 @@ namespace KippixHelper
                     if (game != null && sel != null && sel.Id == game.Id && !direct) launchPageBg = CurrentPageBackground(out launchPageBgWhat);
                     else launchPageBgWhat = direct ? "skipped (started from a tile)" : sel == null ? "skipped (nothing selected)" : "skipped (another game selected: " + sel.Name + ")";
                 }
-                catch (Exception) { launchPageBg = null; } try { HoldFrontWhileStarting(); } catch (Exception ex) { logger.Warn("Kippix: launch front: " + ex.Message); } try { HookLaunchScreen(); FillLaunchArt(); } catch (Exception) { } });
+                catch (Exception) { launchPageBg = null; } try { HoldFrontWhileStarting(); } catch (Exception ex) { logger.Warn("Kippix: launch front: " + ex.Message); } try { PrepareLaunchScreen(); HookLaunchScreen(); FillLaunchArt(); } catch (Exception) { } });
         }
 
         /// <summary>When the "game is starting" screen appears: its art fades in (or, if the game is already running, fades out).</summary>
@@ -101,6 +101,16 @@ namespace KippixHelper
             status.IsVisibleChanged += (s, e) =>
             {
                 if (!(bool)e.NewValue) return;
+                // (1.0.1) straight away, before the first frame: the first launch after Playnite starts builds the screen only as it
+                // shows, so the picture was filled in a frame late and its bound cover flashed up first
+                try
+                {
+                    PrepareLaunchScreen();
+                    var art0 = UiTools.FindByName(status, "KX_LaunchArt");
+                    if (art0 != null && !gameRunningNow) { art0.BeginAnimation(UIElement.OpacityProperty, null); art0.Opacity = 0; }
+                    FillLaunchArt();
+                }
+                catch (Exception) { }
                 ui.BeginInvoke(new Action(() =>
                 {
                     try
@@ -118,6 +128,14 @@ namespace KippixHelper
                     catch (Exception) { }
                 }), System.Windows.Threading.DispatcherPriority.Loaded);
             };
+        }
+
+        /// <summary>(1.0.1) Builds the launch screen's parts now if Playnite hasn't shown it yet this session (it's made the first time it shows).</summary>
+        private void PrepareLaunchScreen()
+        {
+            var win = Application.Current != null ? Application.Current.MainWindow : null;
+            var status = win != null ? UiTools.FindByName(win, "PART_ElemGameStatus") as System.Windows.Controls.Control : null;
+            if (status != null && UiTools.FindByName(status, "KX_LaunchArt") == null) status.ApplyTemplate();
         }
 
         /// <summary>Puts the starting game's background art (and its cover, for a game with no background art) on the launch screen.</summary>

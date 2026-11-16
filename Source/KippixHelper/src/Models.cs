@@ -154,6 +154,7 @@ namespace KippixHelper
         public int BoardCols = 5, BoardRows = 3;   // the grid the cards snap to
         public bool BoardSnap = true;              // moving / sizing in whole grid squares (off: small steps)
         public int BoardPageAxis = 0;              // past the edge to the next page of games: 0 Left / Right, 1 Up / Down
+        public bool BoardSlideOne = false;         // (1.0.2) past the edge: every tile moves along one game (one new game comes in), not a whole new page
         public int BoardIndicator = 0;             // 0 dots, 1 "2 / 5", 2 hidden
         public int BoardLiveSeconds = 8;           // live tiles change this often
         public int PreviewMode = 0;                // trailer when a card stays selected: 0 off, 1 in the card, 2 in the background
@@ -540,6 +541,7 @@ namespace KippixHelper
         // X / Y: moved by a share of the screen from where it sits by default (0 = there); Size: 1 = as it comes.
         public bool SplashShowLogo = false;
         public bool SplashShowCard = false;
+        public bool DetBgZoom = true;              // (1.0.2) Game page › Animation: the background zooms in slowly as the page opens
         public bool SplashShowStatus = true;       // Playnite's "Starting…" words
         public double SplashLogoX = 0, SplashLogoY = 0, SplashLogoSize = 1;
         public double SplashCardX = 0, SplashCardY = 0, SplashCardSize = 1;

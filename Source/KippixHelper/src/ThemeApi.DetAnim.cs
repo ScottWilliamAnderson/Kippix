@@ -100,10 +100,18 @@ namespace KippixHelper
             var bg = DetPart<ScaleTransform>(owner, details, "BgScale");
             if (bg != null)
             {
-                double v = atEnd ? 1.06 : 1;
+                double v = atEnd && settings.DetBgZoom ? 1.06 : 1;   // (1.0.2: Background zoom off: it stays as it is)
                 bg.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(v, v, zero));
                 bg.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(v, v, zero));
             }
+        }
+
+        private static void DetBgScaleNow(ScaleTransform bg, double v)
+        {
+            bg.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            bg.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            bg.ScaleX = v;
+            bg.ScaleY = v;
         }
 
         /// <summary>The scale on the page's content (its own: nothing else turns or sizes it).</summary>
@@ -130,11 +138,12 @@ namespace KippixHelper
             details.BeginAnimation(UIElement.OpacityProperty, page);
             var owner = FindTemplated(details, "LogoShift");
             var bg = DetPart<ScaleTransform>(owner, details, "BgScale");
-            if (bg != null)
+            if (bg != null && settings.DetBgZoom)
             {
                 bg.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, 1.06, new Duration(TimeSpan.FromMilliseconds(1400))) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
                 bg.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, 1.06, new Duration(TimeSpan.FromMilliseconds(1400))) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
             }
+            else if (bg != null) DetBgScaleNow(bg, 1);
             for (int i = 0; i < 3; i++)
             {
                 var begin = TimeSpan.FromMilliseconds(st.Begin + st.Stagger * i);
@@ -211,11 +220,30 @@ namespace KippixHelper
             }
             if (settings.ReduceMotion)
                 rows.Add(new PickRow { IsInfo = true, Icon = "info", Key = "animrm", Text = Loc("LOC_KX_PgAnimReduceMotion", "Reduce motion is on: the page shows straight away whichever is chosen") });
+            // (1.0.2) the background's slow zoom, on its own
+            rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecPgAnimBg", "BACKGROUND") });
+            rows.Add(BoardSwitch("picture", "bgzoom", Loc("LOC_KX_PgBgZoom", "Background zoom"), settings.DetBgZoom,
+                                 Loc("LOC_KX_PgBgZoomOn", "The game's picture slowly zooms in as the page opens"), Loc("LOC_KX_PgBgZoomOff", "Off: the picture stays as it is"),
+                                 () =>
+                                 {
+                                     settings.DetBgZoom = !settings.DetBgZoom;
+                                     SaveSettings();
+                                     PlaySound("move");
+                                     BoardRowsAgain(BuildLookExtraRows, "bgzoom");
+                                     try
+                                     {
+                                         var win = Application.Current.MainWindow;
+                                         var details = detailsOpen && win != null ? UiTools.FindByName(win, "PART_ElemGameDetails") : null;
+                                         var bgs = details != null ? DetPart<ScaleTransform>(FindTemplated(details, "LogoShift"), details, "BgScale") : null;
+                                         if (bgs != null) DetBgScaleNow(bgs, settings.DetBgZoom ? 1.06 : 1);
+                                     }
+                                     catch (Exception) { }
+                                 }));
             rows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecReset", "RESET") });
             rows.Add(new PickRow
             {
                 Key = "animreset", Icon = "refresh", Text = Loc("LOC_KX_ResetPage", "Reset this page"), Sub = Loc("LOC_KX_ResetPageSub", "Resets this page to default"),
-                Command = new RelayCommand(_ => PickDetAnim(new HelperSettings().DetEntranceStyle))
+                Command = new RelayCommand(_ => { settings.DetBgZoom = new HelperSettings().DetBgZoom; PickDetAnim(new HelperSettings().DetEntranceStyle); })
             });
         }
 

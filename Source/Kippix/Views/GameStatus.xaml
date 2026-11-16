@@ -46,11 +46,12 @@
                           KeyboardNavigation.TabNavigation="Cycle"
                           KeyboardNavigation.ControlTabNavigation="Cycle">
                         <Grid x:Name="KX_LaunchArt">
-                            <!-- no background art: the cover, sharp, in the middle of the screen instead (no blur) -->
+                            <!-- no background art: the cover, sharp, in the middle of the screen instead (no blur). Hidden until the helper
+                                 knows the game has no background (1.0.1: it flashed up first on the first launch after Playnite started) -->
                             <!-- Playnite fills PART_ImageCover itself; it's kept hidden and the blurred copy below uses it.
                                  The helper also sets KX_LaunchBg / KX_LaunchCover straight from the starting game's files. -->
                             <Image x:Name="PART_ImageCover" Visibility="Collapsed" />
-                            <Image x:Name="KX_LaunchCover" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" Margin="0,110" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image x:Name="KX_LaunchCover" Visibility="Collapsed" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" Margin="0,110" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Image.Source>
                                     <PriorityBinding>
                                         <Binding Path="CoverImageObject" />

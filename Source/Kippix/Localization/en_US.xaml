@@ -4977,4 +4977,12 @@
     <sys:String x:Key="LOC_KX_AddKind">Add as: {0}</sys:String>
     <sys:String x:Key="LOC_KX_AddNow">Add it to the library</sys:String>
     <sys:String x:Key="LOC_KX_AddLibraryHeader">LIBRARY</sys:String>
+    <!-- 1.0.2: Game page background zoom switch, Board one game at a time -->
+    <sys:String x:Key="LOC_KX_SecPgAnimBg">BACKGROUND</sys:String>
+    <sys:String x:Key="LOC_KX_PgBgZoom">Background zoom</sys:String>
+    <sys:String x:Key="LOC_KX_PgBgZoomOn">The game's picture slowly zooms in as the page opens</sys:String>
+    <sys:String x:Key="LOC_KX_PgBgZoomOff">Off: the picture stays as it is</sys:String>
+    <sys:String x:Key="LOC_KX_BoardSlideOne">One game at a time</sys:String>
+    <sys:String x:Key="LOC_KX_BoardSlideOneOn">Past the edge, every tile moves along one game and one new game comes in</sys:String>
+    <sys:String x:Key="LOC_KX_BoardSlideOneOff">Off: past the edge, a whole page of new games</sys:String>
 </ResourceDictionary>
