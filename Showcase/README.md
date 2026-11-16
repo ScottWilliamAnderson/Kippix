@@ -1,6 +1,6 @@
 # What this fork adds, on screen
 
-Recorded on a ROG Xbox Ally X running the `scott` branch (Playnite 10.64 fullscreen), driven with the controller. Click a picture to play its clip.
+Recorded on a ROG Xbox Ally X running the `scott` branch (Playnite 10.64 fullscreen). Click a picture to play its clip.
 
 **[The whole thing in one video (2 min 22 s)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/kippix-fork-showcase.mp4)**
 
