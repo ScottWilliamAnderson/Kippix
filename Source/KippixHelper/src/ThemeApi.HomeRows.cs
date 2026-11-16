@@ -571,7 +571,7 @@ namespace KippixHelper
                 var built = new List<Tuple<string, string, List<Game>>>();
                 try
                 {
-                    var all = api.Database.Games.Where(g => g != null && !g.Hidden && ProfileAllowsGame(g)).ToList();
+                    var all = api.Database.Games.Where(g => g != null && !g.Hidden && ProfileAllowsGame(g) && !CopyBehind(g.Id)).ToList();
                     foreach (string k in keys)
                     {
                         string name = null;

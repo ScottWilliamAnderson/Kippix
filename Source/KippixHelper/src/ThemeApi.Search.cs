@@ -200,7 +200,7 @@ namespace KippixHelper
             KippixShared.SafeWork.Queue(_ =>
             {
                 List<Tuple<Game, string>> idx = null;
-                try { idx = api.Database.Games.Where(g => g != null && !g.Hidden && !string.IsNullOrEmpty(g.Name) && ProfileAllowsGame(g)).Select(g => Tuple.Create(g, SearchNorm(g.Name))).ToList(); }
+                try { idx = api.Database.Games.Where(g => g != null && !g.Hidden && !string.IsNullOrEmpty(g.Name) && ProfileAllowsGame(g) && !CopyBehind(g.Id)).Select(g => Tuple.Create(g, SearchNorm(g.Name))).ToList(); }
                 catch (Exception) { }
                 OnUi(() => { if (idx != null) { searchIndex = idx; searchIndexAt = DateTime.Now; UpdateSearchHits(); } });
             });

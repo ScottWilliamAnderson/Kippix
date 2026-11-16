@@ -230,13 +230,26 @@
                                              order set there by their Tag ("info:" + the line's key) -->
                                         <StackPanel Tag="info:playtime" Orientation="Horizontal" Margin="0,0,30,6" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowPlaytime, FallbackValue=Visible}">
                                             <Path Data="{StaticResource KX_IconClock}" Style="{StaticResource KX_InfoIcon}" />
-                                            <TextBlock Text="{Binding Playtime, Converter={StaticResource PlayTimeToStringConverter}}" Style="{StaticResource KX_TextSub}" />
+                                            <!-- (a game that's in the library more than once, One tile per game: all its copies together; ThemeApi.Copies.cs) -->
+                                            <TextBlock Text="{Binding Playtime, Converter={StaticResource PlayTimeToStringConverter}}" Style="{StaticResource KX_TextSub}"
+                                                       Visibility="{PluginSettings Plugin=Kippix, Path=CopyOwnTimeShown, FallbackValue=Visible}" />
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=CopyTimeText}" Style="{StaticResource KX_TextSub}"
+                                                       Visibility="{PluginSettings Plugin=Kippix, Path=CopyTimeShown, FallbackValue=Collapsed}" />
                                         </StackPanel>
                                         <Border Tag="info:last" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowLast, FallbackValue=Visible}">
+                                        <StackPanel Orientation="Horizontal">
+                                        <Border Visibility="{PluginSettings Plugin=Kippix, Path=CopyOwnLastShown, FallbackValue=Visible}">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,30,6"
                                                     Visibility="{Binding LastActivity, Converter={StaticResource NullToVisibilityConverter}}">
                                             <Path Data="{StaticResource KX_IconCalendar}" Style="{StaticResource KX_InfoIcon}" />
                                             <TextBlock Text="{Binding LastActivity, Converter={StaticResource DateTimeToLastPlayedConverter}}" Style="{StaticResource KX_TextSub}" />
+                                        </StackPanel>
+                                        </Border>
+                                        <!-- (last played with another copy of it; ThemeApi.Copies.cs) -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,30,6" Visibility="{PluginSettings Plugin=Kippix, Path=CopyLastShown, FallbackValue=Collapsed}">
+                                            <Path Data="{StaticResource KX_IconCalendar}" Style="{StaticResource KX_InfoIcon}" />
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=CopyLastText}" Style="{StaticResource KX_TextSub}" />
+                                        </StackPanel>
                                         </StackPanel>
                                         </Border>
                                         <Border Tag="info:ach" Visibility="{PluginSettings Plugin=Kippix, Path=DetInfoShowAch, FallbackValue=Visible}">

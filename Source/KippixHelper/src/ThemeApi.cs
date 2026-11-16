@@ -321,7 +321,7 @@ namespace KippixHelper
             TickTime("per layout");
             ApplySlotPins(false);
             TickTime("pins");
-            if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly) { InstalledOnlyHook(); ApplyListFilter(false); }   // Playnite may have put its own filter back
+            if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly || settings.OneTilePerGame) { InstalledOnlyHook(); CopiesHook(); ApplyListFilter(false); }   // Playnite may have put its own filter back
             if (FolderSortWanted || folderSorter != null) FolderSortApply();   // (and its own sort, over a folder's)
             TickTime("filter/sort");
             PcStatsTick();

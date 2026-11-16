@@ -601,14 +601,27 @@
                                         <Border Grid.Column="{PluginSettings Plugin=Kippix, Path=InfoColPlaytime, FallbackValue=0}" Visibility="{PluginSettings Plugin=Kippix, Path=InfoPlaytime, FallbackValue=Visible}">
                                             <StackPanel Orientation="Horizontal" Margin="0,0,30,0">
                                                 <Path Data="{StaticResource KX_IconClock}" Style="{StaticResource KX_InfoIcon}" />
-                                                <TextBlock Text="{Binding SelectedGame.Playtime, Converter={StaticResource PlayTimeToStringConverter}}" Style="{StaticResource KX_TextSub}" />
+                                                <!-- (a game that's in the library more than once, One tile per game: all its copies together; ThemeApi.Copies.cs) -->
+                                                <TextBlock Text="{Binding SelectedGame.Playtime, Converter={StaticResource PlayTimeToStringConverter}}" Style="{StaticResource KX_TextSub}"
+                                                           Visibility="{PluginSettings Plugin=Kippix, Path=CopyOwnTimeShown, FallbackValue=Visible}" />
+                                                <TextBlock Text="{PluginSettings Plugin=Kippix, Path=CopyTimeText}" Style="{StaticResource KX_TextSub}"
+                                                           Visibility="{PluginSettings Plugin=Kippix, Path=CopyTimeShown, FallbackValue=Collapsed}" />
                                             </StackPanel>
                                         </Border>
                                         <Border Grid.Column="{PluginSettings Plugin=Kippix, Path=InfoColLastPlayed, FallbackValue=0}" Visibility="{PluginSettings Plugin=Kippix, Path=InfoLastPlayed, FallbackValue=Visible}">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,30,0"
-                                                        Visibility="{Binding SelectedGame.LastActivity, Converter={StaticResource NullToVisibilityConverter}}">
-                                                <Path Data="{StaticResource KX_IconCalendar}" Style="{StaticResource KX_InfoIcon}" />
-                                                <TextBlock Text="{Binding SelectedGame.LastActivity, Converter={StaticResource DateTimeToLastPlayedConverter}}" Style="{StaticResource KX_TextSub}" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Visibility="{PluginSettings Plugin=Kippix, Path=CopyOwnLastShown, FallbackValue=Visible}">
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,30,0"
+                                                                Visibility="{Binding SelectedGame.LastActivity, Converter={StaticResource NullToVisibilityConverter}}">
+                                                        <Path Data="{StaticResource KX_IconCalendar}" Style="{StaticResource KX_InfoIcon}" />
+                                                        <TextBlock Text="{Binding SelectedGame.LastActivity, Converter={StaticResource DateTimeToLastPlayedConverter}}" Style="{StaticResource KX_TextSub}" />
+                                                    </StackPanel>
+                                                </Border>
+                                                <!-- (last played with another copy of it; ThemeApi.Copies.cs) -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,30,0" Visibility="{PluginSettings Plugin=Kippix, Path=CopyLastShown, FallbackValue=Collapsed}">
+                                                    <Path Data="{StaticResource KX_IconCalendar}" Style="{StaticResource KX_InfoIcon}" />
+                                                    <TextBlock Text="{PluginSettings Plugin=Kippix, Path=CopyLastText}" Style="{StaticResource KX_TextSub}" />
+                                                </StackPanel>
                                             </StackPanel>
                                         </Border>
                                         <Border Grid.Column="{PluginSettings Plugin=Kippix, Path=InfoColAchievements, FallbackValue=0}" Visibility="{PluginSettings Plugin=Kippix, Path=InfoAchievements, FallbackValue=Visible}">
