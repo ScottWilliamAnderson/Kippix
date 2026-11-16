@@ -193,6 +193,8 @@ namespace KippixHelper
                 if (sc == null) return null;
                 Func<string, string> get = name => Convert.ToString(sc.GetType().InvokeMember(name, BindingFlags.GetProperty, null, sc, null)) ?? "";
                 var t = new AddTarget { Name = Path.GetFileNameWithoutExtension(lnk), Path = Environment.ExpandEnvironmentVariables(get("TargetPath")), Arguments = get("Arguments"), WorkingDir = Environment.ExpandEnvironmentVariables(get("WorkingDirectory")) };
+                // (a shortcut whose own name is empty, like a file called just ".lnk": the name of what it starts)
+                if (string.IsNullOrWhiteSpace(t.Name)) { try { t.Name = Path.GetFileNameWithoutExtension(t.Path) ?? ""; } catch (Exception) { } }
                 string icon = get("IconLocation");   // "C:\...\app.exe,0" (",0" alone: the target's own)
                 int comma = icon.LastIndexOf(',');
                 string iconFile = Environment.ExpandEnvironmentVariables(comma > 0 ? icon.Substring(0, comma) : comma == 0 ? "" : icon).Trim();
