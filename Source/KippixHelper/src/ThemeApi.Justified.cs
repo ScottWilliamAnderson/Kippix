@@ -40,6 +40,9 @@ namespace KippixHelper
         {
             CycleJustRowsCommand = new RelayCommand(_ => { settings.JustRows = JustRowsNow >= 5 ? 2 : JustRowsNow + 1; SaveSettings(); PlaySound("move"); HomeModeChanged(); });
             JustifiedPanel.Setup = SetupJustPanel;
+            // (WPF's list selects whatever tile gets the highlight when the last thing used was a keyboard: not for our own moves,
+            // whose game is selected once the highlight rests. The list never hears of the highlight it was given by JustGoTo)
+            EventManager.RegisterClassHandler(typeof(ListBoxItem), Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler((s, e) => { if (justFocusing && ReferenceEquals(s, e.NewFocus)) e.Handled = true; }));
             InitJustPerf();
             OpenLibraryViewCommand = new RelayCommand(_ => OpenLibraryView());
             CloseLibraryViewCommand = new RelayCommand(_ => CloseLibraryView(true));
@@ -352,7 +355,7 @@ namespace KippixHelper
         private object justPending;                    // the highlighted game's entry, not selected yet
         private DispatcherTimer justRestTimer;
         private ListBox justHooked;
-        private bool justCommitting;
+        private bool justCommitting, justFocusing;
 
         /// <summary>Scrolls a game's row in and puts the highlight on its tile; the game is selected once the highlight rests.</summary>
         private void JustGoTo(ListBox list, int index)
@@ -372,7 +375,12 @@ namespace KippixHelper
                 c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
             }
             if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
-            if (c != null) Keyboard.Focus(c);
+            if (c != null)
+            {
+                justFocusing = true;
+                try { Keyboard.Focus(c); }
+                finally { justFocusing = false; }
+            }
             LibraryHeaderFor(justPending);
             if (justRestTimer == null)
             {
