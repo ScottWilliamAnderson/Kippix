@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Playnite.SDK.Models;
+
+namespace KippixHelper
+{
+    /// <summary>
+    /// Apps in a row of their own (Game cards and layout › Extra rows › Apps; Row › Lower): everything in one Playnite category
+    /// ("Apps" unless another name is set: a browser, a terminal, tools) leaves the games row and sits in the first extra row,
+    /// the last one used first. Off until that row is switched on.
+    ///   - The games row: the one list filter (ApplyListFilter) leaves them out, whichever saved filter is on.
+    ///   - The Apps row: every entry in the category that isn't hidden, whatever Playnite's filter says. Playnite can only select
+    ///     what's in its list, so while the highlight is in that row the list lets them through (it's faded out then): the
+    ///     background, logo, info and the game page follow the app like any other row's tile.
+    ///   - Down from the games goes into it, Left / Right along it, A opens it, Up or B goes back to the game you left.
+    /// </summary>
+    public partial class ThemeApi
+    {
+        private Guid appsCatId;         // the category with a row of its own now (Guid.Empty: none)
+        private bool appsRowOpen;       // the highlight is in the Apps row: Playnite's list lets them through
+        private bool appsRowFlipping;   // the list changing because of that: the rows aren't built again for it
+
+        private bool AppsRowWanted
+        {
+            get { return IsFullscreen && settings.ExtraRows && settings.HomeLayoutMode == 0 && settings.RowDesign == 0 && settings.ExtraRowKeys != null && settings.ExtraRowKeys.Contains("apps"); }
+        }
+
+        private string AppsCategoryName { get { return string.IsNullOrWhiteSpace(settings.AppsRowCategory) ? "Apps" : settings.AppsRowCategory.Trim(); } }
+
+        private Guid AppsCategoryId()
+        {
+            try
+            {
+                string name = AppsCategoryName;
+                var c = api.Database.Categories.FirstOrDefault(x => x != null && string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+                return c != null ? c.Id : Guid.Empty;
+            }
+            catch (Exception) { return Guid.Empty; }
+        }
+
+        /// <summary>From the list filter: is this one of the apps (so not for the games row)?</summary>
+        private bool IsAppsRowGame(Game g)
+        {
+            return g != null && g.CategoryIds != null && g.CategoryIds.Contains(appsCatId);
+        }
+
+        /// <summary>From the tick, and whenever the rows are built: the Apps row switched on or off, or its category changed.</summary>
+        private void AppsRowTick()
+        {
+            Guid want = AppsRowWanted ? AppsCategoryId() : Guid.Empty;
+            if (want == appsCatId) return;
+            appsCatId = want;
+            if (want == Guid.Empty) appsRowOpen = false;
+            ApplyListFilter(true);
+        }
+
+        /// <summary>The highlight went into or out of the Apps row (GoToExtraRow, LeaveExtraRows): Playnite's list lets the apps in, or not.</summary>
+        private void AppsRowSync()
+        {
+            bool open = appsCatId != Guid.Empty && extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count && ExtraRowsList[extraRowAt - 1].Key == "apps";
+            if (open == appsRowOpen) return;
+            appsRowOpen = open;
+            try { appsRowFlipping = true; ApplyListFilter(true); }
+            finally { appsRowFlipping = false; }
+        }
+
+        /// <summary>
+        /// From RebuildExtraRows (its worker thread), once the other rows are worked out: the Apps row goes in first (after
+        /// Running now, where there is one), and its apps come out of the other rows.
+        /// </summary>
+        private void AppsRowBuild(List<Tuple<string, string, List<Game>>> built, List<string> keys, List<Game> all)
+        {
+            OnUi(AppsRowTick);
+            if (!keys.Contains("apps")) return;
+            Guid cat = AppsCategoryId();
+            if (cat == Guid.Empty) return;
+            var apps = all.Where(g => g.CategoryIds != null && g.CategoryIds.Contains(cat))
+                          .OrderByDescending(g => LastPlayedNow(g) ?? DateTime.MinValue).ThenBy(g => g.SortingName ?? g.Name).Take(40).ToList();
+            if (apps.Count == 0) return;
+            var ids = new HashSet<Guid>(apps.Select(g => g.Id));
+            foreach (var b in built) b.Item3.RemoveAll(g => ids.Contains(g.Id));
+            built.RemoveAll(b => b.Item3.Count == 0);
+            built.Insert(built.Count > 0 && built[0].Item1 == "running" ? 1 : 0, Tuple.Create("apps", AppsCategoryName, apps));
+        }
+
+        /// <summary>The Extra rows page: under the Apps switch, which category it takes (the keyboard changes it).</summary>
+        private void AddAppsRowChoice()
+        {
+            int at = -1;
+            for (int i = 0; i < ExtraRowChoices.Count; i++) if (ExtraRowChoices[i].Key == "apps") { at = i; break; }
+            if (at < 0) return;
+            ExtraRowChoices[at].SetSub(Loc("LOC_KX_RowAppsSub", "A row of their own, first under the games, and out of the games row"));
+            var row = new PickRow { Key = "appscat", Icon = "tag", Indent = 28, Text = AppsCategoryText(), Sub = AppsCategorySub() };
+            row.Command = new RelayCommand(_ => OpenKeyboard(Loc("LOC_KX_RowAppsAsk", "The Playnite category whose entries are your apps"), AppsCategoryName, text =>
+            {
+                settings.AppsRowCategory = (text ?? "").Trim();
+                SaveSettings();
+                row.SetText(AppsCategoryText());
+                row.SetSub(AppsCategorySub());
+                RebuildExtraRowsSoon();
+            }, null, null, 60));
+            ExtraRowChoices.Insert(at + 1, row);
+        }
+
+        private string AppsCategoryText() { return string.Format(Loc("LOC_KX_RowAppsCategory", "Category: {0}"), AppsCategoryName); }
+
+        private string AppsCategorySub()
+        {
+            return AppsCategoryId() == Guid.Empty ? Loc("LOC_KX_RowAppsNoCategory", "Playnite has no category with this name yet")
+                                                  : Loc("LOC_KX_RowAppsCategorySub", "Everything in this Playnite category counts as an app");
+        }
+    }
+}
