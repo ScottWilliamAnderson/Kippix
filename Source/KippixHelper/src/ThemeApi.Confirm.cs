@@ -20,6 +20,9 @@ namespace KippixHelper
         public string ConfirmTitle { get { return confirmTitle; } }
         public string ConfirmText { get { return confirmText; } }
         public string ConfirmYesText { get { return confirmYesText; } }
+        private bool confirmPlain;   // the Yes button does nothing that loses anything (Download what's missing): not in the warning red
+        public bool ConfirmYesDanger { get { return !confirmPlain; } }
+        public bool ConfirmYesPlain { get { return confirmPlain; } }
         public ICommand ConfirmYesCommand { get; private set; }
         public ICommand ConfirmNoCommand { get; private set; }
 
@@ -29,8 +32,18 @@ namespace KippixHelper
             ConfirmNoCommand = new RelayCommand(_ => CloseConfirm(false));
         }
 
+        /// <summary>Asks first, as Confirm does, for something that takes nothing away: its Yes button looks like any other button.</summary>
+        private void ConfirmPlain(string title, string text, string yesText, Action yes)
+        {
+            Confirm(title, text, yesText, yes);
+            confirmPlain = true;
+            Notify("ConfirmYesDanger");
+            Notify("ConfirmYesPlain");
+        }
+
         private void Confirm(string title, string text, string yesText, Action yes)
         {
+            if (confirmPlain) { confirmPlain = false; Notify("ConfirmYesDanger"); Notify("ConfirmYesPlain"); }
             confirmTitle = title ?? "";
             confirmText = text ?? "";
             confirmYesText = string.IsNullOrEmpty(yesText) ? Loc("LOC_KX_Yes", "Yes") : yesText;

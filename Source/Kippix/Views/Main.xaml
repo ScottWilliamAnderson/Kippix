@@ -8142,10 +8142,14 @@
                                             <TextBlock Text="{DynamicResource LOC_KX_Cancel}" VerticalAlignment="Center" />
                                         </ButtonEx>
                                         <ButtonEx x:Name="KX_ConfirmYes" Style="{StaticResource KX_PillButton}" Command="{PluginSettings Plugin=Kippix, Path=ConfirmYesCommand}">
+                                            <Grid>
+                                            <!-- (something that takes nothing away, as Download what's missing: the button's own colours, like Cancel) -->
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=ConfirmYesText}" VerticalAlignment="Center" Visibility="{PluginSettings Plugin=Kippix, Path=ConfirmYesPlain, FallbackValue=Collapsed}" />
                                             <!-- pink on the dark pill, dark red once it has the highlight (the pill turns white) -->
-                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=ConfirmYesText}" VerticalAlignment="Center">
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=ConfirmYesText}" VerticalAlignment="Center" Visibility="{PluginSettings Plugin=Kippix, Path=ConfirmYesDanger, FallbackValue=Visible}">
                                                 <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Foreground" Value="#FFFCA5A5" /><Style.Triggers><DataTrigger Binding="{Binding IsFocused, RelativeSource={RelativeSource AncestorType=ButtonEx}}" Value="True"><Setter Property="Foreground" Value="#FFB42318" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                             </TextBlock>
+                                            </Grid>
                                         </ButtonEx>
                                     </StackPanel>
                                 </StackPanel>
