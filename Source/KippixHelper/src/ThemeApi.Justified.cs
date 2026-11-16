@@ -204,6 +204,7 @@ namespace KippixHelper
             try
             {
                 JustCommit();
+                JustShadowsBack();
                 var was = justList;
                 var template = justOriginalPanel;
                 if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
@@ -666,8 +667,42 @@ namespace KippixHelper
             ApplyCardLayoutSoon();   // (the list is sized from the tiles' own margins: known once the first tile is made)
         }
 
+        // Every card has a soft shadow under it (a DropShadowEffect: the card is drawn off screen, blurred and drawn again).
+        // A row of six doesn't notice; with the mosaic's forty-odd cards any frame that redraws them (a highlight growing, a
+        // row sliding) took twice as long. Packed edge to edge on the darkened background the shadows hardly show, so the
+        // mosaic's cards go without; they get them back when the list goes back to Playnite's own panel.
+        private readonly HashSet<FrameworkElement> justNoShadow = new HashSet<FrameworkElement>();
+
+        private void JustShadowsOff()
+        {
+            try
+            {
+                var panel = justPanel;
+                if (panel == null) return;
+                int n = VisualTreeHelper.GetChildrenCount(panel);
+                for (int i = 0; i < n; i++)
+                {
+                    var tile = VisualTreeHelper.GetChild(panel, i) as ListBoxItem;
+                    if (tile == null || tile.Template == null) continue;
+                    var shadow = tile.Template.FindName("KX_TileShadow", tile) as FrameworkElement;
+                    if (shadow == null || justNoShadow.Contains(shadow)) continue;
+                    justNoShadow.Add(shadow);
+                    shadow.Effect = null;
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: card shadows: " + ex.Message); }
+        }
+
+        private void JustShadowsBack()
+        {
+            foreach (var shadow in justNoShadow)
+                try { shadow.ClearValue(UIElement.EffectProperty); } catch (Exception) { }
+            justNoShadow.Clear();
+        }
+
         private void OnJustContainers(object sender, EventArgs e)
         {
+            JustShadowsOff();
             if (AnyBadges || badgesEverOn) RefreshBadgesSoon();
             if (tileArtWasOn || shapesWereOn || spacingWasSet) RefreshTileArtSoon();
         }
