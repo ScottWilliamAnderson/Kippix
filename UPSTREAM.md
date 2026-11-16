@@ -39,6 +39,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/story-progress-relevance` (on `fix/story-progress-hide-empty`) | "Story ~99%" from play time on multiplayer-only games and on games played past their story length. | Verified |
 | `fix/game-page-info-layout` | Game page info lines overlapped the logo and buttons. | Verified |
 | `fix/game-page-lower-gap` (on `fix/game-page-info-layout`) | Lower-page cards touched at larger text sizes. | Verified (two-card pages) |
+| `fix/game-page-long-name-hidden` (on `fix/game-page-info-layout`) | A long name without a logo ran behind the cover / trailer and was cut off; it wraps to two lines before it. | Verified |
 
 ### 2. Features
 
@@ -51,7 +52,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `feat/sort-and-show` | A top-bar shortcut: sort order and installed-only, without Playnite's filter panel. | Verified |
 | `feat/browser-keyboard-links` | The on-screen keyboard comes up when a text box is picked in the built-in browser; "Open links in" setting. | Verified |
 | `feat/shuffle-covers` | Tiles rotate between a game's own cover and its BackgroundChanger covers, per start, day, hour or ten minutes. | Verified (230 games rotating) |
-| `feat/home-video-background` | Muted gameplay clip behind the home screen: local trailer, ES-DE clip, or Steam trailer. An option lets it play on battery (handheld mode pauses it otherwise). | Verified |
+| `feat/home-video-background` | Muted gameplay clip behind the home screen: local trailer, ES-DE clip, or Steam trailer. An option lets it play on battery (handheld mode pauses it otherwise). `HomeVideoSkipSeconds` (no row in the settings yet) starts clips a few seconds in, past the ratings card. | Verified |
 | `feat/home-video-pip` (on `feat/home-video-background`) | The clip as a picture-in-picture box; plays on the landing only. | Verified |
 | `feat/running-row` | Several apps and games at once: a "Running now" row, switch with A, close with X, RUNNING badge, "Switch to" on the game page. | Verified |
 | `feat/running-close-confirm` (on `feat/running-row`) | X asks "Close <name>?" first; apps only by default. | Verified |
