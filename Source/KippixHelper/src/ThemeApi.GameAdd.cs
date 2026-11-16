@@ -302,6 +302,8 @@ namespace KippixHelper
             gameAddLevel = null;
             GameMoreTitle = g.Name;
             Notify("GameMoreTitle");
+            Notify("OptionsTitle");   // (the menu's heading: the new entry's name, not still "Add an app or game")
+            try { RebuildExtraRowsSoon(); } catch (Exception) { }   // (the rows under the games: a new app goes into the Apps row now, not at the next start)
             ShowGameEdit(g, false, "metafill");
         }
 
