@@ -27,6 +27,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/tour-steam-signin-row-refresh` | Tour stores step did not follow a Steam store sign-in. | Not verified (the row shows "Signed in" correctly; the refresh right after signing in needs a sign-out and sign-in) |
 | `fix/tour-store-no-games-wording` | "0 games · couldn't tell" for an add-on with no games. | Verified |
 | `fix/browser-close-focus` | Closing a page opened from a menu put the highlight on a hidden button. | Verified |
+| `fix/back-highlight-far-card` | Back from the game page after LB / RB: no card highlighted when the game was far along the row. | Verified |
 | `fix/browser-one-name` | Two names for the built-in browser. | Verified |
 | `fix/keyboard-keycaps-legible` | Keyboard key caps in the hints were squeezed and unreadable. | Verified |
 | `fix/top-bar-kept-items-legible` | The clock that stays when the bar hides was unreadable over bright art. | Verified |
