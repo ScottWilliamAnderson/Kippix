@@ -49,6 +49,8 @@ namespace KippixHelper
         public string AmbientBgTextNext { get { return NextText(settings.AmbientBg, (AmbientBgNow + 1) % AmbientBgKeys.Length, v => settings.AmbientBg = v, () => AmbientBgText); } }
         // the Store
         public string StoreImageQualityTextNext { get { return NextText(settings.StoreImageQuality, (Math.Max(0, Math.Min(2, settings.StoreImageQuality)) + 1) % 3, v => settings.StoreImageQuality = v, () => StoreImageQualityText); } }
+        // Top bar settings (a switch between two, shown as a value)
+        public string ClockModeTextNext { get { HookCycleNext(); return "›  " + (settings.Clock24h ? Loc("LOC_KX_Clock12", "12-hour") : Loc("LOC_KX_Clock24", "24-hour")); } }
         public string CursorSpeedTextNext { get { return NextText(settings.BrowserCursorSpeed, settings.BrowserCursorSpeed % 5 + 1, v => settings.BrowserCursorSpeed = v, () => CursorSpeedText); } }
 
         private bool cycleNextHooked;
