@@ -811,6 +811,20 @@ namespace KippixHelper
             carRowShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(y, new Duration(TimeSpan.FromMilliseconds(animate && !ReduceMotionNow ? 320 : 0))) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         }
 
+        /// <summary>
+        /// The controller's B in a row under the games: back up to the game you left, as Up from the first row and the keyboard's
+        /// Esc do. (The controller's B never reaches ExtraRowKey: it went to B's job on the home screen, the first game. From
+        /// the Apps row that was an app in the games row, which then left the row and took the highlight with it.)
+        /// </summary>
+        private bool ExtraRowBackKey(KeyEventArgs e)
+        {
+            if (extraRowAt == 0 || !ShowExtraRows || e.IsRepeat || IsPadRelease(e) || !IsBackKey(e)) return false;
+            if (confirmOpen || kbOpen || freeMove || IsMasterMoving || descReaderOpen) return false;
+            PlaySound("back");
+            LeaveExtraRows(true);
+            return true;
+        }
+
         /// <summary>Down from the games into the first extra row; Up / Down between rows; Up from the first back to the games.</summary>
         private bool ExtraRowKey(KeyEventArgs e)
         {
