@@ -195,6 +195,7 @@ namespace KippixHelper
                     GameEditSub("name", text);
                     GameMoreTitle = text;
                     Notify("GameMoreTitle");
+                    Notify("OptionsTitle");   // (the menu's heading is the game's name: it kept the old one)
                 }, null, null, 200))
             });
             rows.Add(new PickRow
