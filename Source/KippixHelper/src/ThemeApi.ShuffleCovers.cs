@@ -274,6 +274,37 @@ namespace KippixHelper
             });
         }
 
+        private ListBox shuffleList;
+        private bool shuffleSoon;
+
+        /// <summary>
+        /// From the tick: Playnite's list (a new one when it makes its screen again) tells us when it has made cards or
+        /// scrolled, and the cards on screen are given their picks then. The Loaded handler above isn't enough by itself: WPF
+        /// only raises Loaded on a card when something in it asked for it, so cards came up with the game's own cover (all of
+        /// them when Playnite starts, and the library view's).
+        /// </summary>
+        private void ShuffleWatchList()
+        {
+            var win = Application.Current != null ? Application.Current.MainWindow : null;
+            var list = win != null ? UiTools.FindByName(win, "PART_ListGameItems") as ListBox : null;
+            if (list == null || ReferenceEquals(list, shuffleList)) return;
+            shuffleList = list;
+            list.ItemContainerGenerator.StatusChanged += (s, e) => ShuffleCardsSoon();
+            list.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((s, e) => ShuffleCardsSoon()));
+            ShuffleCardsAgain();
+        }
+
+        private void ShuffleCardsSoon()
+        {
+            if (shuffleSoon || !(ShuffleOn || shuffleWasOn)) return;
+            shuffleSoon = true;
+            ui.BeginInvoke(new Action(() =>
+            {
+                shuffleSoon = false;
+                try { ShuffleCardsAgain(); } catch (Exception ex) { logger.Warn("Kippix: shuffle covers (cards): " + ex.Message); }
+            }), DispatcherPriority.Loaded);
+        }
+
         /// <summary>The cards on screen now, again.</summary>
         private void ShuffleCardsAgain()
         {
@@ -327,18 +358,14 @@ namespace KippixHelper
         private void ShuffleTick()
         {
             bool on = ShuffleOn;
+            if (on) ShuffleWatchList();
             long period = on ? ShufflePeriodNow() : -1;
             bool first = !shuffleTickSeen;
             if (!first && on == shuffleTickOn && period == shuffleTickPeriod) return;
             shuffleTickSeen = true;
             shuffleTickOn = on;
             shuffleTickPeriod = period;
-            if (first)
-            {
-                // (start-up: the cards and tiles ask as they're made; the cards made before BackgroundChanger was there, now)
-                if (on) ShuffleCardsAgain();
-                return;
-            }
+            if (first) return;   // (start-up: the cards and tiles ask as they're made)
             lock (shuffleGate) { shufflePicks.Clear(); shufflePicksPeriod = period; }
             ShuffleCardsAgain();
             ShufflePageCover(SelectedGameNow());
