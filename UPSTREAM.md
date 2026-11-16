@@ -49,14 +49,15 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `feat/device-battery` | Top-bar battery can show the device's battery (handhelds), with a charging mark. | Verified |
 | `feat/sort-and-show` | A top-bar shortcut: sort order and installed-only, without Playnite's filter panel. | Verified |
 | `feat/browser-keyboard-links` | The on-screen keyboard comes up when a text box is picked in the built-in browser; "Open links in" setting. | Verified |
-| `feat/shuffle-covers` | Tiles rotate between a game's own cover and its BackgroundChanger covers, per start or per day. | Verified (230 games rotating) |
-| `feat/home-video-background` | Muted gameplay clip behind the home screen: local trailer, ES-DE clip, or Steam trailer. | Verified |
+| `feat/shuffle-covers` | Tiles rotate between a game's own cover and its BackgroundChanger covers, per start, day, hour or ten minutes. | Verified (230 games rotating) |
+| `feat/home-video-background` | Muted gameplay clip behind the home screen: local trailer, ES-DE clip, or Steam trailer. An option lets it play on battery (handheld mode pauses it otherwise). | Verified |
 | `feat/home-video-pip` (on `feat/home-video-background`) | The clip as a picture-in-picture box; plays on the landing only. | Verified |
 | `feat/running-row` | Several apps and games at once: a "Running now" row, switch with A, close with X, RUNNING badge, "Switch to" on the game page. | Verified |
 | `feat/running-close-confirm` (on `feat/running-row`) | X asks "Close <name>?" first; apps only by default. | Verified |
 | `feat/apps-row` | Apps (a category) in their own row under the games; an app's page says Open and drops game-only parts. | Verified |
 | `feat/game-edit` | "Edit this game" in fullscreen (name, favourite, hidden, categories, genres, platforms, tags, metadata download) and "Add an app or game". | Verified |
 | `feat/justified-library` | "Mosaic": every cover in its own shape in justified rows; as a home layout and as a library view opened with Down from the Row. Includes the header-overlap fix (`fix/library-header-overlap`). | Verified (press-to-frame 173 ms -> 29 ms after the performance pass) |
+| `feat/guides-claude-code` | Achievement guides: Claude Code as a third provider (the user's own Claude plan, no API key), with web search. | Verified (two games written on the device) |
 
 ## Notes for whoever opens the pull requests
 
@@ -66,3 +67,4 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 - **Style:** the helper is C# 5 (csc.exe); strings are in `en_US.xaml` only, other languages fall back to English; comments follow the upstream author's style.
 - **Not for upstream:** `Setups/` (one person's setup) and this file.
 - **Tracker:** issues #1 to #22 in the fork describe the original problems and requests.
+- **On screen:** `Showcase/README.md` has a clip of each larger change.
