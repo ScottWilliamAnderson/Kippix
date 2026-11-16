@@ -4803,7 +4803,7 @@
     <sys:String x:Key="LOC_KX_LocalHiddenNone">Nothing hidden. Select on a poster hides it</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenSub">Movies and shows you've hidden: show them again</sys:String>
     <sys:String x:Key="LOC_KX_BatterySource">Battery shown</sys:String>
-    <sys:String x:Key="LOC_KX_BatterySourceSub">The controller's battery, or this device's own (a handheld or laptop), with a bolt while it's plugged in</sys:String>
+    <sys:String x:Key="LOC_KX_BatterySourceSub">The controller's, or this device's own</sys:String>
     <sys:String x:Key="LOC_KX_BatterySourceController">Controller</sys:String>
     <sys:String x:Key="LOC_KX_BatterySourceDevice">This device</sys:String>
     <sys:String x:Key="LOC_KX_DeviceBattery">Battery</sys:String>
