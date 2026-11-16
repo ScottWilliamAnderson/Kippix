@@ -268,6 +268,7 @@ namespace KippixHelper
         public int HomeVideoDelayMs = 1500;          // how long the highlight rests on a game before its video starts
         public bool HomeVideoDownload = true;        // no video of its own: the Steam store trailer may be downloaded
         public bool HomeVideoOnBattery = false;      // a handheld on battery: it plays all the same (off: paused with the other live backgrounds)
+        public int HomeVideoSkipSeconds = 0;         // starts this far in (and loops back to there): trailers open on a ratings card or a logo; only clips over 30 s
         public string HomeVideoMediaDir = "";        // ES-DE's media folder (downloaded_media); empty: found by itself
         // Look and feel › Intro and outro: 0 none, 2 your own video (IntroVideo / OutroVideo: a copy in ExtensionsData\intro\), (0.99.66) 1 (the old animated logo) and 3 (Kippix's own video) are gone: read as 0
         public int IntroMode = 0;                    // (0.99.66: none unless you choose a video of your own)
