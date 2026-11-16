@@ -199,6 +199,7 @@ namespace KippixHelper
         {
             try
             {
+                JustCommit();
                 var was = justList;
                 var template = justOriginalPanel;
                 if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
@@ -333,8 +334,8 @@ namespace KippixHelper
             else next = justPanel.IndexFrom(cur, e.Key, ref justStickyX);
             if (next < 0)
             {
-                if (e.Key == Key.Up) { justStickyX = double.NaN; return false; }   // the first row: up to the top bar
-                if (e.Key == Key.Left) return false;                               // the first game: nothing before it
+                if (e.Key == Key.Up) { justStickyX = double.NaN; JustCommit(); return false; }   // the first row: up to the top bar
+                if (e.Key == Key.Left) { JustCommit(); return false; }                           // the first game: nothing before it
                 return true;                                                       // the last row / the last game: stay
             }
             justMovedAt = DateTime.Now;
@@ -343,28 +344,106 @@ namespace KippixHelper
             return true;
         }
 
-        /// <summary>Selects a game in the mosaic, scrolls its row in and puts the highlight on its tile.</summary>
+        // Playnite's selected game is what everything follows: the background art, the logo and info, every add-on's own
+        // controls, the accent colour. Changing it costs tens of milliseconds, far more than moving the highlight, so in the
+        // mosaic the highlight moves at once and the selection follows when it has rested (or the moment anything but a
+        // direction is pressed: A, X and Start always act on the highlighted game).
+        private const int JustRestMs = 180;
+        private object justPending;                    // the highlighted game's entry, not selected yet
+        private DispatcherTimer justRestTimer;
+        private ListBox justHooked;
+        private bool justCommitting;
+
+        /// <summary>Scrolls a game's row in and puts the highlight on its tile; the game is selected once the highlight rests.</summary>
         private void JustGoTo(ListBox list, int index)
         {
             if (index < 0 || index >= list.Items.Count) return;
             bool perf = JustifiedPanel.Perf;
-            long t0 = perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0, t1 = 0, t2 = 0, t3 = 0;
+            long t0 = perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0, t1 = 0, t2 = 0;
             if (perf) JustPerfFrames(true);
-            list.SelectedIndex = index;
+            JustHook(list);
+            justPending = list.Items[index];
+            if (justPanel != null) { justPanel.HighlightIndex = index; justPanel.ScrollToIndex(index); }
             if (perf) t1 = System.Diagnostics.Stopwatch.GetTimestamp();
-            if (justPanel != null) justPanel.ScrollToIndex(index);
-            if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
-            list.UpdateLayout();   // (the panel makes the selected game's tile, wherever it is)
-            if (perf) t3 = System.Diagnostics.Stopwatch.GetTimestamp();
             var c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
+            if (c == null)
+            {
+                list.UpdateLayout();   // (the panel makes the highlighted game's tile, wherever it is)
+                c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
+            }
+            if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
             if (c != null) Keyboard.Focus(c);
+            LibraryHeaderFor(justPending);
+            if (justRestTimer == null)
+            {
+                justRestTimer = new DispatcherTimer(DispatcherPriority.Input, ui) { Interval = TimeSpan.FromMilliseconds(JustRestMs) };
+                justRestTimer.Tick += (s, e) => JustCommit();
+            }
+            justRestTimer.Stop();
+            justRestTimer.Start();
             if (perf)
             {
                 double f = System.Diagnostics.Stopwatch.Frequency / 1000.0;
-                long t4 = System.Diagnostics.Stopwatch.GetTimestamp();
-                pfSelect.Add((t1 - t0) / f); pfScroll.Add((t2 - t1) / f); pfLayout.Add((t3 - t2) / f); pfFocus.Add((t4 - t3) / f); pfMove.Add((t4 - t0) / f);
+                long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
+                pfScroll.Add((t1 - t0) / f); pfLayout.Add((t2 - t1) / f); pfFocus.Add((t3 - t2) / f); pfMove.Add((t3 - t0) / f);
                 JustPerfSettle();
             }
+        }
+
+        /// <summary>The highlighted game becomes Playnite's selected game now (nothing to do when it already is).</summary>
+        private void JustCommit()
+        {
+            if (justRestTimer != null) justRestTimer.Stop();
+            object item = justPending;
+            justPending = null;
+            if (item == null) return;
+            var list = justList;
+            try
+            {
+                if (list == null) return;
+                int i = list.Items.IndexOf(item);
+                if (i < 0 || list.SelectedIndex == i) return;
+                long t0 = JustifiedPanel.Perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                justCommitting = true;
+                list.SelectedIndex = i;
+                if (JustifiedPanel.Perf) pfSelect.Add(PerfMs(t0));
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: selecting the highlighted game: " + ex.Message); }
+            finally
+            {
+                justCommitting = false;
+                if (justPanel != null) justPanel.HighlightIndex = -1;
+            }
+        }
+
+        /// <summary>A key or button that isn't a move in the mosaic: whatever it does, it does to the highlighted game.</summary>
+        private void JustCommitUnlessMove(KeyEventArgs e)
+        {
+            if (justPending == null) return;
+            var button = PadButton(e);
+            if (button != Playnite.SDK.Events.ControllerInput.None)
+            {
+                // (the controller's own event: the D-pad, a stick pushed a way, the triggers that page)
+                string b = button.ToString();
+                if (b.StartsWith("DPad", StringComparison.Ordinal) || b.StartsWith("LeftStick", StringComparison.Ordinal) || b.StartsWith("RightStick", StringComparison.Ordinal) || b.StartsWith("Trigger", StringComparison.Ordinal)) return;
+            }
+            else if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.PageUp || e.Key == Key.PageDown) return;
+            JustCommit();
+        }
+
+        /// <summary>The list the mosaic is in: the highlight leaving it, or a game selected some other way (a click), ends the wait.</summary>
+        private void JustHook(ListBox list)
+        {
+            if (ReferenceEquals(list, justHooked)) return;
+            justHooked = list;
+            list.IsKeyboardFocusWithinChanged += (s, e) => { if (justPending != null && !list.IsKeyboardFocusWithin) JustCommit(); };
+            list.SelectionChanged += (s, e) =>
+            {
+                if (justCommitting || justPending == null) return;
+                justPending = null;
+                if (justRestTimer != null) justRestTimer.Stop();
+                if (justPanel != null) justPanel.HighlightIndex = -1;
+            };
         }
 
         // =====================================================================
@@ -503,6 +582,7 @@ namespace KippixHelper
         private bool CloseLibraryView(bool sound)
         {
             bool was = LibraryOpen;
+            if (was) JustCommit();   // (back on the game the highlight was on)
             libraryOpen = false;
             if (!was) return false;
             if (sound) PlaySound("back");
