@@ -395,6 +395,35 @@
                                         </StackPanel>
                                     </StackPanel>
 
+                                    <!-- the library view (every game as a mosaic: ThemeApi.Justified.cs): one line for what the home screen says with its logo,
+                                         info line and filter name, which are away while it's open. What's shown (Playnite's filter, or the row / folder name
+                                         that stands in for it), then the highlighted game and a few words about it. It starts where the games do; the
+                                         helper moves it along when the profile button is showing (LibraryHeaderPlace) -->
+                                    <StackPanel x:Name="KX_LibraryHeader" Grid.Column="1" HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Height="44" IsHitTestVisible="False"
+                                                Visibility="{PluginSettings Plugin=Kippix, Path=IsLibraryOpen, FallbackValue=Collapsed}">
+                                        <Path Data="{StaticResource KX_IconFilter}" Style="{StaticResource KX_InfoIcon}" VerticalAlignment="Center" />
+                                        <Grid VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ActiveFilterPreset.Name}" MaxWidth="300" TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource KX_TextSub}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=HomeLabelOwn}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{PluginSettings Plugin=Kippix, Path=HomeLabelText}" Style="{StaticResource KX_TextSub}" MaxWidth="300" TextTrimming="CharacterEllipsis"
+                                                       Visibility="{PluginSettings Plugin=Kippix, Path=HomeLabelOwn, FallbackValue=Collapsed}" />
+                                        </Grid>
+                                        <Border Width="2" Height="26" CornerRadius="1" Background="{DynamicResource KX_TextDimBrush}" Opacity="0.55" Margin="22,0,22,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{PluginSettings Plugin=Kippix, Path=LibraryTitle}" Style="{StaticResource KX_Text}" FontFamily="{DynamicResource FontTitilliumWebBold}" FontSize="28"
+                                                   MaxWidth="560" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <TextBlock Text="{PluginSettings Plugin=Kippix, Path=LibraryInfo}" Style="{StaticResource KX_TextSub}" Margin="24,0,0,0"
+                                                   MaxWidth="560" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    </StackPanel>
+
                                     <!-- right: shortcuts in your saved order, then options, clock, notifications -->
                                     <StackPanel x:Name="KX_TopRight" Grid.Column="2" Orientation="{PluginSettings Plugin=Kippix, Path=ShortcutsOrientation, FallbackValue=Horizontal}"
                                                 VerticalAlignment="{PluginSettings Plugin=Kippix, Path=TopRightAlignment, FallbackValue=Center}"

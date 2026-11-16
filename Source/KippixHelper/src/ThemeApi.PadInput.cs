@@ -85,6 +85,7 @@ namespace KippixHelper
                 lastPadEvent = e;
                 if (padEventType == null) padEventType = e.GetType();
                 if (!lookFullscreen || !InMainWindow(sender)) return;
+                if (justPending != null) JustCommitUnlessMove(e);   // the mosaic: anything but a move acts on the highlighted game
 
                 // Controller buttons: waiting for "press a button" takes every button
                 if (PadCaptureKey(e, button, true)) return;

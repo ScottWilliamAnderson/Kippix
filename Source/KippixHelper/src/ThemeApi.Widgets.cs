@@ -276,7 +276,7 @@ namespace KippixHelper
             get { return settings.WidgetsOn; }
             set { if (settings.WidgetsOn == value) return; settings.WidgetsOn = value; SaveSettings(); Notify("WidgetsOn"); Notify("ShowWidgets"); if (value) RefreshWidgets(true); }
         }
-        public bool ShowWidgets { get { return settings.WidgetsOn && Widgets != null && Widgets.Count > 0; } }
+        public bool ShowWidgets { get { return settings.WidgetsOn && Widgets != null && Widgets.Count > 0 && !LibraryOpen; } }   // (the library view is the games only)
         public bool WeatherFahrenheit
         {
             get { return settings.WeatherFahrenheit; }

@@ -130,7 +130,7 @@ namespace KippixHelper
         /// <summary>Home screen keys for the widgets. True when it moved the highlight (or kept it).</summary>
         private bool WidgetNavKey(KeyEventArgs e)
         {
-            if (openPanel != null || detailsOpen || !settings.WidgetsOn) return false;
+            if (openPanel != null || detailsOpen || !settings.WidgetsOn || LibraryOpen) return false;
             var win = Application.Current.MainWindow;
             var layer = UiTools.FindByName(win, "KX_Widgets");
             var games = UiTools.FindByName(win, "PART_ListGameItems");

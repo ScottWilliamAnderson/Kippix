@@ -102,11 +102,14 @@ namespace KippixHelper
                 return Covers.Get(g);
             };
             p.SmoothScroll = !ReduceMotionNow;
-            if (justRowHeight > 0) p.TargetRowHeight = justRowHeight;
+            if (justRowHeight > 0) p.RowHeight = justRowHeight;
             p.EdgePadding = justEdge;
+            p.BottomRoom = JustBottomRoom;
         }
 
+        private const double JustBottomRoom = 12;      // under the last row in view, inside the list: the highlight's edge and glow
         private double justRowHeight, justEdge = 16;
+        private double justLeft = 48, justTop, justBottom = 16;   // the list's own margins (CardsMargin)
 
         /// <summary>From ApplyCardLayout, before anything that needs Playnite's own panel. True: Mosaic is on and has sized the list.</summary>
         private bool JustifiedLayout(ListBox list)
@@ -142,34 +145,50 @@ namespace KippixHelper
                 JustPrewarmSoon();
             }
             justList = list;
+            if (!ReferenceEquals(list, libraryHeaderList))
+            {
+                libraryHeaderList = list;
+                list.SelectionChanged += (so, se) => LibraryHeaderFor(list.SelectedItem);   // the library view's header names the selected game
+            }
             var panel = now as JustifiedPanel;
             if (!ReferenceEquals(panel, justPanel))
             {
-                if (justPanel != null) justPanel.ContainersGenerated -= OnJustContainers;
+                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
                 justPanel = panel;
-                if (panel != null) panel.ContainersGenerated += OnJustContainers;
+                if (panel != null) { panel.ContainersGenerated += OnJustContainers; panel.MarginsChanged += OnJustMargins; }
             }
 
-            // the list's size: the screen's width less a margin each side, and (as the grid) the height between the logo and
-            // info under the top bar and the bottom edge. With the logo, the info line and the hints all switched off there's
-            // nothing above the games to keep clear of, and the mosaic takes that room too.
+            // The list's size. Across: the pictures run from the left margin every home screen has (72) to the clock's right
+            // edge. Down: a whole number of rows, all one height, between the logo and info under the top bar and the bottom
+            // edge (with the logo, the info line and the hints all switched off, from just under the top bar). The library view
+            // has the whole screen under the top bar's line: its header is on that line (Main.xaml, KX_LibraryHeader).
             var root = VisualTreeHelper.GetParent(list) as FrameworkElement;
             double screenW = root != null && root.ActualWidth > 0 ? root.ActualWidth : 1920;
             double screenH = root != null && root.ActualHeight > 0 ? root.ActualHeight : 1080;
-            double above = settings.ShowLogo || settings.ShowGameInfo || settings.ShowButtonHints ? 230 : 56;
-            double avail = Math.Max(300, screenH - 104 - above - Math.Max(0, settings.CardOffset) - 16);
-            double rowH = Math.Floor(avail / JustRowsNow);
+            bool lib = LibraryOpen;
+            double mx = panel != null ? panel.TileMarginX : 0, my = panel != null ? panel.TileMarginY : 0;   // (a tile's own margins: its slot is its picture plus these)
+            double picsTop = lib ? 108 : 104 + (settings.ShowLogo || settings.ShowGameInfo || settings.ShowButtonHints ? 230 : 56);
+            double picsBottom = screenH - (lib ? 30 : 16 + Math.Max(0, settings.CardOffset));
+            double picsLeft = 72, picsRight = screenW - 60;
+            int rowsNow = JustRowsNow;
+            double rowH = Math.Floor((Math.Max(300, picsBottom - picsTop) + my) / rowsNow);
             double grow = settings.Look != null && settings.Look.FocusScale > 100 ? settings.Look.FocusScale / 100.0 - 1 : 0.06;
             justRowHeight = rowH;
             justEdge = Math.Round(rowH * grow * 0.6 + 8);   // (the highlighted tile grows sideways too: room at the edges)
             if (panel != null)
             {
-                panel.TargetRowHeight = rowH;
+                panel.RowHeight = rowH;
                 panel.EdgePadding = justEdge;
+                panel.BottomRoom = JustBottomRoom;
                 panel.SmoothScroll = !ReduceMotionNow;
             }
-            double w = Math.Floor(screenW - 128 + justEdge * 2);
-            double h = Math.Round(rowH * JustRowsNow + TopRoomFor(rowH));
+            double w = Math.Round(picsRight - picsLeft + mx + justEdge * 2);
+            double h = Math.Round(rowH * rowsNow + TopRoomFor(rowH) + JustBottomRoom);
+            justLeft = Math.Round(picsLeft - mx / 2 - justEdge);
+            justBottom = Math.Round(screenH - (picsTop - my / 2 + rowH * rowsNow) - JustBottomRoom);
+            // (the list is in the screen's part under the top bar's row, 104 high: where it starts above that, a top margin of
+            // less than nothing, or WPF cuts the list off there: the highlighted tile's top edge, in the first row)
+            justTop = Math.Min(0, Math.Floor(screenH - justBottom - h - 104));
             if (Math.Abs(h - cardsHeight) >= 1) { cardsHeight = h; Notify("CardsHeight"); ApplyHomeLayoutSoon(); }
             if (double.IsNaN(cardsWidth) || Math.Abs(w - cardsWidth) >= 1) { cardsWidth = w; Notify("CardsWidth"); }
             if (gridTilesRoom != 0) gridTilesRoom = 0;
@@ -182,9 +201,10 @@ namespace KippixHelper
         {
             try
             {
+                JustCommit();
                 var was = justList;
                 var template = justOriginalPanel;
-                if (justPanel != null) justPanel.ContainersGenerated -= OnJustContainers;
+                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
                 justPanel = null;
                 justList = null;
                 justOriginalPanel = null;
@@ -316,8 +336,8 @@ namespace KippixHelper
             else next = justPanel.IndexFrom(cur, e.Key, ref justStickyX);
             if (next < 0)
             {
-                if (e.Key == Key.Up) { justStickyX = double.NaN; return false; }   // the first row: up to the top bar
-                if (e.Key == Key.Left) return false;                               // the first game: nothing before it
+                if (e.Key == Key.Up) { justStickyX = double.NaN; JustCommit(); return false; }   // the first row: up to the top bar
+                if (e.Key == Key.Left) { JustCommit(); return false; }                           // the first game: nothing before it
                 return true;                                                       // the last row / the last game: stay
             }
             justMovedAt = DateTime.Now;
@@ -326,28 +346,106 @@ namespace KippixHelper
             return true;
         }
 
-        /// <summary>Selects a game in the mosaic, scrolls its row in and puts the highlight on its tile.</summary>
+        // Playnite's selected game is what everything follows: the background art, the logo and info, every add-on's own
+        // controls, the accent colour. Changing it costs tens of milliseconds, far more than moving the highlight, so in the
+        // mosaic the highlight moves at once and the selection follows when it has rested (or the moment anything but a
+        // direction is pressed: A, X and Start always act on the highlighted game).
+        private const int JustRestMs = 180;
+        private object justPending;                    // the highlighted game's entry, not selected yet
+        private DispatcherTimer justRestTimer;
+        private ListBox justHooked;
+        private bool justCommitting;
+
+        /// <summary>Scrolls a game's row in and puts the highlight on its tile; the game is selected once the highlight rests.</summary>
         private void JustGoTo(ListBox list, int index)
         {
             if (index < 0 || index >= list.Items.Count) return;
             bool perf = JustifiedPanel.Perf;
-            long t0 = perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0, t1 = 0, t2 = 0, t3 = 0;
+            long t0 = perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0, t1 = 0, t2 = 0;
             if (perf) JustPerfFrames(true);
-            list.SelectedIndex = index;
+            JustHook(list);
+            justPending = list.Items[index];
+            if (justPanel != null) { justPanel.HighlightIndex = index; justPanel.ScrollToIndex(index); }
             if (perf) t1 = System.Diagnostics.Stopwatch.GetTimestamp();
-            if (justPanel != null) justPanel.ScrollToIndex(index);
-            if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
-            list.UpdateLayout();   // (the panel makes the selected game's tile, wherever it is)
-            if (perf) t3 = System.Diagnostics.Stopwatch.GetTimestamp();
             var c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
+            if (c == null)
+            {
+                list.UpdateLayout();   // (the panel makes the highlighted game's tile, wherever it is)
+                c = list.ItemContainerGenerator.ContainerFromIndex(index) as UIElement;
+            }
+            if (perf) t2 = System.Diagnostics.Stopwatch.GetTimestamp();
             if (c != null) Keyboard.Focus(c);
+            LibraryHeaderFor(justPending);
+            if (justRestTimer == null)
+            {
+                justRestTimer = new DispatcherTimer(DispatcherPriority.Input, ui) { Interval = TimeSpan.FromMilliseconds(JustRestMs) };
+                justRestTimer.Tick += (s, e) => JustCommit();
+            }
+            justRestTimer.Stop();
+            justRestTimer.Start();
             if (perf)
             {
                 double f = System.Diagnostics.Stopwatch.Frequency / 1000.0;
-                long t4 = System.Diagnostics.Stopwatch.GetTimestamp();
-                pfSelect.Add((t1 - t0) / f); pfScroll.Add((t2 - t1) / f); pfLayout.Add((t3 - t2) / f); pfFocus.Add((t4 - t3) / f); pfMove.Add((t4 - t0) / f);
+                long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
+                pfScroll.Add((t1 - t0) / f); pfLayout.Add((t2 - t1) / f); pfFocus.Add((t3 - t2) / f); pfMove.Add((t3 - t0) / f);
                 JustPerfSettle();
             }
+        }
+
+        /// <summary>The highlighted game becomes Playnite's selected game now (nothing to do when it already is).</summary>
+        private void JustCommit()
+        {
+            if (justRestTimer != null) justRestTimer.Stop();
+            object item = justPending;
+            justPending = null;
+            if (item == null) return;
+            var list = justList;
+            try
+            {
+                if (list == null) return;
+                int i = list.Items.IndexOf(item);
+                if (i < 0 || list.SelectedIndex == i) return;
+                long t0 = JustifiedPanel.Perf ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+                justCommitting = true;
+                list.SelectedIndex = i;
+                if (JustifiedPanel.Perf) pfSelect.Add(PerfMs(t0));
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: selecting the highlighted game: " + ex.Message); }
+            finally
+            {
+                justCommitting = false;
+                if (justPanel != null) justPanel.HighlightIndex = -1;
+            }
+        }
+
+        /// <summary>A key or button that isn't a move in the mosaic: whatever it does, it does to the highlighted game.</summary>
+        private void JustCommitUnlessMove(KeyEventArgs e)
+        {
+            if (justPending == null) return;
+            var button = PadButton(e);
+            if (button != Playnite.SDK.Events.ControllerInput.None)
+            {
+                // (the controller's own event: the D-pad, a stick pushed a way, the triggers that page)
+                string b = button.ToString();
+                if (b.StartsWith("DPad", StringComparison.Ordinal) || b.StartsWith("LeftStick", StringComparison.Ordinal) || b.StartsWith("RightStick", StringComparison.Ordinal) || b.StartsWith("Trigger", StringComparison.Ordinal)) return;
+            }
+            else if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.PageUp || e.Key == Key.PageDown) return;
+            JustCommit();
+        }
+
+        /// <summary>The list the mosaic is in: the highlight leaving it, or a game selected some other way (a click), ends the wait.</summary>
+        private void JustHook(ListBox list)
+        {
+            if (ReferenceEquals(list, justHooked)) return;
+            justHooked = list;
+            list.IsKeyboardFocusWithinChanged += (s, e) => { if (justPending != null && !list.IsKeyboardFocusWithin) JustCommit(); };
+            list.SelectionChanged += (s, e) =>
+            {
+                if (justCommitting || justPending == null) return;
+                justPending = null;
+                if (justRestTimer != null) justRestTimer.Stop();
+                if (justPanel != null) justPanel.HighlightIndex = -1;
+            };
         }
 
         // =====================================================================
@@ -368,6 +466,98 @@ namespace KippixHelper
         public ICommand CloseLibraryViewCommand { get; private set; }
         public bool LibraryDownOpens { get { return settings.LibraryDownOpens; } set { if (SetSetting(ref settings.LibraryDownOpens, value)) Notify("LibraryDownOpens"); } }
 
+        // While it's open the home screen's own logo, info line, hints, filter name and widgets are away (they'd sit half under
+        // the top of the screen, over the games), and one line on the top bar says what's shown and which game the highlight is
+        // on (Main.xaml, KX_LibraryHeader). Closing it puts them back where they were.
+        private string libraryTitle = "", libraryInfo = "";
+        private ListBox libraryHeaderList;
+        public string LibraryTitle { get { return libraryTitle; } }
+        public string LibraryInfo { get { return libraryInfo; } }
+
+        /// <summary>The header's game: its name, and its platform, time played and when it was last played.</summary>
+        private void LibraryHeaderFor(object entry)
+        {
+            if (!LibraryOpen) return;
+            string title = "", info = "";
+            try
+            {
+                var g = EntryGame(entry);
+                if (g != null)
+                {
+                    title = g.Name ?? "";
+                    var parts = new List<string>();
+                    var platforms = g.Platforms;
+                    if (platforms != null && platforms.Count > 0 && platforms[0] != null && !string.IsNullOrEmpty(platforms[0].Name)) parts.Add(platforms[0].Name);
+                    if (g.Playtime >= 60) parts.Add(string.Format(Loc("LOC_KX_LibPlayed", "{0} played"), KippixOverlay.GameData.FormatPlaytime(g.Playtime)));
+                    if (g.LastActivity.HasValue)
+                    {
+                        string when = KippixOverlay.GameData.FormatLastPlayed(g.LastActivity);
+                        if (when.StartsWith("Today", StringComparison.Ordinal) || when.StartsWith("Yesterday", StringComparison.Ordinal)) when = char.ToLowerInvariant(when[0]) + when.Substring(1);
+                        parts.Add(string.Format(Loc("LOC_KX_LibLast", "Last played {0}"), when));
+                    }
+                    else parts.Add(Loc("LOC_KX_LibNever", "Not played yet"));
+                    info = string.Join("   \u00B7   ", parts.ToArray());
+                }
+            }
+            catch (Exception) { }
+            if (title != libraryTitle) { libraryTitle = title; Notify("LibraryTitle"); }
+            if (info != libraryInfo) { libraryInfo = info; Notify("LibraryInfo"); }
+        }
+
+        /// <summary>
+        /// The header starts at the games' left edge (72). It's in the top bar, after the profile button's corner: while that is
+        /// faded out (Auto-hide top bar) the header is drawn over it, and beside it while it shows.
+        /// </summary>
+        private void LibraryHeaderPlace()
+        {
+            try
+            {
+                if (!LibraryOpen) return;
+                var win = Application.Current != null ? Application.Current.MainWindow : null;
+                var header = win != null ? UiTools.FindByName(win, "KX_LibraryHeader") : null;
+                var corner = win != null ? UiTools.FindByName(win, "KX_TopLeft") : null;
+                if (header == null || corner == null) return;
+                bool cornerAway = settings.AutoHideTopBar && !topBarActive && openPanel == null;
+                double x = cornerAway || corner.ActualWidth < 1 ? 8 - corner.ActualWidth : 14;
+                var shift = header.RenderTransform as TranslateTransform;
+                if (shift == null || shift.IsFrozen) { header.RenderTransform = new TranslateTransform(x, 0); return; }
+                if (ReduceMotionNow || !header.IsVisible) { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.X = x; }
+                else shift.BeginAnimation(TranslateTransform.XProperty, new System.Windows.Media.Animation.DoubleAnimation(x, new Duration(TimeSpan.FromMilliseconds(180))) { EasingFunction = new System.Windows.Media.Animation.CubicEase() });
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, its header: " + ex.Message); }
+        }
+
+        /// <summary>Opened or closed: the home screen's own parts go or come back (the logo and info: BoardApplyMode).</summary>
+        private void LibraryLandingChanged(bool closed)
+        {
+            Notify("ShowWidgets");
+            try
+            {
+                var win = Application.Current != null ? Application.Current.MainWindow : null;
+                if (win == null) return;
+                // (the filter name's Visibility is bound, so it's put out of sight by its opacity)
+                var filter = UiTools.FindByName(win, "KX_FilterAbove");
+                if (filter != null)
+                {
+                    filter.BeginAnimation(UIElement.OpacityProperty, null);
+                    if (closed) filter.ClearValue(UIElement.OpacityProperty); else filter.Opacity = 0;
+                }
+                if (!closed || ReduceMotionNow) return;
+                // back on the home screen: its logo, info and filter name come in softly, once the row is back in place
+                foreach (string n in new[] { "KX_GameInfo", "KX_FilterAbove" })
+                {
+                    var el = UiTools.FindByName(win, n);
+                    if (el == null) continue;
+                    var fade = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames { FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop };
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.Zero)));
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(140))));
+                    fade.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(el.Opacity, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(400))));
+                    el.BeginAnimation(UIElement.OpacityProperty, fade);
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, the home screen's own parts: " + ex.Message); }
+        }
+
         /// <summary>Over Row, Grid or the List (the layouts that show Playnite's own list), on the home screen.</summary>
         private bool OpenLibraryView()
         {
@@ -381,8 +571,11 @@ namespace KippixHelper
             PlaySound("select");
             logger.Info("Kippix: mosaic: library view opened (over layout " + libraryFromMode + ")");
             JustPerfFrames(true);
+            try { var games = UiTools.FindByName(Application.Current.MainWindow, "PART_ListGameItems") as ListBox; if (games != null) LibraryHeaderFor(games.SelectedItem); } catch (Exception) { }
             HomeModeChanged();
+            LibraryHeaderPlace();
             Notify("IsLibraryOpen");
+            LibraryLandingChanged(false);
             LibraryFocusSoon(0);
             return true;
         }
@@ -391,6 +584,7 @@ namespace KippixHelper
         private bool CloseLibraryView(bool sound)
         {
             bool was = LibraryOpen;
+            if (was) JustCommit();   // (back on the game the highlight was on)
             libraryOpen = false;
             if (!was) return false;
             if (sound) PlaySound("back");
@@ -400,6 +594,7 @@ namespace KippixHelper
             JustPerfFrames(false);
             HomeModeChanged();
             Notify("IsLibraryOpen");
+            LibraryLandingChanged(true);
             LibraryFocusSoon(0);
             return true;
         }
@@ -458,6 +653,11 @@ namespace KippixHelper
         }
 
         /// <summary>New tiles in the mosaic: dressed like any other card (badges; shapes and wide art taken off reused ones).</summary>
+        private void OnJustMargins(object sender, EventArgs e)
+        {
+            ApplyCardLayoutSoon();   // (the list is sized from the tiles' own margins: known once the first tile is made)
+        }
+
         private void OnJustContainers(object sender, EventArgs e)
         {
             if (AnyBadges || badgesEverOn) RefreshBadgesSoon();
