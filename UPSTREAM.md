@@ -31,7 +31,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/browser-one-name` | Two names for the built-in browser. | Verified |
 | `fix/keyboard-keycaps-legible` | Keyboard key caps in the hints were squeezed and unreadable. | Verified |
 | `fix/top-bar-kept-items-legible` | The clock that stays when the bar hides was unreadable over bright art. | Verified |
-| `fix/more-below-hint-late` | "More below" hint missing when the lower page fills in late. | Partly verified (the hint matched the lower page on 7 game pages; the late-filling case itself was not isolated) |
+| `fix/more-below-hint-late` | "More below" hint missing when the lower page fills in late. | Verified (with only "More like this" left on the lower page: no hint as the page opens, the hint once the games are found) |
 | `fix/row-recently-added-name` | The recently added row was listed as "Recently viewed". | Verified |
 | `fix/game-part-names-case` | Lower-page part names listed in capitals. | Verified |
 | `fix/touch-found-space` | Missing space in "A touch screen was found.Tap to choose". | Verified |
