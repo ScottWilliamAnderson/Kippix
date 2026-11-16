@@ -483,7 +483,11 @@ namespace KippixHelper
                 var view = HomeListView();
                 if (view == null) return;
                 bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly || appsCatId != Guid.Empty;
-                if (!ReferenceEquals(view, listFilterView)) { listFilterView = view; listWrapFilter = null; listOrigFilter = null; }
+                if (!ReferenceEquals(view, listFilterView))
+                {
+                    listFilterView = view; listWrapFilter = null; listOrigFilter = null;
+                    ((System.Collections.Specialized.INotifyCollectionChanged)view).CollectionChanged += AppsRowListChanged;   // (ThemeApi.AppsRow.cs)
+                }
                 bool ours = listWrapFilter != null && ReferenceEquals(view.Filter, listWrapFilter);
                 if (!want)
                 {
@@ -510,7 +514,7 @@ namespace KippixHelper
                             // the Apps row (ThemeApi.AppsRow.cs): its apps aren't in the games row; while the highlight is in that row they
                             // all are in the list, whatever Playnite's filter says, so they can be selected. Not in the library view: that
                             // shows everything the filter does, apps too (it's where "every game" is)
-                            if (appsCatId != Guid.Empty && !LibraryOpen) { var app = FolderEntryGame(o); if (IsAppsRowGame(app)) return appsRowOpen && !app.Hidden; }
+                            if (appsCatId != Guid.Empty && !LibraryOpen && !appsInGames) { var app = FolderEntryGame(o); if (IsAppsRowGame(app)) return appsRowOpen && !app.Hidden; }
                             // Installed only (Sort and show): on top of Playnite's filter, whichever saved filter is on
                             if (settings.InstalledOnly) { var game = FolderEntryGame(o); if (game != null && !game.IsInstalled) return false; }
                             if (slotsAlwaysShow && SlotOf(id) > 0) return true;

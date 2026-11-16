@@ -209,7 +209,7 @@ namespace KippixHelper
         // =====================================================================
 
         private bool LudusaviInstalled { get { return PluginInstalled(LudusaviId); } }
-        public bool ShowDetSaves { get { return settings.DetSecSaves && LudusaviInstalled; } }
+        public bool ShowDetSaves { get { return settings.DetSecSaves && LudusaviInstalled && !DetIsApp; } }   // (an app has no saves to back up)
         public bool DetIntSaves { get { return DetInteractive("saves") && !DetBlank("saves"); } }
         public string DetSavesLine { get; private set; }
         public string DetSavesSub { get; private set; }

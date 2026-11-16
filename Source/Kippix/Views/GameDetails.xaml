@@ -376,10 +376,17 @@
                                         </StackPanel.Resources>
                                         <!-- (issue #11) a game Kippix lists as running (Keep browsing on): the button reads "Switch to" (only how Playnite's own
                                              text is shown: its Content and Command stay Playnite's; the press is the helper's, ThemeApi.Running.cs) -->
+                                        <!-- an app (the Apps category): the button reads "Open", not "Play"; "Switch to" below wins while it runs (only how Playnite's own text is shown: its
+                                             Content and Command stay Playnite's; ThemeApi.AppsRow.cs) -->
                                         <ButtonEx x:Name="PART_ButtonContext" MinWidth="240">
                                             <ButtonEx.Style>
                                                 <Style TargetType="ButtonEx" BasedOn="{StaticResource KX_PillButton}">
                                                     <Style.Triggers>
+                                                        <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=DetPlayOpens}" Value="True">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value><DataTemplate><TextBlock Text="{DynamicResource LOC_KX_Open}" /></DataTemplate></Setter.Value>
+                                                            </Setter>
+                                                        </DataTrigger>
                                                         <DataTrigger Binding="{PluginSettings Plugin=Kippix, Path=DetPlaySwitches}" Value="True">
                                                             <Setter Property="ContentTemplate">
                                                                 <Setter.Value><DataTemplate><TextBlock x:Name="KX_DetSwitchText" Text="{DynamicResource LOC_KX_RunSwitch}" /></DataTemplate></Setter.Value>
@@ -395,7 +402,7 @@
                                         </ButtonEx>
                                         <ButtonEx Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOC_KX_Achievements}"
                                                   Command="{PluginSettings Plugin=Kippix, Path=OpenGameAchievementsCommand}"
-                                                  Visibility="{PluginSettings Plugin=Kippix, Path=DetShowAchButton, FallbackValue=Visible}">
+                                                  Visibility="{PluginSettings Plugin=Kippix, Path=DetAchButtonShown, FallbackValue=Visible}">
                                             <Path Data="{StaticResource KX_IconTrophy}" Style="{StaticResource KX_IconPath}" Width="24" Height="24" />
                                         </ButtonEx>
                                         <!-- (r13) News: the game's Steam news and patch notes on their own page (Steam games; Game page › Buttons and extras) -->

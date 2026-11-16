@@ -94,9 +94,9 @@ namespace KippixHelper
         // what each section shows (false when it's off or has nothing)
         public bool ShowDetMore { get { return settings.DetMoreSections && DetAllKeys.Any(k => DetIsLower(k) && DetPartShowing(k)); } }
         public bool ShowDetHistory { get { return settings.DetSecHistory && DetHistory.Count > 0; } }
-        public bool ShowDetHltb { get { return settings.DetSecHltb && !string.IsNullOrEmpty(DetHltbMain); } }
+        public bool ShowDetHltb { get { return settings.DetSecHltb && !string.IsNullOrEmpty(DetHltbMain) && !DetIsApp; } }
         public bool ShowDetCaptures { get { return settings.DetSecCaptures && DetCaptures.Count > 0; } }
-        public bool ShowDetAch { get { return settings.DetSecAch && !string.IsNullOrEmpty(DetAchSummary); } }
+        public bool ShowDetAch { get { return settings.DetSecAch && !string.IsNullOrEmpty(DetAchSummary) && !DetIsApp; } }
         public bool ShowDetStatus { get { return settings.DetSecStatus; } }
         public bool ShowDetNotesCard { get { return settings.DetSecNotes; } }
         public bool ShowDetScores { get { return settings.DetSecScores; } }
