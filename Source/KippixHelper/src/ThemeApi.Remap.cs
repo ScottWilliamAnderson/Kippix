@@ -398,7 +398,7 @@ namespace KippixHelper
 
         private ObservableCollection<PickRow> gRows;
         public ObservableCollection<PickRow> GRows { get { return gRows ?? (gRows = new ObservableCollection<PickRow>()); } }
-        public bool IsOptionsGRows { get { return optionsPage == "padbuttons" || optionsPage == "handheld"; } }
+        public bool IsOptionsGRows { get { return optionsPage == "padbuttons" || optionsPage == "handheld" || optionsPage == "sortshow"; } }
         public string GRowsIntro { get; private set; }
         public bool HasGRowsIntro { get { return !string.IsNullOrEmpty(GRowsIntro); } }
         private ICommand openPadButtonsCmd, openHandheldCmd;
@@ -418,6 +418,7 @@ namespace KippixHelper
         {
             if (page == "padbuttons") return Loc("LOC_KX_RmTitle", "Controller buttons");
             if (page == "handheld") return Loc("LOC_KX_HhTitle", "Handheld, touch and mouse (WIP)");
+            if (page == "sortshow") return Loc("LOC_KX_SortShow", "Sort and show");
             return null;
         }
 
@@ -454,6 +455,7 @@ namespace KippixHelper
         {
             if (page == "padbuttons") BuildPadButtonRows(rows);
             else if (page == "handheld") BuildHandheldRows(rows);
+            else if (page == "sortshow") BuildSortShowRows(rows);   // (ThemeApi.SortShow.cs)
         }
 
         /// <summary>The page again, rows changed where they stand (the highlight stays put), then on the row with <paramref name="focusKey"/>.</summary>

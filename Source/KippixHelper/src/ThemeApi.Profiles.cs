@@ -482,7 +482,7 @@ namespace KippixHelper
             {
                 var view = HomeListView();
                 if (view == null) return;
-                bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null;
+                bool want = ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly;
                 if (!ReferenceEquals(view, listFilterView)) { listFilterView = view; listWrapFilter = null; listOrigFilter = null; }
                 bool ours = listWrapFilter != null && ReferenceEquals(view.Filter, listWrapFilter);
                 if (!want)
@@ -507,6 +507,8 @@ namespace KippixHelper
                             // own filter isn't touched: it applies again as it was once Folder is no longer chosen.
                             var inFolder = folderFilter;
                             if (inFolder != null) return inFolder.Contains(id);
+                            // Installed only (Sort and show): on top of Playnite's filter, whichever saved filter is on
+                            if (settings.InstalledOnly) { var game = FolderEntryGame(o); if (game != null && !game.IsInstalled) return false; }
                             if (slotsAlwaysShow && SlotOf(id) > 0) return true;
                         }
                         catch (Exception) { }

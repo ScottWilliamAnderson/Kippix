@@ -407,6 +407,7 @@ namespace KippixHelper
         public List<string> WishDismissed = new List<string>();
         public List<string> WishRemoveFromSteam = new List<string>();   // Steam app ids taken off the wishlist here, still to take off Steam's   // "steam:123" / "gog:456" taken off here: not brought back
         public List<string> ExtraPins = new List<string> { "quick" };   // top bar shortcuts added in 0.32 that are pinned
+        public bool InstalledOnly = false;         // Sort and show: only installed games on the home screen, whatever filter is on
         public List<GameShelf> Collections = new List<GameShelf>();
         public List<string> UpNext = new List<string>();   // Up next: game ids you mean to play, in order (each profile has its own)
         public int GridRows = 2;

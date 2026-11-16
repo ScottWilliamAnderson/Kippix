@@ -4864,4 +4864,19 @@
     <sys:String x:Key="LOC_KX_BatterySourceDevice">This device</sys:String>
     <sys:String x:Key="LOC_KX_DeviceBattery">Battery</sys:String>
     <sys:String x:Key="LOC_KX_PcBattery">Battery</sys:String>
+    <sys:String x:Key="LOC_KX_SortShow">Sort and show</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowShow">SHOW</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowSort">SORT BY</sys:String>
+    <sys:String x:Key="LOC_KX_InstalledOnly">Installed only</sys:String>
+    <sys:String x:Key="LOC_KX_InstalledOnlySub">Stays on whichever filter you switch to</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowName">Name</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowPlayed">Last played</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowMost">Most played</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowScore">Your rating</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowRelease">Release date</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowAdded">Recently added</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowDown">Highest or newest first  ·  press again to turn it round</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowUp">Lowest or oldest first (A to Z)  ·  press again to turn it round</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowOther">Sorted by {0} now (set in Playnite's filters)</sys:String>
+    <sys:String x:Key="LOC_KX_SortShowFolders">Folders have their own Sort by and Installed games choices</sys:String>
 </ResourceDictionary>
