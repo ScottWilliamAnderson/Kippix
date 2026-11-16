@@ -27,12 +27,35 @@ namespace KippixHelper
             catch (Exception ex) { logger.Warn("Kippix: windows without a template: " + ex.Message); }
         }
 
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "ShowCursor")] private static extern int BareShowCursor(bool show);
+
+        /// <summary>
+        /// A dialog needs a pointer and clicks: in fullscreen the pointer is hidden for the thread (ShowCursor below zero) and
+        /// the window can come up with hit testing off, so neither a mouse nor a tap reaches a sign-in page. Both are put right
+        /// while the window is open, and the pointer is hidden again, call for call, when it closes.
+        /// </summary>
+        private void BareWindowPointer(Window w)
+        {
+            try
+            {
+                if (!w.IsHitTestVisible) w.IsHitTestVisible = true;
+                if (System.Windows.Input.Mouse.OverrideCursor == System.Windows.Input.Cursors.None) System.Windows.Input.Mouse.OverrideCursor = null;
+                int shown = 0;
+                while (BareShowCursor(true) < 0 && shown < 20) shown++;
+                int back = shown + 1;
+                w.Closed += (s, e) => { try { for (int i = 0; i < back; i++) BareShowCursor(false); } catch (Exception) { } };
+            }
+            catch (Exception ex) { logger.Warn("Kippix: a dialog's pointer: " + ex.Message); }
+        }
+
         private void BareWindowLoaded(object sender, RoutedEventArgs e)
         {
             try
             {
                 var w = sender as Window;
-                if (w == null || w.Template != null || w == Application.Current.MainWindow) return;
+                if (w == null || w == Application.Current.MainWindow) return;
+                BareWindowPointer(w);
+                if (w.Template != null) return;
                 var border = new FrameworkElementFactory(typeof(Border));
                 border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
                 var adorner = new FrameworkElementFactory(typeof(AdornerDecorator));
