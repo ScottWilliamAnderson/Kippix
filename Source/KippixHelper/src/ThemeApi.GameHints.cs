@@ -37,6 +37,7 @@ namespace KippixHelper
             if (b == null || IsSink(b) || Ancestor(b, "PART_ElemGameDetails") == null) return null;
             string name = b.Name ?? "";
             if (b.Command == null && !name.StartsWith("PART_", StringComparison.Ordinal)) return null;   // (a card that's only there to be read)
+            if (name == "PART_ButtonOptions") return Loc("LOC_KX_GameOptions", "Game options");   // (Playnite's own tooltip is "Game Options": the hints are in sentence case)
             string tip = b.ToolTip as string;
             if (!string.IsNullOrWhiteSpace(tip)) return tip.Trim();
             string own = b.Content as string;
