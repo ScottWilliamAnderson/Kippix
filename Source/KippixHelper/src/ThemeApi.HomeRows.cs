@@ -229,6 +229,7 @@ namespace KippixHelper
                 case "installed": return Loc("LOC_KX_RowInstalled", "Installed");
                 case "never": return Loc("LOC_KX_RowNever", "Never played");
                 case "upnext": return Loc("LOC_KX_PageUpNext", "Up next");
+                case "apps": return AppsCategoryName;   // (ThemeApi.AppsRow.cs)
             }
             if (key.StartsWith("shelf:", StringComparison.Ordinal))
             {
@@ -253,6 +254,7 @@ namespace KippixHelper
             var keys = new List<string> { "running", "upnext", "favourites", "recent", "installed", "never" };
             try { foreach (var p in api.Database.FilterPresets.OrderBy(p => p.Name)) keys.Add("filter:" + p.Id); } catch (Exception) { }
             foreach (var c in settings.Collections) keys.Add("shelf:" + c.Id);
+            keys.Insert(0, "apps");   // apps in a row of their own (ThemeApi.AppsRow.cs)
             var on = ExtraKeys();
             bool filtersHeader = false, shelvesHeader = false;
             ExtraRowChoices.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_LibGroupGames", "YOUR GAMES") });
@@ -283,6 +285,7 @@ namespace KippixHelper
                 row.Command = new RelayCommand(_ => ToggleExtraRow(key));
                 ExtraRowChoices.Add(row);
             }
+            AddAppsRowChoice();
         }
 
         private void ToggleExtraRow(string key)
@@ -550,6 +553,7 @@ namespace KippixHelper
                     rowsListHooked = true;
                     ((System.Collections.Specialized.INotifyCollectionChanged)list.Items).CollectionChanged += (s, e) =>
                     {
+                        if (appsRowFlipping) return;   // (the highlight going into or out of the Apps row: nothing to build again)
                         if (IsBoardMode) { BoardRefreshLater(); return; }   // the Board's "All games" follows Playnite's list
                         if (!ExtraRowsWanted) return;
                         if (rowsChangeTimer == null)
@@ -608,6 +612,7 @@ namespace KippixHelper
                             case "recent": games = all.Where(g => g.Added.HasValue).OrderByDescending(g => g.Added.Value).ToList(); break;
                             case "installed": games = all.Where(g => g.IsInstalled).OrderByDescending(g => g.LastActivity ?? DateTime.MinValue).ToList(); break;
                             case "never": games = all.Where(g => g.Playtime == 0).OrderByDescending(g => g.Added ?? DateTime.MinValue).ToList(); break;
+                            case "apps": games = new List<Game>(); break;   // (put in after the others: AppsRowBuild)
                             case "upnext":
                                 {
                                     // in the queue's order (a copy of it: the list changes on the UI thread)
@@ -640,6 +645,7 @@ namespace KippixHelper
                         if (shown != null && k != "running") games = games.Where(g => shown.Contains(g.Id)).ToList();   // Playnite can only select what its filter shows
                         if (games.Count > 0) built.Add(Tuple.Create(k, name, games.Take(40).ToList()));
                     }
+                    AppsRowBuild(built, keys, all);
                 }
                 catch (Exception ex) { logger.Warn("Kippix: extra rows: " + ex.Message); }
                 OnUi(() =>
@@ -904,6 +910,7 @@ namespace KippixHelper
             if (k < 1 || k > ExtraRowsList.Count) return;
             PlaySound("move");
             extraRowAt = k;
+            AppsRowSync();
             LayoutExtraRows(true);
             var row = ExtraRowsList[k - 1];
             int col = Math.Min(row.Tiles.Count - 1, screenCol + (int)Math.Round(RowOffset(row) / RowTileStep));
@@ -973,6 +980,7 @@ namespace KippixHelper
         {
             if (extraRowAt == 0) return;
             extraRowAt = 0;
+            AppsRowSync();
             extraFocused = null;
             if (extraSelectTimer != null) extraSelectTimer.Stop();
             LayoutExtraRows(true);

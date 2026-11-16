@@ -414,6 +414,7 @@ namespace KippixHelper
         public int GridColumns = 6;
         public bool ExtraRows = false;             // rows under the games (one row only)
         public List<string> ExtraRowKeys;          // which rows, in order: favourites, recent, installed, never, filter:<id>
+        public string AppsRowCategory = "Apps";    // the extra row "apps": the Playnite category whose entries get that row (and leave the games row)
         public bool BadgeInstalled = false;
         public bool BadgeRunning = true;           // (issue #11) "Running" on the tiles of what's running now
         public bool BadgeNew = false;
