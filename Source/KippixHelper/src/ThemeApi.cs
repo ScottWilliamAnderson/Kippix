@@ -321,6 +321,7 @@ namespace KippixHelper
             TickTime("extras");
             BgFollowLayout();
             TickTime("per layout");
+            SortShuffleTick();   // (Sort and show > Shuffle: under the kept-in-place spots)
             ApplySlotPins(false);
             TickTime("pins");
             AppsRowTick();   // (the Apps row: ThemeApi.AppsRow.cs)

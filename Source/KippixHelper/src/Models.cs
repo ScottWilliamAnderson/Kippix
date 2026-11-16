@@ -413,6 +413,8 @@ namespace KippixHelper
         public bool OneTilePerGame = false;        // Sort and show: a game that's in the library more than once shows as one tile (ThemeApi.Copies.cs)
         public List<string> CopyPicks = new List<string>();    // ... the copy chosen by hand to be that tile (game ids)
         public List<string> CopySplits = new List<string>();   // ... games that keep a tile of their own (two different games with one name)
+        public bool SortShuffle = false;           // Sort and show: the games in a random order (ThemeApi.SortShuffle.cs)
+        public string SortShuffleOver = "";        // ... Playnite's own sort when it was chosen (another one since: the shuffle is over)
         public List<GameShelf> Collections = new List<GameShelf>();
         public List<string> UpNext = new List<string>();   // Up next: game ids you mean to play, in order (each profile has its own)
         public int GridRows = 2;

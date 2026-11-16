@@ -78,7 +78,7 @@ namespace KippixHelper
             foreach (var o in SortShowOrders)
             {
                 var order = o;
-                bool on = o == now;
+                bool on = o == now && !settings.SortShuffle;
                 rows.Add(new PickRow
                 {
                     Key = "sort:" + o, Icon = "sort", IsSelected = on, Text = SortShowName(o),
@@ -86,7 +86,13 @@ namespace KippixHelper
                     Command = new RelayCommand(_ => SetSortShow(order))
                 });
             }
-            if (!SortShowOrders.Contains(now))
+            rows.Add(new PickRow
+            {
+                Key = "sort:shuffle", Icon = "refresh", IsSelected = settings.SortShuffle, Text = Loc("LOC_KX_SortShuffle", "Shuffle"),
+                Sub = settings.SortShuffle ? Loc("LOC_KX_SortShuffleAgain", "A random order  ·  press again for another") : Loc("LOC_KX_SortShuffleSub", "A random order, new each time Playnite starts"),
+                Command = new RelayCommand(_ => SetSortShuffle())
+            });
+            if (!SortShowOrders.Contains(now) && !settings.SortShuffle)
                 rows.Add(new PickRow { IsInfo = true, Icon = "info", Text = string.Format(Loc("LOC_KX_SortShowOther", "Sorted by {0} now (set in Playnite's filters)"), now) });
             if (FolderMode) rows.Add(new PickRow { IsInfo = true, Icon = "info", Text = Loc("LOC_KX_SortShowFolders", "Folders have their own Sort by and Installed games choices") });
         }
@@ -96,10 +102,13 @@ namespace KippixHelper
         {
             try
             {
-                bool same = api.MainView.SortOrder == order;
+                // (Shuffle was on: this order as it starts, not turned round)
+                bool shuffled = settings.SortShuffle;
+                if (shuffled) SortShuffleOff();
+                bool same = !shuffled && api.MainView.SortOrder == order;
                 var dir = same ? (api.MainView.SortOrderDirection == SortOrderDirection.Descending ? SortOrderDirection.Ascending : SortOrderDirection.Descending)
                                : order == SortOrder.Name ? SortOrderDirection.Ascending : SortOrderDirection.Descending;
-                if (!same) SetPlayniteSortOrder(order);
+                if (api.MainView.SortOrder != order) SetPlayniteSortOrder(order);
                 api.MainView.SortOrderDirection = dir;
                 PlaySound("move");
             }
