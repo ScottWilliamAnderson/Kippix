@@ -2,7 +2,7 @@
 
 Recorded on a ROG Xbox Ally X running the `scott` branch (Playnite 10.64 fullscreen). Click a picture to play its clip.
 
-**[The whole thing in one video (2 min 22 s)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/kippix-fork-showcase.mp4)**
+**[The whole thing in one video (2 min 58 s)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/kippix-fork-showcase.mp4)**
 
 | | |
 |---|---|
@@ -12,6 +12,7 @@ Recorded on a ROG Xbox Ally X running the `scott` branch (Playnite 10.64 fullscr
 | [![Running now](running.jpg)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/running.mp4) | **Several apps at once.** A started app stays in a "Running now" row; A switches to it, X closes it after asking (#11, #22). |
 | [![Top bar](topbar.jpg)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/topbar.mp4) | **Top bar.** The device's own battery (#15), and "Sort and show": sort order and installed-only without Playnite's filter panel (#14). |
 | [![Edit](edit.jpg)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/edit.mp4) | **Edit a game in fullscreen.** Name, favourite, hidden, status, categories, genres, platforms, tags and a metadata download (#18). |
+| [![One tile per game and Shuffle](new-features.jpg)](https://github.com/ScottWilliamAnderson/Kippix/releases/download/showcase-2026-11-16/new-features.mp4) | **One tile per game and Shuffle.** Sort and show has a switch that shows a game you own more than once as one tile, with the play time of all copies together, and "Shuffle" as a sort order. The game's menu lists its copies. |
 
 Not in the clips: the smaller fixes (tour, search, wishlist prices, music, profile picture, web dialogs in fullscreen and others). `UPSTREAM.md` lists every change with its branch.
 
