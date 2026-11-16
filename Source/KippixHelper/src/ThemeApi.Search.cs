@@ -325,7 +325,18 @@ namespace KippixHelper
                 object fs = app != null ? Prop(app, "Fullscreen") : null;
                 object filter = fs != null ? Prop(fs, "FilterSettings") : null;
                 var p = filter != null ? filter.GetType().GetProperty("Name", BindingFlags.Public | BindingFlags.Instance) : null;
-                if (p != null && p.CanWrite) p.SetValue(filter, string.IsNullOrEmpty(text) ? null : text, null);
+                // Playnite lets go of the saved filter the moment its filter has a search in it (the games stay that filter's, but its
+                // name goes from above them, and it isn't chosen again when the search is cleared): it's kept here for both
+                bool on = !string.IsNullOrEmpty(text);
+                object preset = vm != null ? Prop(vm, "ActiveFilterPreset") : null;
+                if (on && preset != null) searchPreset = preset;
+                if (p != null && p.CanWrite) p.SetValue(filter, on ? text : null, null);
+                if (!on && searchPreset != null)
+                {
+                    var ap = vm != null ? vm.GetType().GetProperty("ActiveFilterPreset", BindingFlags.Public | BindingFlags.Instance) : null;
+                    if (ap != null && ap.CanWrite && ap.GetValue(vm, null) == null) ap.SetValue(vm, searchPreset, null);
+                    searchPreset = null;
+                }
             }
             catch (Exception ex) { logger.Warn("Kippix: search filter: " + ex.Message); }
             HomeSearchChanged();
@@ -346,9 +357,31 @@ namespace KippixHelper
         // shown with the filter name above the games, with how to clear it (not in Folder: a folder shows its own games, Playnite's filter set aside)
         public bool HomeSearchShown { get { return !FolderMode && HomeSearchText.Length > 0; } }
 
+        private object searchPreset;   // the saved filter that was on when the search went on (SetPlayniteSearch)
+
+        /// <summary>While the games are searched: the name of the saved filter they are still from (Playnite shows none then). Null otherwise.</summary>
+        private string SearchLabelName
+        {
+            get
+            {
+                try
+                {
+                    if (searchPreset == null || !HomeSearchShown) return null;
+                    var w = Application.Current != null ? Application.Current.MainWindow : null;
+                    object vm = w != null ? w.DataContext : null;
+                    if (vm == null || Prop(vm, "ActiveFilterPreset") != null) return null;   // (another saved filter was chosen since)
+                    string name = Prop(searchPreset, "Name") as string;
+                    return string.IsNullOrEmpty(name) ? null : name;
+                }
+                catch (Exception) { return null; }
+            }
+        }
+
         /// <summary>The name filter changed (here, or in Playnite's own filters panel): the line above the games follows.</summary>
         private void HomeSearchChanged()
         {
+            Notify("HomeLabelOwn");
+            Notify("HomeLabelText");
             Notify("HomeSearchText");
             Notify("HomeSearchShown");
             Notify("FilterAbove");
