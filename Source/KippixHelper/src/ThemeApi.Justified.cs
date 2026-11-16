@@ -528,12 +528,55 @@ namespace KippixHelper
                 if (header == null || corner == null) return;
                 bool cornerAway = settings.AutoHideTopBar && !topBarActive && openPanel == null;
                 double x = cornerAway || corner.ActualWidth < 1 ? 8 - corner.ActualWidth : 14;
+                libraryHeaderX = x;
+                if (!ReferenceEquals(header, libraryHeaderEl))
+                {
+                    // the room it has changes as the shortcuts fold away or come back, and with the profile's corner
+                    libraryHeaderEl = header;
+                    libraryHeaderRight = UiTools.FindByName(win, "KX_TopRight");
+                    if (libraryHeaderRight != null) libraryHeaderRight.SizeChanged += (so, se) => LibraryHeaderFit();
+                    corner.SizeChanged += (so, se) => LibraryHeaderFit();
+                    header.SizeChanged += (so, se) => LibraryHeaderFit();   // (and once it's on screen: it's placed just before it shows)
+                }
+                LibraryHeaderFit();
                 var shift = header.RenderTransform as TranslateTransform;
                 if (shift == null || shift.IsFrozen) { header.RenderTransform = new TranslateTransform(x, 0); return; }
                 if (ReduceMotionNow || !header.IsVisible) { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.X = x; }
                 else shift.BeginAnimation(TranslateTransform.XProperty, new System.Windows.Media.Animation.DoubleAnimation(x, new Duration(TimeSpan.FromMilliseconds(180))) { EasingFunction = new System.Windows.Media.Animation.CubicEase() });
             }
             catch (Exception ex) { logger.Warn("Kippix: mosaic: library view, its header: " + ex.Message); }
+        }
+
+        private FrameworkElement libraryHeaderEl, libraryHeaderRight;
+        private double libraryHeaderX;
+
+        /// <summary>
+        /// The header never runs under the shortcuts or the clock: it's as wide as the room from where it starts to where they
+        /// start (wherever they are: folded away, showing, moved in Free move), less a gap. In less than it asks for, the
+        /// game's name is cut with "…" (Main.xaml).
+        /// </summary>
+        private void LibraryHeaderFit()
+        {
+            try
+            {
+                var header = libraryHeaderEl;
+                var right = libraryHeaderRight;
+                if (!LibraryOpen || header == null || !header.IsVisible) return;
+                var bar = VisualTreeHelper.GetParent(header) as FrameworkElement;
+                if (bar == null || bar.ActualWidth < 1) return;
+                double left = VisualTreeHelper.GetOffset(header).X + libraryHeaderX;   // (where it's going, not where the slide has it now)
+                double end = bar.ActualWidth;
+                if (right != null && right.IsVisible && right.ActualWidth >= 1 && bar.IsAncestorOf(right))
+                {
+                    var at = right.TranslatePoint(new Point(0, 0), bar);
+                    double top = VisualTreeHelper.GetOffset(header).Y;
+                    bool sameLine = at.Y < top + Math.Max(1, header.ActualHeight) && at.Y + right.ActualHeight > top;
+                    if (sameLine && at.X > left) end = Math.Min(end, at.X);
+                }
+                double room = Math.Max(0, Math.Floor(end - left - 24));
+                if (Math.Abs(header.MaxWidth - room) > 0.5) header.MaxWidth = room;
+            }
+            catch (Exception) { }
         }
 
         /// <summary>Opened or closed: the home screen's own parts go or come back (the logo and info: BoardApplyMode).</summary>
