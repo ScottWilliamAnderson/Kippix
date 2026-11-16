@@ -1662,7 +1662,6 @@
     <sys:String x:Key="LOC_KX_StpBasisStory">from {0} of {1} story achievements</sys:String>
     <sys:String x:Key="LOC_KX_StpBasisTime">estimate from play time</sys:String>
     <sys:String x:Key="LOC_KX_StpAch">Achievements {0}%</sys:String>
-    <sys:String x:Key="LOC_KX_StpBasisAch">no story to go by</sys:String>
     <sys:String x:Key="LOC_KX_AmbientBg">Background</sys:String>
     <sys:String x:Key="LOC_KX_AmbientBgArt">The games' pictures</sys:String>
     <sys:String x:Key="LOC_KX_AmbientBgBlack">Black</sys:String>

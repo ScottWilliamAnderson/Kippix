@@ -136,7 +136,7 @@ namespace KippixHelper
             if (ach != null && ach.Count > 0)
             {
                 int pct = (int)Math.Round(100.0 * ach.Count(a => a.Unlocked) / ach.Count);
-                return new ProgressResult { Percent = pct, Source = "achievements", Short = string.Format(L("LOC_KX_StpAch", "Achievements {0}%"), pct), Basis = L("LOC_KX_StpBasisAch", "no story to go by") };
+                return new ProgressResult { Percent = pct, Source = "achievements", Short = string.Format(L("LOC_KX_StpAch", "Achievements {0}%"), pct) };   // (says what it is: no basis after it)
             }
             return null;
         }
