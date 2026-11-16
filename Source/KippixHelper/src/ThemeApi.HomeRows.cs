@@ -508,8 +508,8 @@ namespace KippixHelper
         /// <summary>In one of the extra rows: the filter name above the games shows that row's name instead (same place, same look).</summary>
         private bool InExtraRow { get { return extraRowAt > 0 && extraRowAt <= ExtraRowsList.Count; } }
         /// <summary>The filter name shows a name of its own: the extra row you're in, or (Folder) the folder that's open.</summary>
-        public bool HomeLabelOwn { get { return InExtraRow || FolderMode; } }
-        public string HomeLabelText { get { return InExtraRow ? ExtraRowsList[extraRowAt - 1].Title : FolderMode ? FolderLabelNow : ""; } }
+        public bool HomeLabelOwn { get { return InExtraRow || FolderMode || SearchLabelName != null; } }
+        public string HomeLabelText { get { return InExtraRow ? ExtraRowsList[extraRowAt - 1].Title : FolderMode ? FolderLabelNow : SearchLabelName ?? ""; } }
         public double ExtraRowsTop { get; private set; }
         private int extraRowAt;               // 0 = the games (Playnite's row), 1.. = the extra rows
         private Guid extraReturnGame;         // the game selected in the main row before you went down
