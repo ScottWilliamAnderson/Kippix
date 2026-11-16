@@ -50,6 +50,16 @@ namespace KippixHelper
                 return;
             }
             mouseParkHooked = true;
+            // another Playnite window (an add-on's sign-in page, a dialog): the pointer is needed there, and that window's
+            // mouse moves never reach the main window's PreviewMouseMove below, so it's shown as soon as the window loads
+            try
+            {
+                EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) =>
+                {
+                    if (s != Application.Current.MainWindow) ShowParkedMouse();
+                }));
+            }
+            catch (Exception) { }
             w.Deactivated += (s, e) =>
             {
                 mouseAwaySince = DateTime.UtcNow;
