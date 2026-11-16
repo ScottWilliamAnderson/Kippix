@@ -222,15 +222,21 @@ namespace KippixHelper
             EventManager.RegisterClassHandler(typeof(ListBoxItem), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) =>
             {
                 var item = s as ListBoxItem;
-                if (item != null && (ShuffleOn || shuffleWasOn)) ShuffleHookCard(item);
+                if (item != null && (ShuffleOn || shuffleWasOn)) ShuffleHookCard(item, true);
             }));
         }
 
-        private void ShuffleHookCard(ListBoxItem item)
+        private void ShuffleHookCard(ListBoxItem item, bool again = false)
         {
             try
             {
                 var owner = ItemsControl.ItemsControlFromItemContainer(item);
+                if (owner == null && again)
+                {
+                    // (a panel that puts a card on screen before the list calls it its own: asked once more, after this pass)
+                    ui.BeginInvoke(new Action(() => ShuffleHookCard(item)), DispatcherPriority.Loaded);
+                    return;
+                }
                 if (owner == null || owner.Name != "PART_ListGameItems") return;
                 ShuffleCard(item);
                 if ((bool)item.GetValue(ShuffleHookedProperty)) return;
@@ -327,7 +333,12 @@ namespace KippixHelper
             shuffleTickSeen = true;
             shuffleTickOn = on;
             shuffleTickPeriod = period;
-            if (first) return;   // (start-up: the cards and tiles ask as they're made)
+            if (first)
+            {
+                // (start-up: the cards and tiles ask as they're made; the cards made before BackgroundChanger was there, now)
+                if (on) ShuffleCardsAgain();
+                return;
+            }
             lock (shuffleGate) { shufflePicks.Clear(); shufflePicksPeriod = period; }
             ShuffleCardsAgain();
             ShufflePageCover(SelectedGameNow());
