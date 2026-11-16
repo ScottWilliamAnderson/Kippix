@@ -136,7 +136,8 @@ namespace KippixHelper
                                          "ShowDetNotesCard", "ShowDetScores", "ShowDetSimilar", "ShowDetDlc", "DetHistoryTotal", "DetHistoryLine", "DetHltbMain", "DetHltbExtras",
                                          "DetHltbComplete", "DetHltbYou", "DetHltbFill", "DetCapturesText", "DetAchSummary", "DetAchFill", "DetAchRarest", "DetAchRarestSub",
                                          "HasDetAchRarest", "DetAchNext", "DetAchNextSub", "HasDetAchNext", "DetAchRarestIcon", "DetAchNextIcon", "DetStatusText", "DetStarsText",
-                                         "DetNotesText", "HasDetNotes", "DetDlcText", "DetDlcIsSteam" })
+                                         "DetNotesText", "HasDetNotes", "DetDlcText", "DetDlcIsSteam",
+                                         "DetHintMoreBelow" })   // (the hint too: a lower page with only More like this on it is found after the page opens)
                 Notify(n);
             NotifyDetInfo();   // the info's How long to beat and size lines follow the same data
             SyncFreeGaps();    // a card deleted in Free move keeps its room for the games it would show on
