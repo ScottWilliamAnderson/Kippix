@@ -170,10 +170,13 @@ namespace KippixHelper
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
                 if (win == null) return;
                 HelperSettings.DropFixedGamePlaces(settings.MasterOffsets, settings.MasterSizes);   // (a built-in look or a saved one from before the game page's left column was one stack)
+                var lower = DetLowerPushes(win);
                 foreach (var el in MasterElements)
                 {
                     bool on = MasterOn(el.Screen);
                     var o = on ? MasterOffset(el.Key) : new double[] { 0, 0 };
+                    double more;
+                    if (on && lower.TryGetValue(el.Key, out more)) o = new[] { o[0], o[1] + more };
                     foreach (string name in el.Names)
                     {
                         var fe = MasterFind(win, name);
@@ -185,6 +188,63 @@ namespace KippixHelper
                 ApplyMasterExtras();   // layers and opacity (Free move › Menu)
             }
             catch (Exception ex) { logger.Warn(ex, "Kippix: master edit offsets failed"); }
+        }
+
+        private class LowerPart { public string Key; public double X, Y, W, H, Gap; public bool AsItCame; }
+
+        /// <summary>
+        /// The game page's lower parts come placed by fixed moves (GameDefaultOffsets: Save backups under How long to beat, Your
+        /// captures and More like this under those), measured at the Standard text size. With larger text (or a card with one
+        /// more line) the part above is taller, and the one under it, moved by the same amount as ever, touched it or went over
+        /// it. So a part that still has the move it came with goes further down when it would be closer to a part above it than
+        /// that part's own gap (its bottom margin: the cards' 20). A part you placed yourself is left where you put it.
+        /// Key -> how much further down (the settings keep the move as it was).
+        /// </summary>
+        private Dictionary<string, double> DetLowerPushes(Window win)
+        {
+            var push = new Dictionary<string, double>();
+            try
+            {
+                var cards = MasterFind(win, "KX_SecCards");
+                var page = cards != null ? VisualTreeHelper.GetParent(cards) as FrameworkElement : null;
+                if (page == null || !page.IsVisible) return push;
+                var parts = new List<LowerPart>();
+                foreach (var el in MasterElements)
+                {
+                    if (!el.Key.StartsWith("game.sec.", StringComparison.Ordinal) || !MasterOn(el.Screen)) continue;
+                    var fe = MasterFind(win, el.Names[0]);
+                    if (fe == null || !fe.IsVisible || fe.ActualWidth < 1 || fe.ActualHeight < 1 || !page.IsAncestorOf(fe)) continue;
+                    // where the page lays it out (without any transform: our move, the theme's slide-in)
+                    double x = 0, y = 0;
+                    for (DependencyObject v = fe; v != null && !ReferenceEquals(v, page); v = VisualTreeHelper.GetParent(v))
+                    {
+                        var at = VisualTreeHelper.GetOffset((Visual)v);
+                        x += at.X;
+                        y += at.Y;
+                    }
+                    var o = MasterOffset(el.Key);
+                    double[] d;
+                    bool asItCame = HelperSettings.GameDefaultOffsets.TryGetValue(el.Key, out d) && Math.Abs(d[0] - o[0]) < 0.5 && Math.Abs(d[1] - o[1]) < 0.5;
+                    parts.Add(new LowerPart { Key = el.Key, X = x + o[0], Y = y + o[1], W = fe.ActualWidth, H = fe.ActualHeight, Gap = Math.Max(0, fe.Margin.Bottom), AsItCame = asItCame });
+                }
+                var placed = new List<LowerPart>();
+                foreach (var b in parts.OrderBy(p => p.Y))
+                {
+                    if (b.AsItCame)
+                    {
+                        double need = 0;
+                        foreach (var a in placed)
+                        {
+                            if (a.X + a.W <= b.X + 1 || b.X + b.W <= a.X + 1) continue;   // (beside it, not above it)
+                            need = Math.Max(need, a.Y + a.H + a.Gap - b.Y);
+                        }
+                        if (need > 0.5) { b.Y += need; push[b.Key] = Math.Round(need); }
+                    }
+                    placed.Add(b);
+                }
+            }
+            catch (Exception) { }
+            return push;
         }
 
         // (1.0.0) The parts' places are put on every 2 seconds: each part was looked for through the whole window each time
