@@ -566,6 +566,8 @@ namespace KippixOverlay
                         Created = DateTime.Now
                     };
                 }
+                if (answered.Count < batch.Count)
+                    Playnite.SDK.LogManager.GetLogger().Info("Achievement guides: " + gameName + ": " + answered.Count + " of " + batch.Count + " tips came back in this batch; the answer began: " + (answer.Text.Length > 240 ? answer.Text.Substring(0, 240) : answer.Text).Replace("\r", " ").Replace("\n", " "));
                 if (guides.Skipped == null) guides.Skipped = new List<string>();
                 foreach (var a in batch)
                 {
