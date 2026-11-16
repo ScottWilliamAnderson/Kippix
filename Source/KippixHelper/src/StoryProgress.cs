@@ -36,9 +36,10 @@ namespace KippixHelper
     ///     (by chapter / act number when they have one, otherwise by how many players have each: fewer players get further),
     ///     and you're placed after the furthest one you have: 4 of 7 = about 57%. Play time against HowLongToBeat's main story
     ///     moves it on between two of them (never past the next one you haven't got).
-    ///  3. Play time against HowLongToBeat's main story, never more than 99%. Only where that says something: not for a game
-    ///     with no main story time (extras / completionist only), nor for one that's multiplayer only by its features, tags
-    ///     and categories (a football game with 100 hours isn't "Story ~99%").
+    ///  3. Play time against HowLongToBeat's main story. Only where that says something: not for a game with no main story
+    ///     time (extras / completionist only), nor for one that's multiplayer only by its features, tags and categories (a
+    ///     football game with 100 hours isn't "Story ~99%"), nor once the play time has reached the story time (98% at most:
+    ///     past that, and all the more at several times the story time, the time played no longer says where you are).
     ///  4. The share of achievements unlocked, labelled as that (it isn't the story).
     /// Null when there's nothing to go on.
     /// </summary>
@@ -125,8 +126,10 @@ namespace KippixHelper
             }
 
             // ---- play time against HowLongToBeat ----
-            // (only against a main story time, and not for a multiplayer-only game: neither has a story to be part-way through)
-            if (byTime.HasValue && hltbStoryHours > 0 && !MultiplayerOnly(labels))
+            // (only against a main story time, and not for a multiplayer-only game: neither has a story to be part-way through;
+            //  and only while the play time is short of that story time: at or past it the time says nothing about where you
+            //  are (18 hours of chess against a 2 hour "story" isn't "Story ~99%"), so there's no estimate, not one pinned at 99)
+            if (byTime.HasValue && hltbStoryHours > 0 && byTime.Value < 0.985 && !MultiplayerOnly(labels))
             {
                 int pct = (int)Math.Round(Math.Max(0, Math.Min(0.99, byTime.Value)) * 100);
                 return new ProgressResult { Percent = pct, Source = "playtime", Short = string.Format(L("LOC_KX_StpStory", "Story ~{0}%"), pct), Basis = L("LOC_KX_StpBasisTime", "estimate from play time") };
