@@ -335,7 +335,7 @@
                                             <Path Data="{StaticResource KX_IconTrophy}" Style="{StaticResource KX_IconPath}" Width="24" Height="24" />
                                         </ButtonEx>
                                         <!-- (r13) News: the game's Steam news and patch notes on their own page (Steam games; Game page › Buttons and extras) -->
-                                        <ButtonEx x:Name="KX_DetNewsButton" Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOC_KX_DetNewsButton}"
+                                        <ButtonEx x:Name="KX_DetNewsButton" Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOC_KX_PartNews}"
                                                   Command="{PluginSettings Plugin=Kippix, Path=OpenGameNewsCommand}"
                                                   Visibility="{PluginSettings Plugin=Kippix, Path=ShowDetNewsButton, FallbackValue=Collapsed}">
                                             <Path Data="{StaticResource KX_IconNews}" Style="{StaticResource KX_IconPath}" Width="24" Height="24" />
@@ -355,7 +355,7 @@
                                                 </Canvas>
                                             </Viewbox>
                                         </ButtonEx>
-                                        <ButtonEx x:Name="KX_DetSettings" Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOC_KX_CatGamePage}"
+                                        <ButtonEx x:Name="KX_DetSettings" Style="{StaticResource KX_RoundIconButton}" ToolTip="{DynamicResource LOC_KX_DetSettingsButton}"
                                                   Command="{PluginSettings Plugin=Kippix, Path=OpenGamePageSettingsCommand}">
                                             <Path Data="{StaticResource KX_IconTune}" Style="{StaticResource KX_IconPath}" Width="24" Height="24" />
                                         </ButtonEx>
@@ -796,25 +796,32 @@
                                 </ScrollViewer>
                             </Grid>
 
-                            <!-- button hints: always at the very bottom of the screen, on both pages -->
-                            <StackPanel x:Name="KX_DetHints" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="96,0,96,24" Opacity="0.8" IsHitTestVisible="False"
+                            <!-- button hints: always at the very bottom of the screen, on both pages. The controller's own glyphs (the
+                                 ButtonPrompt templates the home screen's hints use), brighter than they were (they were dim text at 0.8).
+                                 First what A does where the highlight is (the icon buttons have no words of their own: ThemeApi.GameHints.cs) -->
+                            <StackPanel x:Name="KX_DetHints" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="96,0,96,24" IsHitTestVisible="False"
                                         HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetBlockAlignment, FallbackValue=Left}"
                                         Visibility="{PluginSettings Plugin=Kippix, Path=DetShowHints, FallbackValue=Visible}">
+                                <StackPanel Orientation="Horizontal" Visibility="{PluginSettings Plugin=Kippix, Path=DetHintAShown, FallbackValue=Collapsed}">
+                                    <ContentControl ContentTemplate="{DynamicResource ButtonPromptA}" Width="26" Height="26" Focusable="False" />
+                                    <TextBlock Text="{PluginSettings Plugin=Kippix, Path=DetHintAText}" Style="{StaticResource KX_Text}" FontSize="{DynamicResource KX_FontSub}" Margin="8,0,26,0" VerticalAlignment="Center"
+                                               MaxWidth="460" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <ContentControl ContentTemplate="{DynamicResource ButtonPromptB}" Width="26" Height="26" Focusable="False" />
+                                <TextBlock Text="{DynamicResource LOC_KX_Back}" Style="{StaticResource KX_TextSub}" Margin="8,0,26,0" VerticalAlignment="Center" />
                                 <ContentControl ContentTemplate="{DynamicResource ButtonPromptLB}" Width="30" Height="26" Focusable="False" />
                                 <ContentControl ContentTemplate="{DynamicResource ButtonPromptRB}" Width="30" Height="26" Focusable="False" Margin="4,0,0,0" />
-                                <TextBlock Text="{DynamicResource LOC_KX_PrevNextGame}" Style="{StaticResource KX_TextDim}" Margin="8,0,26,0" VerticalAlignment="Center" />
-                                <ContentControl ContentTemplate="{DynamicResource ButtonPromptB}" Width="26" Height="26" Focusable="False" />
-                                <TextBlock Text="{DynamicResource LOC_KX_Back}" Style="{StaticResource KX_TextDim}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{DynamicResource LOC_KX_PrevNextGame}" Style="{StaticResource KX_TextSub}" Margin="8,0,26,0" VerticalAlignment="Center" />
                                 <!-- X: the settings of the part that's highlighted -->
-                                <ContentControl ContentTemplate="{DynamicResource ButtonPromptX}" Width="26" Height="26" Focusable="False" Margin="26,0,0,0" />
-                                <TextBlock Text="{DynamicResource LOC_KX_HintPartSettings}" Style="{StaticResource KX_TextDim}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                <ContentControl ContentTemplate="{DynamicResource ButtonPromptX}" Width="26" Height="26" Focusable="False" />
+                                <TextBlock Text="{DynamicResource LOC_KX_HintPartSettings}" Style="{StaticResource KX_TextSub}" Margin="8,0,0,0" VerticalAlignment="Center" />
                                 <StackPanel Orientation="Horizontal" Margin="26,0,0,0" Visibility="{PluginSettings Plugin=Kippix, Path=DetHintMoreBelow, FallbackValue=Collapsed}">
                                     <Path Data="{StaticResource KX_IconChevron}" Style="{StaticResource KX_InfoIcon}" Margin="0,0,8,0" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><RotateTransform Angle="90" /></Path.RenderTransform></Path>
-                                    <TextBlock Text="{DynamicResource LOC_KX_DetMoreHint}" Style="{StaticResource KX_TextDim}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{DynamicResource LOC_KX_DetMoreHint}" Style="{StaticResource KX_TextSub}" VerticalAlignment="Center" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="26,0,0,0" Visibility="{PluginSettings Plugin=Kippix, Path=DetHintBackUp, FallbackValue=Collapsed}">
                                     <Path Data="{StaticResource KX_IconChevron}" Style="{StaticResource KX_InfoIcon}" Margin="0,0,8,0" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><RotateTransform Angle="-90" /></Path.RenderTransform></Path>
-                                    <TextBlock Text="{DynamicResource LOC_KX_DetBackUpHint}" Style="{StaticResource KX_TextDim}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{DynamicResource LOC_KX_DetBackUpHint}" Style="{StaticResource KX_TextSub}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </StackPanel>
 

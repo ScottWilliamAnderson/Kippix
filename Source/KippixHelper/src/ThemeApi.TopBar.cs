@@ -72,6 +72,7 @@ namespace KippixHelper
                     UpdateTopBarFade();
                 }
                 if (inBar) topBarHoldUntil = DateTime.MinValue;
+                if (detailsOpen || DetHintAShown) DetHintFocus(focused);   // the game page's hints: what A does on the highlighted button
                 if (openPanel == "store" || tilePreviewItem != null) StoreFocusChanged(e);
                 if (carActive) CarouselFocusChanged(e);   // Row's carousel follows the highlight in Playnite's row
                 if (openPanel == "achievements") AchBgFocusChanged(e.NewFocus);   // Background › Game background follows the highlighted game

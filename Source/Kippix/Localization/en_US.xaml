@@ -913,6 +913,7 @@
     <sys:String x:Key="LOC_KX_DetGame">Game</sys:String>
     <sys:String x:Key="LOC_KX_DetLength">Length</sys:String>
     <sys:String x:Key="LOC_KX_DetMoreHint">More below</sys:String>
+    <sys:String x:Key="LOC_KX_DetSettingsButton">Game page settings</sys:String>
     <sys:String x:Key="LOC_KX_DetMoreSections">Show the area further down</sys:String>
     <sys:String x:Key="LOC_KX_DetMoreSectionsSub">Extra sections below the game’s buttons</sys:String>
     <sys:String x:Key="LOC_KX_DetSecAch">Achievement highlights</sys:String>
