@@ -403,6 +403,7 @@ namespace KippixHelper
                 case "splitscreen": geoKey = "KX_IconController"; break;
                 case "pick": geoKey = "KX_IconDice"; break;
                 case "storage": geoKey = "KX_IconDrive"; break;
+                case "sortshow": geoKey = "KX_IconSort"; break;
                 case "controller": geoKey = "KX_IconController"; break;
                 case "bluetooth": geoKey = "KX_IconBluetooth"; break;
                 case "year": geoKey = "KX_IconChart"; break;

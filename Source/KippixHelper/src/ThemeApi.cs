@@ -321,7 +321,7 @@ namespace KippixHelper
             TickTime("per layout");
             ApplySlotPins(false);
             TickTime("pins");
-            if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null) ApplyListFilter(false);   // Playnite may have put its own filter back
+            if (ProfileFilterActive || slotsAlwaysShow || folderFilter != null || settings.InstalledOnly) { InstalledOnlyHook(); ApplyListFilter(false); }   // Playnite may have put its own filter back
             if (FolderSortWanted || folderSorter != null) FolderSortApply();   // (and its own sort, over a folder's)
             TickTime("filter/sort");
             PcStatsTick();
@@ -769,11 +769,11 @@ namespace KippixHelper
         // =====================================================================
 
         private static readonly string[] DefaultOrder = { "search", "achievements", "gallery", "store", "discord", "audio", "hibernate", "sleep", "restart", "shutdown", "downloads", "battery",
-                                                            "quick", "releases", "wishlist", "news", "friends", "collections", "splitscreen", "pick", "storage", "controller", "bluetooth", "year",
+                                                            "quick", "releases", "wishlist", "news", "friends", "collections", "splitscreen", "pick", "storage", "sortshow", "controller", "bluetooth", "year",
                                                             "media", "localmedia", "netflix", "youtube", "prime", "crunchyroll", "options", "clock" };
         /// <summary>(1.0.1) Media, Shows &amp; movies and each streaming service: off until you switch them on (kept with ExtraPins).</summary>
         internal static readonly string[] MediaShortcutKeys = { "media", "localmedia", "netflix", "youtube", "prime", "crunchyroll" };
-        private static bool IsExtraPinKey(string key) { return PageKeys.Contains(key) || MediaShortcutKeys.Contains(key); }
+        private static bool IsExtraPinKey(string key) { return PageKeys.Contains(key) || MediaShortcutKeys.Contains(key) || key == "sortshow"; }
 
         public ObservableCollection<ShortcutItem> Shortcuts { get; private set; }
 
@@ -853,6 +853,7 @@ namespace KippixHelper
             {
                 case "media": return Loc("LOC_KX_Media", "Media");
                 case "localmedia": return Loc("LOC_KX_LocalMedia", "Shows & movies");
+                case "sortshow": return Loc("LOC_KX_SortShow", "Sort and show");
             }
             var svc = MediaServices.FirstOrDefault(m => m.Key == key);
             if (svc != null) return svc.Name;
@@ -879,6 +880,7 @@ namespace KippixHelper
             if (PageKeys.Contains(key)) { string k = key; return new RelayCommand(_ => OpenPageFromShortcut(k)); }
             if (key == "media") return new RelayCommand(_ => { PlaySound("select"); OpenMediaMenu(); });
             if (key == "localmedia") return new RelayCommand(_ => { PlaySound("select"); OpenLocalMedia(false); });
+            if (key == "sortshow") return new RelayCommand(_ => OpenSortShow());   // (ThemeApi.SortShow.cs)
             if (MediaServices.Any(m => m.Key == key)) { string k = key; return new RelayCommand(_ => OpenMediaByKey(k)); }
             return null;
         }
@@ -1505,6 +1507,7 @@ namespace KippixHelper
             if (openPanel == "profile" && ProfileBack()) return;
             if (openPanel == "options" && freeResumePage != null && optionsPage == freeResumePage) { StartFreeMove(false, true); return; }   // X in Free move brought you here
             if (openPanel == "options" && GamePartBack()) return;   // a part's settings opened with X on the game page (or from Top and lower page)
+            if (openPanel == "options" && optionsPage == "sortshow") { ClosePanels(); return; }   // opened from the top bar: back to where you were
             if (openPanel == "options" && optionsPage != "") { GoBackTo(OptionsParent(optionsPage), BackRowKey(optionsPage)); return; }
             if (openPanel == "achievements" && AchievementsBack()) return;
             if (openPanel == "store" && StoreBack()) return;
