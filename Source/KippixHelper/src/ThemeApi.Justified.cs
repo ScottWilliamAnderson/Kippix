@@ -41,8 +41,9 @@ namespace KippixHelper
             CycleJustRowsCommand = new RelayCommand(_ => { settings.JustRows = JustRowsNow >= 5 ? 2 : JustRowsNow + 1; SaveSettings(); PlaySound("move"); HomeModeChanged(); });
             JustifiedPanel.Setup = SetupJustPanel;
             // (WPF's list selects whatever tile gets the highlight when the last thing used was a keyboard: not for our own moves,
-            // whose game is selected once the highlight rests. The list never hears of the highlight it was given by JustGoTo)
-            EventManager.RegisterClassHandler(typeof(ListBoxItem), Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler((s, e) => { if (justFocusing && ReferenceEquals(s, e.NewFocus)) e.Handled = true; }));
+            // whose game is selected once the highlight rests. The news of a highlight given by JustGoTo stops at our panel, on
+            // its way up from the tile to the list; the tile itself has heard, so it's drawn highlighted)
+            justFocusGuard = new KeyboardFocusChangedEventHandler((s, e) => { if (justFocusing) e.Handled = true; });
             InitJustPerf();
             OpenLibraryViewCommand = new RelayCommand(_ => OpenLibraryView());
             CloseLibraryViewCommand = new RelayCommand(_ => CloseLibraryView(true));
@@ -156,9 +157,9 @@ namespace KippixHelper
             var panel = now as JustifiedPanel;
             if (!ReferenceEquals(panel, justPanel))
             {
-                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
+                if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; justPanel.RemoveHandler(Keyboard.GotKeyboardFocusEvent, justFocusGuard); }
                 justPanel = panel;
-                if (panel != null) { panel.ContainersGenerated += OnJustContainers; panel.MarginsChanged += OnJustMargins; }
+                if (panel != null) { panel.ContainersGenerated += OnJustContainers; panel.MarginsChanged += OnJustMargins; panel.AddHandler(Keyboard.GotKeyboardFocusEvent, justFocusGuard); }
             }
 
             // The list's size. Across: the pictures run from the left margin every home screen has (72) to the clock's right
@@ -205,6 +206,7 @@ namespace KippixHelper
             try
             {
                 JustCommit();
+                JustShadowsBack();
                 var was = justList;
                 var template = justOriginalPanel;
                 if (justPanel != null) { justPanel.ContainersGenerated -= OnJustContainers; justPanel.MarginsChanged -= OnJustMargins; }
@@ -358,6 +360,7 @@ namespace KippixHelper
         private DispatcherTimer justRestTimer;
         private ListBox justHooked;
         private bool justCommitting, justFocusing;
+        private KeyboardFocusChangedEventHandler justFocusGuard;
 
         /// <summary>Scrolls a game's row in and puts the highlight on its tile; the game is selected once the highlight rests.</summary>
         private void JustGoTo(ListBox list, int index)
@@ -666,8 +669,42 @@ namespace KippixHelper
             ApplyCardLayoutSoon();   // (the list is sized from the tiles' own margins: known once the first tile is made)
         }
 
+        // Every card has a soft shadow under it (a DropShadowEffect: the card is drawn off screen, blurred and drawn again).
+        // A row of six doesn't notice; with the mosaic's forty-odd cards any frame that redraws them (a highlight growing, a
+        // row sliding) took twice as long. Packed edge to edge on the darkened background the shadows hardly show, so the
+        // mosaic's cards go without; they get them back when the list goes back to Playnite's own panel.
+        private readonly HashSet<FrameworkElement> justNoShadow = new HashSet<FrameworkElement>();
+
+        private void JustShadowsOff()
+        {
+            try
+            {
+                var panel = justPanel;
+                if (panel == null) return;
+                int n = VisualTreeHelper.GetChildrenCount(panel);
+                for (int i = 0; i < n; i++)
+                {
+                    var tile = VisualTreeHelper.GetChild(panel, i) as ListBoxItem;
+                    if (tile == null || tile.Template == null) continue;
+                    var shadow = tile.Template.FindName("KX_TileShadow", tile) as FrameworkElement;
+                    if (shadow == null || justNoShadow.Contains(shadow)) continue;
+                    justNoShadow.Add(shadow);
+                    shadow.Effect = null;
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: mosaic: card shadows: " + ex.Message); }
+        }
+
+        private void JustShadowsBack()
+        {
+            foreach (var shadow in justNoShadow)
+                try { shadow.ClearValue(UIElement.EffectProperty); } catch (Exception) { }
+            justNoShadow.Clear();
+        }
+
         private void OnJustContainers(object sender, EventArgs e)
         {
+            JustShadowsOff();
             if (AnyBadges || badgesEverOn) RefreshBadgesSoon();
             if (tileArtWasOn || shapesWereOn || spacingWasSet) RefreshTileArtSoon();
         }
