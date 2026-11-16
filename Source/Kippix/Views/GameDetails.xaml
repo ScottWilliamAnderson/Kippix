@@ -328,7 +328,8 @@
                                                         HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}" Focusable="False">
 <ContentControl.Style><Style TargetType="ContentControl"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></ContentControl.Style>
 </ContentControl>
-                                        <TextBlock Text="{Binding DisplayName}" FontSize="62" TextWrapping="Wrap"
+                                        <!-- no logo: the name keeps to the logo's width (it ran the whole width and its end sat behind the cover / trailer), two lines at most -->
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="62" TextWrapping="Wrap" MaxWidth="660" MaxHeight="150" LineHeight="72" LineStackingStrategy="BlockLineHeight" TextTrimming="CharacterEllipsis"
                                                    VerticalAlignment="Bottom" HorizontalAlignment="{PluginSettings Plugin=Kippix, Path=DetLogoInnerAlignment, FallbackValue=Left}">
 <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource KX_TextTitle}"><Setter Property="Visibility" Value="Visible" /><Style.Triggers><DataTrigger Binding="{PluginSettings Plugin=ExtraMetadataLoader, Path=IsLogoAvailable}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                             <TextBlock.Effect>
