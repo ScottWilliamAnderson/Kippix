@@ -307,8 +307,10 @@ namespace KippixHelper
                 // not on screen yet (e.g. coming back up from the extra rows): bring it in, rather than jumping to the first game
                 try { list.ScrollIntoView(list.SelectedItem); list.UpdateLayout(); } catch (Exception) { }
                 c = list.ItemContainerGenerator.ContainerFromItem(list.SelectedItem) as UIElement;
-                // Row's carousel: Playnite's panel doesn't bring a card it hasn't made into view by itself, so scroll it there
-                if (c == null && carActive) c = RealizeListItem(list, list.SelectedIndex);
+                // Playnite's row doesn't bring a card it hasn't made into view by itself, so it's scrolled there (the carousel or not:
+                // back from the game page after LB / RB had gone on to a game far along the row, the list itself took the focus,
+                // no card looked chosen and the art was of a game out of sight)
+                if (c == null) c = RealizeListItem(list, list.SelectedIndex, true);
             }
             if (c == null && list.SelectedItem == null) c = list.ItemContainerGenerator.ContainerFromIndex(0) as UIElement;
             if (c != null) Keyboard.Focus(c);
