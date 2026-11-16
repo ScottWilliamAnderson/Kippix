@@ -38,8 +38,12 @@ namespace KippixHelper
             catch (Exception) { return true; }
         }
 
+        private bool steamQuietRowWas;
+
         private void SteamQuietTick()
         {
+            // (the battery is found a little after start-up: the "Also on battery" row follows)
+            if (SteamUpdatesBatteryRow != steamQuietRowWas) { steamQuietRowWas = SteamUpdatesBatteryRow; Notify("SteamUpdatesBatteryRow"); }
             if (!settings.SteamUpdatesQuiet || steamQuietDone) return;
             string dir = SteamPaths.SteamPath();
             string exe = string.IsNullOrEmpty(dir) ? null : Path.Combine(dir, "steam.exe");
