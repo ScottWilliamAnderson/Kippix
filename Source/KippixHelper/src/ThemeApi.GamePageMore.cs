@@ -845,7 +845,7 @@ namespace KippixHelper
                                            && !string.Equals(l.Url, store, StringComparison.OrdinalIgnoreCase)).Take(5).ToList();
             bool steam = g.PluginId == SteamPluginId && !string.IsNullOrEmpty(g.GameId);
             if (store != null || steam || links.Count > 0) GameMoreRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecLinks", "LINKS") });
-            if (store != null) GameMoreRows.Add(new PickRow { Text = Loc("LOC_KX_OpenStorePage", "Store page"), Sub = LinkHostOf(store), Icon = "store", Key = "store", Command = new RelayCommand(_ => { ClosePanels(); OpenBrowser(store); }) });
+            if (store != null) GameMoreRows.Add(new PickRow { Text = Loc("LOC_KX_OpenStorePage", "Store page"), Sub = LinkHostOf(store), Icon = "store", Key = "store", Command = new RelayCommand(_ => { ClosePanels(); OpenLink(store); }) });
             int dlcKnown = -1;
             if (steam) lock (dlcCounts) { if (!dlcCounts.TryGetValue(g.GameId, out dlcKnown)) dlcKnown = -1; }
             if (steam && dlcKnown == 0) steam = false;   // (0.86: known to have none: no row at all)
@@ -854,13 +854,13 @@ namespace KippixHelper
                 string id = g.GameId;
                 GameMoreRows.Add(new PickRow { Text = Loc("LOC_KX_DlcOnStore", "DLC on the store"), Icon = "tag", Key = "dlc",
                                                Sub = string.Format(dlcKnown == 1 ? Loc("LOC_KX_OneDlc", "1 DLC") : Loc("LOC_KX_NDlc", "{0} DLC"), dlcKnown),
-                                               Command = new RelayCommand(_ => { ClosePanels(); OpenBrowser("https://store.steampowered.com/dlc/" + id + "/"); }) });
+                                               Command = new RelayCommand(_ => { ClosePanels(); OpenLink("https://store.steampowered.com/dlc/" + id + "/"); }) });
             }
             else if (steam)
             {
                 string id = g.GameId;
                 var row = new PickRow { Text = Loc("LOC_KX_DlcOnStore", "DLC on the store"), Sub = Loc("LOC_KX_Checking", "Checking…"), Icon = "tag", Key = "dlc",
-                                        Command = new RelayCommand(_ => { ClosePanels(); OpenBrowser("https://store.steampowered.com/dlc/" + id + "/"); }) };
+                                        Command = new RelayCommand(_ => { ClosePanels(); OpenLink("https://store.steampowered.com/dlc/" + id + "/"); }) };
                 GameMoreRows.Add(row);
                 KippixShared.SafeWork.Queue(_ =>
                 {
@@ -896,7 +896,7 @@ namespace KippixHelper
             foreach (var l in links)
             {
                 string url = l.Url;
-                GameMoreRows.Add(new PickRow { Text = string.IsNullOrEmpty(l.Name) ? LinkHostOf(url) : l.Name, Sub = LinkHostOf(url), Icon = "link", Command = new RelayCommand(_ => { ClosePanels(); OpenBrowser(url); }) });
+                GameMoreRows.Add(new PickRow { Text = string.IsNullOrEmpty(l.Name) ? LinkHostOf(url) : l.Name, Sub = LinkHostOf(url), Icon = "link", Command = new RelayCommand(_ => { ClosePanels(); OpenLink(url); }) });
             }
             if (g.IsInstalled) GameMoreRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_SecManage", "MANAGE") });
             if (g.IsInstalled && !string.IsNullOrEmpty(g.InstallDirectory))
