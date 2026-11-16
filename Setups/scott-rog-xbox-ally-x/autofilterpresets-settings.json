@@ -1,0 +1,210 @@
+{
+  "CreateSources": false,
+  "CreatePlatforms": false,
+  "FavoritesFirst": false,
+  "LoopSelection": true,
+  "AltBringIntoView": true,
+  "OrderBy": 2,
+  "DontConfirmCopy": false,
+  "SortedItems": [
+    {
+      "SortingType": 0,
+      "Name": "Recently Played"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Favorites"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Pick up and play"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Sofa multiplayer"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Online co-op"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Online versus"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Pausable any time"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Can't pause"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Works offline"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Solo"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Racing"
+    },
+    {
+      "SortingType": 0,
+      "Name": "RPGs"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Arcade"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Platformers"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Shooters"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Fighting"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Retro"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Never played"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Most Played"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Installed"
+    },
+    {
+      "SortingType": 0,
+      "Name": "Apps"
+    },
+    {
+      "SortingType": 0,
+      "Name": "All"
+    },
+    {
+      "SortingType": 1,
+      "Name": "<PRESETS>",
+      "Items": [
+        {
+          "SortingType": 0,
+          "Name": "Never played"
+        }
+      ]
+    },
+    {
+      "SortingType": 3,
+      "Name": "<SOURCES>",
+      "Items": [
+        {
+          "SortingType": 2,
+          "Name": "Battle.net"
+        },
+        {
+          "SortingType": 2,
+          "Name": "Epic"
+        },
+        {
+          "SortingType": 2,
+          "Name": "GOG"
+        },
+        {
+          "SortingType": 2,
+          "Name": "Microsoft Store"
+        },
+        {
+          "SortingType": 2,
+          "Name": "Steam"
+        },
+        {
+          "SortingType": 2,
+          "Name": "Ubisoft Connect"
+        },
+        {
+          "SortingType": 2,
+          "Name": "Xbox"
+        }
+      ]
+    },
+    {
+      "SortingType": 5,
+      "Name": "<PLATFORMS>",
+      "Items": [
+        {
+          "SortingType": 4,
+          "Name": "Nintendo 64"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo DS"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo Entertainment System"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo Game Boy Advance"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo Game Boy Color"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo GameCube"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo SNES"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Nintendo Switch"
+        },
+        {
+          "SortingType": 4,
+          "Name": "PC (Windows)"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Sega Dreamcast"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Sega Saturn"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Sony PlayStation"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Sony PlayStation 2"
+        },
+        {
+          "SortingType": 4,
+          "Name": "Sony PlayStation Portable"
+        }
+      ]
+    },
+    {
+      "SortingType": 6,
+      "Name": "<HIDDEN>",
+      "Items": []
+    }
+  ]
+}

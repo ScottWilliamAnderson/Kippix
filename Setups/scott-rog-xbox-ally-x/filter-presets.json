@@ -1,0 +1,454 @@
+﻿[
+    {
+        "Name":  "Sofa multiplayer",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Sofa multiplayer",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Platformers",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: Platformer",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Installed",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  true,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  true,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Pick up and play",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Pick up and play",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Apps",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  {
+
+                 },
+        "Categories":  "Apps",
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Favorites",
+        "SortBy":  "Name",
+        "Direction":  "Ascending",
+        "Installed":  false,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  true,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Most Played",
+        "SortBy":  "Playtime",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  true,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Shooters",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: Shooter",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Never played",
+        "SortBy":  "Added",
+        "Direction":  "Descending",
+        "Installed":  true,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "All",
+        "SortBy":  "Name",
+        "Direction":  "Ascending",
+        "Installed":  false,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Fighting",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: Fighting",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Racing",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: Racing",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Works offline",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Works offline",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Solo",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Solo",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Retro",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Retro",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Pausable any time",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Pausable any time",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Online versus",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Online versus",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Recently Played",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  true,
+        "Tags":  {
+
+                 },
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Can\u0027t pause",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Can\u0027t pause",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Online co-op",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Play: Online co-op",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "Arcade",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: Arcade",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    },
+    {
+        "Name":  "RPGs",
+        "SortBy":  "LastActivity",
+        "Direction":  "Descending",
+        "Installed":  false,
+        "Tags":  "Style: RPG",
+        "Categories":  {
+
+                       },
+        "Genres":  {
+
+                   },
+        "Platforms":  {
+
+                      },
+        "Favorite":  false,
+        "Hidden":  false,
+        "UseAndFilteringStyle":  false,
+        "PlayTime":  ""
+    }
+]
