@@ -81,7 +81,10 @@ namespace KippixHelper
             if (openPanel != "browser")
             {
                 if (openPanel == "store") { StopStoreVideos(); storePickerOpen = false; NotifyStoreOverlays(); }
-                if (openPanel == null) { focusBeforePanel = Keyboard.FocusedElement; RememberLowerFocus(); }
+                // (a link in a menu that closes as it opens the page, like the game page's More: the highlight is still on the
+                //  menu's row, which is going. Where that menu was handing it back to is where the browser hands it back to too:
+                //  otherwise closing the browser found nothing to go back to and put the highlight on the top bar's ⋯ button)
+                if (openPanel == null) { focusBeforePanel = focusClosingPanel ?? Keyboard.FocusedElement; RememberLowerFocus(); }
                 browserReturn = openPanel;
                 browserReturnFocus = Keyboard.FocusedElement;
                 openPanel = "browser";

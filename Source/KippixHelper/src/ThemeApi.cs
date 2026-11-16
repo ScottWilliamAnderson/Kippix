@@ -1521,6 +1521,7 @@ namespace KippixHelper
 
         private string openPanel;
         private IInputElement focusBeforePanel;
+        private IInputElement focusClosingPanel;   // a panel has just closed: where its highlight is on its way back to (until it gets there)
 
         public bool IsOptionsOpen { get { return openPanel == "options"; } }
         public bool IsDownloadsOpen { get { return openPanel == "downloads"; } }
@@ -1671,6 +1672,7 @@ namespace KippixHelper
             gallerySettingsFromGallery = false;
             var back = focusBeforePanel as UIElement;
             focusBeforePanel = null;
+            focusClosingPanel = back;
             // (0.99.60) opened from the top bar (with Auto-hide on): the highlight goes back onto the bar BEFORE the panel goes,
             // and the bar is kept out meanwhile. The panel going took the highlight with it first (nowhere for a moment), the bar
             // folded away, and only when the highlight was put back (a moment or seconds later) did it come out again.
@@ -1694,6 +1696,7 @@ namespace KippixHelper
             UpdateTopBarFade();
             ui.BeginInvoke(new Action(() =>
             {
+                focusClosingPanel = null;
                 // the profile menu always hands the highlight back to the profile button
                 if (closing == "profile" && !detailsOpen && UiTools.FocusByNameIfVisible("KX_ProfileButton")) return;
                 if (RestoreLowerFocus()) return;   // a lower game page card: back on it, the lower page still showing
