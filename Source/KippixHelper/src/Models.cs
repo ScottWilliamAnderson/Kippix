@@ -44,6 +44,7 @@ namespace KippixHelper
         public bool ShowNotificationIcon = true;
         public bool Clock24h = true;
         public bool ShowBatteryPercent = true;
+        public int BatterySource = 0;              // the top bar battery: 0 the controller's, 1 this device's own (a handheld, a laptop; the controller's on a PC without one)
         // Sizes: 0 small, 1 medium, 2 large, 3 extra large
         public int HintsSize = 1;
         public int LogoSize = 1;

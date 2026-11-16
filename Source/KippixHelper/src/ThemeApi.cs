@@ -842,7 +842,7 @@ namespace KippixHelper
                 case "downloads": return Loc("LOC_KX_Downloads", "Downloads");
                 case "store": return Loc("LOC_KX_Store", "Store");
                 case "gallery": return Loc("LOC_KX_Gallery", "Gallery");
-                case "battery": return Loc("LOC_KX_ControllerBattery", "Controller battery");
+                case "battery": return settings.BatterySource == 1 ? Loc("LOC_KX_DeviceBattery", "Battery") : Loc("LOC_KX_ControllerBattery", "Controller battery");
                 case "sleep": return Loc("LOC_KX_Sleep", "Sleep");
                 case "restart": return Loc("LOC_KX_Restart", "Restart");
                 case "shutdown": return Loc("LOC_KX_PowerOff", "Power off");

@@ -138,7 +138,7 @@
     <sys:String x:Key="LOC_KX_MissableLong">Missable: don't skip it</sys:String>
     <sys:String x:Key="LOC_KX_GuideWhen">When: </sys:String>
     <sys:String x:Key="LOC_KX_GetTips">Get AI tips for this game</sys:String>
-    <sys:String x:Key="LOC_KX_ShowBatteryPercent">Show controller battery percentage</sys:String>
+    <sys:String x:Key="LOC_KX_ShowBatteryPercent">Show battery percentage</sys:String>
     <sys:String x:Key="LOC_KX_InfoItemsHelp">Turn items on or off. To change the order, press the move button, then up or down.</sys:String>
     <sys:String x:Key="LOC_KX_AchItemsNone">Nothing here with this filter.</sys:String>
     <sys:String x:Key="LOC_KX_HiddenAchReveal">This one's a secret. Reveal it if you don't mind spoilers.</sys:String>
@@ -4802,4 +4802,10 @@
     <sys:String x:Key="LOC_KX_LocalHidden">Hidden</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenNone">Nothing hidden. Select on a poster hides it</sys:String>
     <sys:String x:Key="LOC_KX_LocalHiddenSub">Movies and shows you've hidden: show them again</sys:String>
+    <sys:String x:Key="LOC_KX_BatterySource">Battery shown</sys:String>
+    <sys:String x:Key="LOC_KX_BatterySourceSub">The controller's battery, or this device's own (a handheld or laptop), with a bolt while it's plugged in</sys:String>
+    <sys:String x:Key="LOC_KX_BatterySourceController">Controller</sys:String>
+    <sys:String x:Key="LOC_KX_BatterySourceDevice">This device</sys:String>
+    <sys:String x:Key="LOC_KX_DeviceBattery">Battery</sys:String>
+    <sys:String x:Key="LOC_KX_PcBattery">Battery</sys:String>
 </ResourceDictionary>
