@@ -303,7 +303,8 @@ namespace KippixHelper
             rows.Add(new PickRow
             {
                 Key = "touch", Icon = "cursor", Text = string.Format(Loc("LOC_KX_TouchMode", "Touch: {0}"), touch),
-                Sub = (HasTouchScreen ? Loc("LOC_KX_TouchFound", "A touch screen was found. ") : Loc("LOC_KX_TouchNone", "No touch screen found. "))
+                // (the language file's text comes without its last space: "A touch screen was found.Tap to choose")
+                Sub = (HasTouchScreen ? Loc("LOC_KX_TouchFound", "A touch screen was found. ") : Loc("LOC_KX_TouchNone", "No touch screen found. ")).TrimEnd() + " "
                       + Loc("LOC_KX_TouchHow", "Tap to choose, swipe through rows and lists, swipe in from the left edge to go back, hold for options"),
                 Command = new RelayCommand(_ => { settings.TouchMode = (settings.TouchMode + 1) % 3; SaveSettings(); PlaySound("move"); EnsureTouchInput(); GRowsAgain("touch"); })
             });
