@@ -741,7 +741,7 @@ namespace KippixHelper
             {
                 found++;
                 rows.Add(new PickRow { IsHeader = true, Text = "WEB EXPLORER" });
-                rows.Add(new PickRow { IsInfo = true, Icon = "info", Key = "addweb", Text = Loc("LOC_KX_WebExplorerInfo", "Noticed: web pages open in Kippix's own browser, so Web Explorer isn't added to the screens as well") });
+                rows.Add(new PickRow { IsInfo = true, Icon = "info", Key = "addweb", Text = Loc("LOC_KX_WebExplorerInfo", "Noticed: web pages open in the built-in browser, so Web Explorer isn't added to the screens as well") });
             }
             if (found == 0)
                 rows.Add(new PickRow
