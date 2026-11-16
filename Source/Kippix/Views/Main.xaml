@@ -7870,8 +7870,10 @@
                                                     </StackPanel>
                                                 </StackPanel>
                                                 <!-- Pick a look: X shows the highlighted box's photo big. Said right under the boxes, with the button's icon
-                                                     and full-strength text (it was only a line in Good to know, and easy to miss) -->
-                                                <StackPanel Orientation="Horizontal" Margin="4,10,0,0" Visibility="{PluginSettings Plugin=Kippix, Path=IsTourTiles, FallbackValue=Collapsed}">
+                                                     and full-strength text (it was only a line in Good to know, and easy to miss).
+                                                     It sits in the list's 40 px of room at the bottom (the -40): the boxes fill the screen exactly, and 40 px
+                                                     more made the list scroll, cutting the LAYOUT / DESIGN / PRESET headings in half -->
+                                                <StackPanel Orientation="Horizontal" Margin="4,10,0,-40" Visibility="{PluginSettings Plugin=Kippix, Path=IsTourTiles, FallbackValue=Collapsed}">
                                                     <ContentControl ContentTemplate="{DynamicResource ButtonPromptX}" Width="30" Height="30" Focusable="False" />
                                                     <TextBlock Text="{DynamicResource LOC_KX_TourZoomHint}" Style="{StaticResource KX_Text}" FontSize="20" Margin="10,0,0,0" VerticalAlignment="Center" />
                                                 </StackPanel>
