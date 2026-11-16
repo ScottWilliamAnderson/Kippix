@@ -553,14 +553,14 @@ namespace KippixHelper
                 Func<double, double, Color> over = (p, s) =>
                 {
                     double a = p + s * (1 - p);
-                    if (a <= 0) return Colors.Transparent;
+                    if (a <= 0) return Color.FromArgb(0, 0, 0, 0);   // (transparent black: Colors.Transparent is transparent white, and fading to it turns the band's edge into a pale haze)
                     return Color.FromArgb((byte)Math.Round(255 * a), (byte)Math.Round(panel.R * p / a), (byte)Math.Round(panel.G * p / a), (byte)Math.Round(panel.B * p / a));
                 };
                 var g = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
                 g.GradientStops.Add(new GradientStop(over(plate, dark), 0));
                 g.GradientStops.Add(new GradientStop(over(plate, dark * 0.55), Math.Max(0.05, band - 0.06)));
                 g.GradientStops.Add(new GradientStop(over(plate * 0.35, dark * 0.4), band + 0.04));
-                g.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
+                g.GradientStops.Add(new GradientStop(Color.FromArgb(0, 0, 0, 0), 1));
                 g.Freeze();
                 shade.Background = g;
                 shade.Height = h;
