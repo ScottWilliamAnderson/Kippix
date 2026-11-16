@@ -51,6 +51,7 @@ namespace KippixHelper
             try
             {
                 lastNavKeyAt = DateTime.Now;
+                if (JustifiedPanel.Perf) JustPerfPress(e);   // the mosaic's stopwatch (ThemeApi.JustifiedPerf.cs): a press, to its frame
                 if (pressWatch != null || ui == null || e.IsRepeat) return;
                 var b = PadButton(e);
                 pressKey = b != ControllerInput.None ? b.ToString() : e.Key.ToString();
