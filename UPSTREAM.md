@@ -1,6 +1,6 @@
 # Changes in this fork, ready to propose upstream
 
-Every change is one branch from `upstream/main` (Kipping0/Kippix 1.0.2, `ff1c428`), so each can be opened as its own pull request. `scott` is the integration branch (all of them merged) and is what runs on the device. Nothing has been proposed upstream yet.
+Every change is one branch from `upstream/main` (Kipping0/Kippix 1.0.2, `ff1c428`), so each can be opened as its own pull request. `scott` is the integration branch (all of them merged) and is what runs on the device. All of them are open as pull requests on Kipping0/Kippix: #3 to #31 (fixes) and #32 to #50 (features), listed in upstream issue #2.
 
 "Verified" means it was run on a ROG Xbox Ally X (1920x1080, Playnite 10.64 fullscreen) and checked on screen. "Compiled" means it builds and is merged, and was not looked at on screen after its last commit.
 
@@ -40,6 +40,7 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 | `fix/game-page-info-layout` | Game page info lines overlapped the logo and buttons. | Verified |
 | `fix/game-page-lower-gap` (on `fix/game-page-info-layout`) | Lower-page cards touched at larger text sizes. | Verified (two-card pages) |
 | `fix/game-page-long-name-hidden` (on `fix/game-page-info-layout`) | A long name without a logo ran behind the cover / trailer and was cut off; it wraps to two lines before it. | Verified |
+| `fix/seasonal-battery-saver` | Seasonal effects kept running on battery although the battery saver says they stand down (30 fps redraw of the home screen). | Verified (render thread about 45% of a core with the leaves, about 20% paused) |
 
 ### 2. Features
 
@@ -71,6 +72,6 @@ Start with the small bug fixes: they are short, self-contained and easy to revie
 - **Glue that exists only on `scott`:** the Mosaic tiles follow the shuffled cover's shape (`CoverSizes.PickOf`), the home video stops while the library view is open, apps stay listed in the library view, and two cycle hints for rows that come from other branches. Each is a few lines and is needed only when both branches are in.
 - **One branch is large:** `feat/justified-library` (15 commits, 28 files). It is split into commits by concern (panel, cover sizes, layout, library view, performance) and could be proposed as a series.
 - **Style:** the helper is C# 5 (csc.exe); strings are in `en_US.xaml` only, other languages fall back to English; comments follow the upstream author's style.
-- **Not for upstream:** `Setups/` (one person's setup) and this file.
+- **Not for upstream:** `Setups/` (one person's setup), this file, and the fork build's own version and update address (`GitHubRepo` in `ThemeApi.Help.cs`, `Version: x.y.z.N` in the two yaml files): the installed build updates from this fork's releases, published with `playnite-bridge\release-fork.ps1`.
 - **Tracker:** issues #1 to #22 in the fork describe the original problems and requests.
 - **On screen:** `Showcase/README.md` has a clip of each larger change.
