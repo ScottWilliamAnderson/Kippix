@@ -313,7 +313,7 @@ namespace KippixHelper
             {
                 if (!IsFullscreen) return;
                 var active = ActiveSeasons();
-                bool run = active.Count > 0 && !gameRunningNow && !previewPlaying && !detailsOpen && !IsAmbientOn;   // (they carry on behind the menus)
+                bool run = active.Count > 0 && !gameRunningNow && !previewPlaying && !detailsOpen && !IsAmbientOn && !batterySaving;   // (they carry on behind the menus)
                 if (settings.WeatherFxOn && settings.WeatherFxSync) RefreshLiveWeatherSoon();
                 // set days and hours (weather touches) come and go: the layer follows
                 if ((active.Count > 0) != seasonShownWas) { seasonShownWas = active.Count > 0; Notify("SeasonalShown"); }
