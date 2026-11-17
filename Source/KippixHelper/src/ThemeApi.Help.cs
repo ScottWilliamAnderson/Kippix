@@ -18,7 +18,7 @@ namespace KippixHelper
     {
         // (1.0.0) the public repository: the GitHub link, update checks (its latest release) and the Community gallery
         private const string GitHubUrl = "https://github.com/Kipping0/Kippix";
-        private const string GitHubRepo = "Kipping0/Kippix";
+        private const string GitHubRepo = "ScottWilliamAnderson/Kippix";   // (scott: this build updates from the fork's releases, never to a plain upstream one)
         private const string DonateUrl = "";   // (none: the Donate row is hidden)
 
         public ICommand HelpGitHubCommand { get; private set; }
