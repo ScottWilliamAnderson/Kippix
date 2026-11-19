@@ -155,7 +155,8 @@ namespace KippixHelper
             if (said == e.LastFound) return;
             e.LastFound = said;
             if (h == IntPtr.Zero) logger.Info("Kippix: running: " + e.Name + ": no window found");
-            else logger.Info("Kippix: running: " + e.Name + ": window 0x" + h.ToInt64().ToString("X") + " \"" + Title(h) + "\" (process " + pid + " " + ExeName(pid) + ", " + how + ")");
+            // (the window's title is left out: for a browser it is the page being read or watched, and this log gets shared)
+            else logger.Info("Kippix: running: " + e.Name + ": window 0x" + h.ToInt64().ToString("X") + " (process " + pid + " " + ExeName(pid) + ", " + how + ")");
         }
 
         /// <summary>
@@ -403,13 +404,6 @@ namespace KippixHelper
         {
             try { string p = Native.GetProcessPath(pid); return string.IsNullOrEmpty(p) ? "" : Path.GetFileNameWithoutExtension(p); }
             catch (Exception) { return ""; }
-        }
-
-        private static string Title(IntPtr h)
-        {
-            var sb = new StringBuilder(200);
-            GetWindowText(h, sb, sb.Capacity);
-            return sb.ToString();
         }
 
         /// <summary>Asks a window to close, the way its own close button would (WM_CLOSE): it can still save, or ask first.</summary>
