@@ -1064,6 +1064,27 @@ namespace KippixHelper
             }), DispatcherPriority.Loaded);
         }
 
+        /// <summary>
+        /// X on the highlighted tile of a row under the games (Apps, Favourites...): it starts, as X does on the games row
+        /// (or comes to the front when it's already running). True: the press was ours, also the let-go.
+        /// </summary>
+        private bool ExtraRowX(bool pressed)
+        {
+            if (extraRowAt == 0) return false;
+            var f = Keyboard.FocusedElement as FrameworkElement;
+            var tile = f != null ? f.DataContext as RowTile : null;
+            if (tile == null || tile.RunRow || tile.GameId == Guid.Empty) return false;
+            if (!pressed) return true;
+            PlaySound("select");
+            extraFocused = tile;
+            Guid id = tile.GameId;
+            try { api.MainView.SelectGame(id); } catch (Exception) { }
+            if (TrySwitchInsteadOfPlay(id)) return true;
+            launchedDirectlyAt = DateTime.Now;
+            try { api.StartGame(id); } catch (Exception) { }
+            return true;
+        }
+
         /// <summary>The game page closed after looking at More like this games: the game you first opened is selected again.</summary>
         private void BackToOriginGame()
         {
