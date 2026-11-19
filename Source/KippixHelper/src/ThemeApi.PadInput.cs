@@ -219,6 +219,8 @@ namespace KippixHelper
 
                 // (issue #11) X on a Running now tile: that app is asked to close (the let-go goes nowhere either)
                 if (button == ControllerInput.X && !e.Handled && openPanel == null && !detailsOpen && !confirmOpen && RunningRowX(pressed)) { e.Handled = true; padHandled = e; return; }
+                // X on a tile of another row under the games: it starts, as on the games row (ThemeApi.HomeRows.cs)
+                if (button == ControllerInput.X && !e.Handled && openPanel == null && !detailsOpen && !confirmOpen && ExtraRowX(pressed)) { e.Handled = true; padHandled = e; return; }
                 // hold X on a card: kept in that spot (a tap still opens Playnite's game menu)
                 if (button == ControllerInput.X && !e.Handled && HoldXDown(e)) return;
                 // (already handled lower down, e.g. a game started straight from its card: not held, not played again)
