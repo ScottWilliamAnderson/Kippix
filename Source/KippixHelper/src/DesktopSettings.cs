@@ -175,6 +175,8 @@ namespace KippixHelper
                 reset("Reset game page layout", () => s.Theme.ResetLayout("game")),
                 reset("Reset all layouts", () => s.Theme.ResetLayout("layout")),
                 reset("Undo last reset", () => s.Theme.UndoReset())));
+            // (1.0.5) a controller button turned off or moved somewhere you can't undo it from (fullscreen: L3 + R3 held 5 s)
+            layouts.Add(SettingsUi.Buttons(reset("Reset controller buttons", () => s.Theme.ResetControllerButtons())));
             var everything = reset("Reset everything…", () =>
             {
                 if (MessageBox.Show("Reset everything?\n\nThis puts every layout and option back to how Kippix comes. Undo last reset can bring it back.",

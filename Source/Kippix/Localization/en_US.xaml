@@ -2973,7 +2973,7 @@
     <sys:String x:Key="LOC_KX_PageUpNextSub">Games to play next or finish soon</sys:String>
     <sys:String x:Key="LOC_KX_PageHealthSub">Missing pictures and info, duplicates, broken installs</sys:String>
     <sys:String x:Key="LOC_KX_RmIntro">A on an action, then press the button you want for it</sys:String>
-    <sys:String x:Key="LOC_KX_RmIntroSub">Change Kippix's buttons, Playnite's are listed at the end</sys:String>
+    <sys:String x:Key="LOC_KX_RmIntroSub">Change Kippix's buttons: X puts one back, Y turns it off. Playnite's are listed at the end</sys:String>
     <sys:String x:Key="LOC_KX_RmPressHome">Press (and let go of) the button you want…</sys:String>
     <sys:String x:Key="LOC_KX_RmPress">Press the button you want…   B cancels</sys:String>
     <sys:String x:Key="LOC_KX_RmButton">Button: {0}</sys:String>
@@ -5026,4 +5026,10 @@
     <sys:String x:Key="LOC_KX_MediaHelpWindow">Every service opens its website in your browser, in a normal window.</sys:String>
     <!-- 1.0.4: top bar battery -->
     <sys:String x:Key="LOC_KX_BatterySourceAuto">Automatic</sys:String>
+    <!-- 1.0.5: controller buttons, turned off; the failsafe -->
+    <sys:String x:Key="LOC_KX_RmOff">off</sys:String>
+    <sys:String x:Key="LOC_KX_RmFailsafe">Can't get back here?</sys:String>
+    <sys:String x:Key="LOC_KX_RmFailsafeSub">Hold both sticks in (L3 + R3) for 5 seconds anywhere, or use Reset controller buttons in the add-on's settings in desktop mode</sys:String>
+    <sys:String x:Key="LOC_KX_RmResetDone">Controller buttons reset</sys:String>
+    <sys:String x:Key="LOC_KX_RmResetDoneLine">Every button does what it did when Kippix was installed</sys:String>
 </ResourceDictionary>

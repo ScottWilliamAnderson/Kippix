@@ -156,6 +156,7 @@ namespace KippixHelper
                 if (gen != detOpenGen || !detailsOpen) return;
                 try { ApplyMasterOffsets(); } catch (Exception) { }   // (0.99.65: places only; the parts aren't moved between the pages again, which made them flash)
                 try { HookDetFades(details); } catch (Exception) { }   // (0.99.64) what comes in later fades in
+                try { DescTextNoFocus(details); } catch (Exception) { }   // the description's text never takes the highlight
             }), DispatcherPriority.Loaded);
             EventHandler once = null;
             once = (s, e) =>
@@ -168,6 +169,7 @@ namespace KippixHelper
                     catch (Exception ex) { logger.Warn("Kippix: filling the game page: " + ex.Message); }
                     try { ApplyMasterOffsets(); } catch (Exception) { }   // (0.99.63: what was filled in, in its place too)
                     try { HookDetFades(details); } catch (Exception) { }
+                    try { DescTextNoFocus(details); } catch (Exception) { }   // (again: a part made after the first layout)
                     try { GamePageUpdateCheck(SelectedGameNow()); } catch (Exception) { }
                     try { DetProgressRefresh(); } catch (Exception) { }   // (0.99.48) story progress   // (0.99.39) an update waiting: a card
                     detFilledGen = gen;   // (0.99.69) filled in: the entrance can start once it's drawn

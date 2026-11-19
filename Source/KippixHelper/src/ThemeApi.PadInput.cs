@@ -84,6 +84,7 @@ namespace KippixHelper
                 if (button == ControllerInput.None || ReferenceEquals(e, lastPadEvent) || ReferenceEquals(e, replayingA)) return;
                 lastPadEvent = e;
                 if (padEventType == null) padEventType = e.GetType();
+                if (!ReferenceEquals(e, remapRaised) && lookFullscreen) PadFailsafe(button, !IsPadRelease(e));   // (1.0.5) L3 + R3 held: controller buttons reset
                 if (!lookFullscreen || !InMainWindow(sender)) return;
                 if (justPending != null) JustCommitUnlessMove(e);   // the mosaic: anything but a move acts on the highlighted game
 
@@ -152,6 +153,9 @@ namespace KippixHelper
                     OpenSearch();
                     return;
                 }
+
+                // (1.0.5) Controller buttons: Y on an action turns it off (or back on)
+                if (button == ControllerInput.Y && pressed && openPanel == "options" && optionsPage == "padbuttons" && padCapture == null && !confirmOpen && PadToggleOff()) { e.Handled = true; padHandled = e; return; }
 
                 // Y in the store / achievements: their search (caught here, before Playnite's own Y)
                 if (button == ControllerInput.Y && openPanel != null && !confirmOpen && !freeMove && YSearch())
@@ -246,6 +250,7 @@ namespace KippixHelper
                 var button = PadButton(e);
                 if (button == ControllerInput.None || ReferenceEquals(e, lastPadEvent) || ReferenceEquals(e, replayingA)) return;
                 lastPadEvent = e;
+                if (!ReferenceEquals(e, remapRaised) && lookFullscreen) PadFailsafe(button, false);   // (1.0.5)
                 if (button == ControllerInput.Start) startLatched = false;   // (0.99.50: Start let go)
                 // B let go stops hold-B-for-home wherever the release lands: it goes to the highlighted element, which can be one
                 // the press just took away (no longer in the window), and a missed release went home 0.8 s after a quick B

@@ -96,6 +96,8 @@ namespace KippixHelper
         {
             string v;
             ControllerInput b;
+            // (1.0.5, issue #51) turned off (Y on its row): no button does it
+            if (a != null && settings.PadMap != null && settings.PadMap.TryGetValue(a.Id, out v) && v == PadOff) return ControllerInput.None;
             if (a != null && settings.PadMap != null && settings.PadMap.TryGetValue(a.Id, out v) && !string.IsNullOrEmpty(v)
                 && Enum.TryParse(v, out b) && RemapButtons.Contains(b) && PadTargetAllowed(a, b)) return b;
             return a != null ? a.Default : ControllerInput.None;
@@ -289,7 +291,7 @@ namespace KippixHelper
         private void BuildPadButtonRows(List<PickRow> rows)
         {
             rows.Add(new PickRow { IsInfo = true, Icon = "controller", Text = Loc("LOC_KX_RmIntro", "A on an action, then press the button you want for it"),
-                                   Sub = Loc("LOC_KX_RmIntroSub", "X puts that one back. Kippix's own buttons can move; Playnite's are listed at the end.") });
+                                   Sub = Loc("LOC_KX_RmIntroSub", "X puts that one back, Y turns it off. Kippix's own buttons can move; Playnite's are listed at the end.") });
             string[] ctxs = { "home", "game", "menus", "edit", "hold" };
             foreach (string ctx in ctxs)
             {
@@ -302,7 +304,7 @@ namespace KippixHelper
                     if (padCapture == a.Id) sub = a.Id == "hold.home" ? Loc("LOC_KX_RmPressHome", "Press (and let go of) the button you want…") : Loc("LOC_KX_RmPress", "Press the button you want…   B cancels");
                     else
                     {
-                        sub = string.Format(Loc("LOC_KX_RmButton", "Button: {0}"), PadButtonName(now));
+                        sub = string.Format(Loc("LOC_KX_RmButton", "Button: {0}"), now == ControllerInput.None ? Loc("LOC_KX_RmOff", "off") : PadButtonName(now));
                         if (now != a.Default) sub += "   ·   " + string.Format(Loc("LOC_KX_RmWas", "was {0}"), PadButtonName(a.Default));
                         string clash = PadClash(a, now);
                         if (clash != null) sub += "   ·   ⚠ " + clash;
@@ -345,18 +347,12 @@ namespace KippixHelper
             rows.Add(new PickRow { Key = "padreset", Icon = "refresh", Text = Loc("LOC_KX_ResetThisPage", "Reset this page"), Sub = Loc("LOC_KX_ResetThisPageSub", "Resets this page to default"),
                                    Command = new RelayCommand(_ =>
                                    {
-                                       if (settings.PadMap != null) settings.PadMap.Clear();
-                                       settings.GuideGoesHome = true;
-                                       settings.HomeButton = 0;
-                                       settings.HomeBackTo = 0;
-                                       settings.PadStartDoes = 0;   // (1.0.4)
-                                       settings.PadViewDoes = 0;
-                                       remapHeld.Clear();
-                                       SaveSettings();
+                                       ResetControllerButtons();
                                        PlaySound("select");
-                                       foreach (string n in new[] { "GuideGoesHome", "HomeButtonTitle", "HomeButtonText" }) Notify(n);
                                        GRowsAgain("padreset");
                                    }) });
+            rows.Add(new PickRow { Key = "padsafe", IsInfo = true, Icon = "info", Text = Loc("LOC_KX_RmFailsafe", "Can't get back here?"),
+                                   Sub = Loc("LOC_KX_RmFailsafeSub", "Hold both sticks in (L3 + R3) for 5 seconds anywhere, or use Reset controller buttons in the add-on's settings in desktop mode") });
         }
 
         private string PadContextHeader(string ctx)
@@ -374,6 +370,7 @@ namespace KippixHelper
         /// <summary>What else answers to that button in the same place, or null.</summary>
         private string PadClash(PadAction a, ControllerInput b)
         {
+            if (b == ControllerInput.None) return null;   // (1.0.5: turned off)
             var other = PadActions.FirstOrDefault(x => !ReferenceEquals(x, a) && x.Context == a.Context && PadMapOf(x) == b);
             if (other != null) return string.Format(Loc("LOC_KX_RmClash", "also {0}"), PadActionName(other));
             if (a.Context == "hold") return null;   // (a held button still does its own thing when tapped)
@@ -509,6 +506,7 @@ namespace KippixHelper
             foreach (var k in settings.PadMap.Keys.ToList())
             {
                 ControllerInput b;
+                if (settings.PadMap[k] == PadOff) continue;   // (1.0.5: turned off)
                 if (!Enum.TryParse(settings.PadMap[k] ?? "", out b) || !RemapButtons.Contains(b)) settings.PadMap.Remove(k);
             }
         }

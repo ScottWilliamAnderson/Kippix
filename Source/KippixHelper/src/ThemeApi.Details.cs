@@ -333,6 +333,28 @@ namespace KippixHelper
             return true;
         }
 
+        /// <summary>
+        /// The description's text never takes the highlight: its button does (A opens it full screen). The theme says so on the
+        /// text view, but the panel Playnite puts inside it could still take it. Down from the description then went into the
+        /// text, with nothing lit up, and the lower page took one more press.
+        /// </summary>
+        private static void DescTextNoFocus(DependencyObject details)
+        {
+            var desc = UiTools.FindByName(details, "KX_DetDescButton");
+            if (desc == null) return;
+            var queue = new Queue<DependencyObject>();
+            queue.Enqueue(desc);
+            while (queue.Count > 0)
+            {
+                var d = queue.Dequeue();
+                var el = d as UIElement;
+                if (el != null && !ReferenceEquals(d, desc) && el.Focusable) el.Focusable = false;
+                int n = 0;
+                try { n = VisualTreeHelper.GetChildrenCount(d); } catch (Exception) { }
+                for (int i = 0; i < n; i++) queue.Enqueue(VisualTreeHelper.GetChild(d, i));
+            }
+        }
+
         /// <summary>Shown on screen: visible, more than a dot, and not see-through (itself or anything it sits in, up to the game page).</summary>
         private static bool SeenOnGamePage(DependencyObject d, DependencyObject root)
         {
