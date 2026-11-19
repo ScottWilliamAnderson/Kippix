@@ -627,6 +627,16 @@ namespace KippixHelper
             GameStatusRows.Clear();
             if (g == null) return;
             AddCompletionQuickRows(g);   // FINISHED IT? Beaten / 100% / Dropped (ThemeApi.Completion.cs)
+            // the stars come before the status list: that one is as long as Playnite's own list of statuses, and under it the
+            // stars were off the bottom of the panel when it opened (11 presses down with Playnite's eight statuses)
+            GameStatusRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_RatingHeader", "YOUR RATING") });
+            int now = g.UserScore.HasValue ? (int)Math.Round(g.UserScore.Value / 20.0) : 0;
+            for (int i = 5; i >= 1; i--)
+            {
+                int n = i;
+                GameStatusRows.Add(new PickRow { Text = new string('★', n) + new string('☆', 5 - n), Icon = "star", Key = "r:" + n, IsSelected = now == n, Command = new RelayCommand(_ => SetGameRating(n)) });
+            }
+            GameStatusRows.Add(new PickRow { Text = Loc("LOC_KX_ClearRating", "No rating"), Icon = "remove", Key = "r:0", IsSelected = now == 0, Command = new RelayCommand(_ => SetGameRating(0)) });
             GameStatusRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_StatusHeader", "STATUS") });
             try
             {
@@ -637,14 +647,6 @@ namespace KippixHelper
                 }
             }
             catch (Exception) { }
-            GameStatusRows.Add(new PickRow { IsHeader = true, Text = Loc("LOC_KX_RatingHeader", "YOUR RATING") });
-            int now = g.UserScore.HasValue ? (int)Math.Round(g.UserScore.Value / 20.0) : 0;
-            for (int i = 5; i >= 1; i--)
-            {
-                int n = i;
-                GameStatusRows.Add(new PickRow { Text = new string('★', n) + new string('☆', 5 - n), Icon = "star", Key = "r:" + n, IsSelected = now == n, Command = new RelayCommand(_ => SetGameRating(n)) });
-            }
-            GameStatusRows.Add(new PickRow { Text = Loc("LOC_KX_ClearRating", "No rating"), Icon = "remove", Key = "r:0", IsSelected = now == 0, Command = new RelayCommand(_ => SetGameRating(0)) });
         }
 
         private Game PanelGame() { try { return detGameId != Guid.Empty ? api.Database.Games.Get(detGameId) : SelectedGameNow(); } catch (Exception) { return null; } }
