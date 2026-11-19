@@ -95,6 +95,19 @@ foreach ($s in $sites) {
     Check ($got -ceq $s[1]) ("Site('" + $s[0] + "') = '" + $s[1] + "' (got '" + $got + "')")
 }
 
+# ---------------- LinkUrl.IconKey / Initial (the top bar button's picture) ----------------
+$icons = @(
+    @("https://www.netflix.com/title/1", "netflix", "N"), @("https://www.youtube.com/watch?v=x", "youtube", "Y"),
+    @("https://www.primevideo.com/detail/x", "prime", "P"), @("https://www.disneyplus.com/series/x", "disney", "D"),
+    @("https://tv.apple.com/show/x", "appletv", "A"), @("https://www.max.com/shows/x", "hbo", "M"),
+    @("https://www.bbc.co.uk/iplayer/episode/x", $null, "B"), @("https://www.channel5.com/show/x", $null, "5"),
+    @("https://www.example.com/a", $null, "E"), @("https://www.discoveryplus.com/x", $null, "D"), @("https://192.0.2.1/x", $null, "1")
+)
+foreach ($i in $icons) {
+    Check ([KippixLinks.LinkUrl]::IconKey($i[0]) -ceq $i[1]) ("IconKey of a " + $i[2] + " site = '" + $i[1] + "'")
+    Check ([string][KippixLinks.LinkUrl]::Initial($i[0]) -ceq $i[2]) ("Initial = '" + $i[2] + "' (got '" + [KippixLinks.LinkUrl]::Initial($i[0]) + "')")
+}
+
 # ---------------- LinkUrl.CleanTitle ----------------
 $zw = [char]0x200B
 $em = [char]0x2014

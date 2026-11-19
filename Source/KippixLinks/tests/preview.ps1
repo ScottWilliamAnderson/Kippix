@@ -1,6 +1,6 @@
 # Draws the Links panel with made-up sample links to a PNG, without Playnite and without showing a window: a look at the
 # layout while working on it. Nothing here reads the real list (the sample store lives in a temp folder and is removed).
-#   powershell -NoProfile -STA -ExecutionPolicy Bypass -File tests\preview.ps1 -Out panel.png [-View list|rename|confirm|empty]
+#   powershell -NoProfile -STA -ExecutionPolicy Bypass -File tests\preview.ps1 -Out panel.png [-View list|quick|rename|confirm|empty]
 param([Parameter(Mandatory)][string]$Out, [string]$View = "list", [string]$TempRoot = $env:TEMP, [double]$Scale = 1.5)
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
@@ -31,7 +31,10 @@ try {
     $type = $asm.GetType("KippixLinks.LinksPanel")
     [KippixLinks.TestHooks]::NoClipboard = $true   # never the real clipboard
     $ctor = $type.GetConstructors($flags)[0]
-    $panel = $ctor.Invoke([object[]]@($store.PSObject.BaseObject, $null, $null, $null))
+    $settings = [KippixLinks.PanelSettings]::Load($dir)
+    $isQuick = ($View -eq "quick") -and $first
+    $focus = $null; if ($isQuick) { $focus = $first.PSObject.BaseObject }
+    $panel = $ctor.Invoke([object[]]@($store.PSObject.BaseObject, $null, $null, $focus, $settings, [bool]$isQuick))
     if ($View -eq "rename" -and $first) { [void]$type.GetMethod("ShowRename", $flags).Invoke($panel, [object[]]@($first.PSObject.BaseObject)) }
     if ($View -eq "confirm") { [void]$type.GetMethod("ShowConfirm", $flags).Invoke($panel, [object[]]@()) }
     $w = $panel.Width; $h = $panel.Height

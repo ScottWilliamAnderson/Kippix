@@ -379,6 +379,10 @@ namespace KippixLinks
         public string Before { get; set; }
         /// <summary>Pick up a page's title from the browser window after opening it.</summary>
         public bool Titles { get; set; }
+        /// <summary>The top bar button opens the latest link straight away (off: it shows the list).</summary>
+        public bool Direct { get; set; }
+        /// <summary>The top bar button's picture follows the latest link's site (off: always the plain link icon).</summary>
+        public bool SiteIcon { get; set; }
 
         public PanelSettings()
         {
@@ -386,6 +390,8 @@ namespace KippixLinks
             Stay = false;
             Before = "options";
             Titles = true;
+            Direct = true;
+            SiteIcon = true;
         }
 
         public static PanelSettings Load(string dataFolder)
@@ -401,6 +407,8 @@ namespace KippixLinks
                 if (d.TryGetValue("Pinned", out v) && v is bool) s.Pinned = (bool)v;
                 if (d.TryGetValue("Stay", out v) && v is bool) s.Stay = (bool)v;
                 if (d.TryGetValue("Titles", out v) && v is bool) s.Titles = (bool)v;
+                if (d.TryGetValue("Direct", out v) && v is bool) s.Direct = (bool)v;
+                if (d.TryGetValue("SiteIcon", out v) && v is bool) s.SiteIcon = (bool)v;
                 if (d.TryGetValue("Before", out v) && v is string && ((string)v).Length <= 64) s.Before = (string)v;
             }
             catch (Exception ex) { SafeLog.Warn("settings: unreadable, defaults used", ex); }
@@ -413,7 +421,7 @@ namespace KippixLinks
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
-                var d = new Dictionary<string, object> { { "Pinned", Pinned }, { "Stay", Stay }, { "Before", Before ?? "" }, { "Titles", Titles } };
+                var d = new Dictionary<string, object> { { "Pinned", Pinned }, { "Stay", Stay }, { "Before", Before ?? "" }, { "Titles", Titles }, { "Direct", Direct }, { "SiteIcon", SiteIcon } };
                 AtomicFile.Write(file, Encoding.UTF8.GetBytes(new JavaScriptSerializer().Serialize(d)));
             }
             catch (Exception ex) { SafeLog.Warn("settings: save failed", ex); }

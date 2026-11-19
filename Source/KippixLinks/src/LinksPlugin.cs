@@ -11,7 +11,7 @@ namespace KippixLinks
 {
     /// <summary>
     /// Links: a "Links" button in Kippix's top bar (fullscreen) and a Links entry in Playnite's main menu (either mode).
-    /// It keeps the web pages you add (your shows) and opens them full screen in your browser.
+    /// It keeps the web pages you add and opens them full screen in your browser.
     /// Built with the .NET Framework C# 5 compiler (csc.exe): no newer syntax.
     /// </summary>
     public class LinksPlugin : GenericPlugin
@@ -59,8 +59,11 @@ namespace KippixLinks
             try
             {
                 if (api.ApplicationInfo.Mode != ApplicationMode.Fullscreen) return;
-                topBar = new TopBarButton(seam, Settings, () => OpenPanel(null));
+                topBar = new TopBarButton(seam, Settings, ButtonPressed);
                 topBar.Start();
+                // the button's picture, once Playnite has finished starting (the list is read then, not during start-up)
+                var app = Application.Current;
+                if (app != null) app.Dispatcher.BeginInvoke(new Action(RefreshIcon), DispatcherPriority.ContextIdle);
             }
             catch (Exception ex) { SafeLog.Warn("start failed", ex); }
         }
@@ -99,12 +102,58 @@ namespace KippixLinks
 
         // ---------------- the panel ----------------
 
+        /// <summary>
+        /// The top bar button's picture: the latest link's site (Kippix's own icon for it, or a letter badge), so the button
+        /// looks like what it opens; the plain link icon when that is switched off or there is no link. Only the site is
+        /// ever shown there, in Playnite's main window, never the page.
+        /// </summary>
+        private void RefreshIcon()
+        {
+            try
+            {
+                if (topBar == null) return;
+                System.Windows.Media.ImageSource pic = null;
+                if (Settings.SiteIcon)
+                {
+                    var items = Store.Items;
+                    if (items.Count > 0)
+                        pic = SiteIcon.For(items[0].Url, System.IO.Path.Combine(api.Paths.ConfigurationPath, "Themes", "Fullscreen", "Kippix_Kipping0"));
+                }
+                topBar.SetIcon(pic);
+            }
+            catch (Exception ex) { SafeLog.Warn("icon: failed", ex); }
+        }
+
+        /// <summary>
+        /// The top bar button. Like one of Kippix's own streaming shortcuts, it opens a page straight away: the latest link
+        /// (the one added or opened last), after a moment's "Opening" card from which the full list can be had instead.
+        /// The list comes first when there is nothing to open yet, when a new address has just been copied (ready to add),
+        /// or when "Top bar button" is set to show the list.
+        /// </summary>
+        private void ButtonPressed()
+        {
+            try
+            {
+                LinkItem latest = null;
+                if (Settings.Direct && !panelOpen)
+                {
+                    var items = Store.Items;
+                    if (items.Count > 0 && !LinksPanel.ClipboardHoldsNew(Store)) latest = items[0];
+                }
+                OpenPanel(latest, latest != null);
+            }
+            catch (Exception ex) { SafeLog.Warn("button: failed", ex); }
+        }
+
         /// <summary>Shows the panel (one at a time). focus: the link to highlight first, or null.</summary>
-        private void OpenPanel(LinkItem focus)
+        private void OpenPanel(LinkItem focus) { OpenPanel(focus, false); }
+
+        /// <summary>quick: the "Opening" card for focus instead of the list.</summary>
+        private void OpenPanel(LinkItem focus, bool quick)
         {
             var app = Application.Current;
             if (app == null) return;
-            if (!app.Dispatcher.CheckAccess()) { app.Dispatcher.BeginInvoke(new Action(() => { try { OpenPanel(focus); } catch (Exception ex) { SafeLog.Warn("panel: open failed", ex); } })); return; }
+            if (!app.Dispatcher.CheckAccess()) { app.Dispatcher.BeginInvoke(new Action(() => { try { OpenPanel(focus, quick); } catch (Exception ex) { SafeLog.Warn("panel: open failed", ex); } })); return; }
             if (panelOpen)
             {
                 // already up (one at a time): bring it back to the front instead of doing nothing
@@ -125,7 +174,7 @@ namespace KippixLinks
                 catch (Exception) { }
                 var savedRef = saved != null ? new WeakReference(saved) : null;
 
-                var panel = new LinksPanel(Store, seam, main, focus != null && Store.Contains(focus) ? focus : null);
+                var panel = new LinksPanel(Store, seam, main, focus != null && Store.Contains(focus) ? focus : null, Settings, quick);
                 openPanel = panel;
                 panel.Closed += (s, e) =>
                 {
@@ -142,12 +191,13 @@ namespace KippixLinks
                         {
                             try { AfterPanel(result, item); }
                             catch (Exception ex) { SafeLog.Warn("panel: after close", ex); }
+                            RefreshIcon();   // (the latest link, or the icon setting, may have changed)
                         }), DispatcherPriority.ContextIdle);
                     }
                     catch (Exception ex) { SafeLog.Warn("panel: closed", ex); }
                 };
                 panel.Show();
-                SafeLog.Info("panel opened");
+                if (quick) SafeLog.Info("opening card shown"); else SafeLog.Info("panel opened");
             }
             catch (Exception ex)
             {
@@ -185,6 +235,7 @@ namespace KippixLinks
         {
             if (item == null || !Store.Contains(item)) return;
             if (result == PanelResult.Open) TheOpener.Open(item);
+            else if (result == PanelResult.List) OpenPanel(item, false);   // (asked for from the "Opening" card)
         }
     }
 }

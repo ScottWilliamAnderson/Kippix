@@ -50,6 +50,15 @@ namespace KippixLinks
         private int retries;
         private DispatcherTimer orderSave;
         private bool stopped;
+        private ImageSource picture;   // the site's icon when the button follows the latest link (null: the plain link icon)
+
+        /// <summary>The button's picture: the given one, or the plain link icon for null (UI thread).</summary>
+        public void SetIcon(ImageSource p)
+        {
+            picture = p;
+            try { if (item != null) KippixSeam.SetProp(item, "Picture", p ?? MakeIcon()); }
+            catch (Exception ex) { SafeLog.Warn("top bar: icon", ex); }
+        }
 
         public TopBarButton(KippixSeam seam, PanelSettings settings, Action openPanel)
         {
@@ -93,7 +102,7 @@ namespace KippixLinks
             var cmd = new SafeCommand("top bar: open failed", openPanel);
             object it = null;
             var move = new SafeCommand("top bar: move failed", () => { if (item != null) seam.ToggleMove(item); });
-            it = seam.NewShortcut(Key, "Links", cmd, move, MakeIcon());
+            it = seam.NewShortcut(Key, "Links", cmd, move, picture ?? MakeIcon());
             if (it == null) return false;
             KippixSeam.SetProp(it, "IsPinned", settings.Pinned);
             KippixSeam.SetProp(it, "IsShown", settings.Pinned);

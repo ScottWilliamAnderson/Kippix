@@ -17,7 +17,8 @@ using Playnite.SDK.Events;
 
 namespace KippixLinks
 {
-    internal enum PanelResult { None, Open }
+    /// <summary>Open: open ResultItem. List: show the full list, on ResultItem (asked from the "Opening" card).</summary>
+    internal enum PanelResult { None, Open, List }
 
     /// <summary>Switches for the offline tools in tests\ (never set inside Playnite).</summary>
     public static class TestHooks
@@ -45,7 +46,7 @@ namespace KippixLinks
     /// </summary>
     internal class LinksPanel : Window
     {
-        private enum RowKind { Add, Link, ForgetAll, Keep, ConfirmForget, Key }
+        private enum RowKind { Add, Link, ForgetAll, Keep, ConfirmForget, Key, Direct, SiteIcon }
         private enum KeyKind { Char, Shift, Space, Delete, Done }
 
         private class RowInfo
@@ -65,6 +66,13 @@ namespace KippixLinks
         private readonly LinkStore store;
         private readonly KippixSeam seam;
         private readonly LinkItem focusFirst;
+        private readonly PanelSettings settings;   // (null in the offline preview)
+        // The "Opening" card: the top bar button pressed with a link to open. It shows which one for a moment and then opens
+        // it; the confirm button in that moment shows the full list instead, the cancel button stops it.
+        private readonly bool quick;
+        private DispatcherTimer quickTimer;
+        private const int QuickMs = 1100;
+        private const double QuickHeight = 236;    // (logical units: the title, the link's two lines, the hint)
         private readonly ControllerInput confirmButton;
         private readonly ControllerInput cancelButton;
 
@@ -94,11 +102,13 @@ namespace KippixLinks
         /// <summary>It closed because another window was activated (so the main window isn't pulled to the front).</summary>
         public bool ClosedByDeactivation { get; private set; }
 
-        public LinksPanel(LinkStore store, KippixSeam seam, Window main, LinkItem focusFirst)
+        public LinksPanel(LinkStore store, KippixSeam seam, Window main, LinkItem focusFirst, PanelSettings settings = null, bool quick = false)
         {
             this.store = store;
             this.seam = seam;
             this.focusFirst = focusFirst;
+            this.settings = settings;
+            this.quick = quick && focusFirst != null;
             confirmButton = PlayniteBinding("ConfirmationBinding", ControllerInput.A);
             cancelButton = PlayniteBinding("CancellationBinding", ControllerInput.B);
 
@@ -136,8 +146,11 @@ namespace KippixLinks
 
             double logicalHeight;
             double k = Place(main, out logicalHeight);
+            if (this.quick) { logicalHeight = QuickHeight; Height = QuickHeight * k; }   // a card under the top bar, not the whole side
             Content = BuildFrame(k, logicalHeight);
-            ShowList();
+            if (this.quick) ShowQuick(); else ShowList();
+            // (a tap on the card is the same as the confirm button: the list)
+            PreviewMouseLeftButtonDown += (s, e) => Guard(() => { if (this.quick && !closing) { e.Handled = true; Do(Act.Confirm); } });
 
             // typing a name: no IME or suggestion windows (they belong to other programs and would show the text outside this window)
             InputMethod.SetIsInputMethodEnabled(this, false);
@@ -151,7 +164,16 @@ namespace KippixLinks
             PreviewMouseMove += OnPreviewMouseMove;
             AddHandler(Keyboard.KeyDownEvent, new KeyEventHandler(OnPadDown), true);
             AddHandler(Keyboard.KeyUpEvent, new KeyEventHandler(OnPadUp), true);
-            Loaded += (s, e) => Guard(() => { shownAt.Start(); Activate(); FocusInitial(); });
+            Loaded += (s, e) => Guard(() =>
+            {
+                shownAt.Start(); Activate(); FocusInitial();
+                if (this.quick)
+                {
+                    quickTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(QuickMs) };
+                    quickTimer.Tick += (s2, e2) => Guard(() => { StopQuick(); if (!closing) CloseWith(PanelResult.Open, this.focusFirst); });
+                    quickTimer.Start();
+                }
+            });
             Deactivated += (s, e) => Guard(() =>
             {
                 if (closing) return;
@@ -321,7 +343,7 @@ namespace KippixLinks
             Grid.SetRow(hint, 2);
             grid.Children.Add(hint);
             // 620 x (944 on 16:9) logical units; the window's own background is the panel colour (painted once)
-            var frame = new Border { Width = 620, Height = Math.Max(300, logicalHeight), Padding = new Thickness(28), Child = grid };
+            var frame = new Border { Width = 620, Height = Math.Max(quick ? 160 : 300, logicalHeight), Padding = new Thickness(28), Child = grid };
             var outer = new Border { Child = frame, LayoutTransform = new ScaleTransform(k, k) };
             KeyboardNavigation.SetTabNavigation(outer, KeyboardNavigationMode.Cycle);
             KeyboardNavigation.SetDirectionalNavigation(outer, KeyboardNavigationMode.None);
@@ -344,13 +366,13 @@ namespace KippixLinks
                         // it could be captured: show no name, title or site at all (fixed text only), and no rename
                         SafeLog.Info("panel: display affinity not set, names hidden");
                         masked = true;
-                        ShowList();
+                        if (quick) ShowQuick(); else ShowList();
                     }
                 }
                 // rounded corners on Windows 11 (DWMWA_WINDOW_CORNER_PREFERENCE = round); older Windows just ignores it
                 try { int round = 2; NativeMethods.DwmSetWindowAttribute(h, 33, ref round, sizeof(int)); } catch (Exception) { }
             }
-            catch (Exception ex) { masked = true; SafeLog.Warn("panel: source initialized", ex); try { ShowList(); } catch (Exception) { } }
+            catch (Exception ex) { masked = true; SafeLog.Warn("panel: source initialized", ex); try { if (quick) ShowQuick(); else ShowList(); } catch (Exception) { } }
         }
 
         private void OnPreviewMouseMove(object sender, MouseEventArgs e)
@@ -477,6 +499,11 @@ namespace KippixLinks
                 forget.Margin = new Thickness(0, 14, 0, 4);
                 list.Children.Add(forget);
             }
+            if (settings != null)
+            {
+                list.Children.Add(MakeRow(RowKind.Direct, null, "Top bar button", DirectText()));
+                list.Children.Add(MakeRow(RowKind.SiteIcon, null, "Button icon", SiteIconText()));
+            }
             body.Content = new ScrollViewer
             {
                 Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
@@ -484,6 +511,41 @@ namespace KippixLinks
             };
             UpdateAddDetail();
             SetHint();
+        }
+
+        private string DirectText()
+        {
+            return settings != null && settings.Direct
+                ? "Opens the latest link (press again at once for this list)"
+                : "Shows this list";
+        }
+
+        private string SiteIconText()
+        {
+            return settings != null && settings.SiteIcon
+                ? "Shows the latest link's site (the top bar can be seen in screenshots)"
+                : "Plain link icon";
+        }
+
+        /// <summary>The "Opening" card: the link about to open (its name, or "Link 1" when names are hidden) and what the buttons do.</summary>
+        private void ShowQuick()
+        {
+            confirming = false;
+            rows.Clear();
+            var stack = new StackPanel();
+            stack.Children.Add(new TextBlock { Text = "Opening", FontSize = 15, Foreground = dimBrush, Margin = new Thickness(4, 0, 0, 4) });
+            stack.Children.Add(new TextBlock
+            {
+                Text = masked ? "Link 1" : focusFirst.Display, FontSize = 22, Foreground = textBrush, Margin = new Thickness(4, 0, 0, 0),
+                TextTrimming = TextTrimming.CharacterEllipsis
+            });
+            body.Content = stack;
+            SetHint();
+        }
+
+        private void StopQuick()
+        {
+            if (quickTimer != null) { quickTimer.Stop(); quickTimer = null; }
         }
 
         private void ShowConfirm()
@@ -507,7 +569,8 @@ namespace KippixLinks
         {
             bool swapped = confirmButton == ControllerInput.B;   // Playnite's "confirm with B" setting
             string ok = swapped ? "B" : "A", back = swapped ? "A" : "B";
-            if (renaming != null) hint.Text = ok + " Type   X Delete   Y Done   " + back + " Cancel";
+            if (quick) hint.Text = ok + " All links   " + back + " Cancel";
+            else if (renaming != null) hint.Text = ok + " Type   X Delete   Y Done   " + back + " Cancel";
             else if (confirming) hint.Text = ok + " Choose   " + back + " Back";
             else hint.Text = ok + " Open   X Forget   " + (CanRename ? "Y Rename   " : "") + back + " Back";
         }
@@ -526,6 +589,12 @@ namespace KippixLinks
         }
 
         private bool ClipboardHasNew()
+        {
+            return ClipboardHoldsNew(store);
+        }
+
+        /// <summary>The clipboard holds a web address that isn't in the list yet (UI thread; nothing of it is kept).</summary>
+        internal static bool ClipboardHoldsNew(LinkStore store)
         {
             string url;
             return LinkUrl.TryParse(ReadClipboard(), out url) && store.Find(url) == null;
@@ -706,6 +775,13 @@ namespace KippixLinks
 
         private void FocusInitial()
         {
+            if (quick)
+            {
+                // no rows on the card: the window itself takes the buttons
+                Focusable = true;
+                Keyboard.Focus(this);
+                return;
+            }
             Button want = null;
             if (focusFirst != null) want = RowOf(focusFirst);
             if (want == null)
@@ -902,7 +978,14 @@ namespace KippixLinks
         {
             if (closing) return;
             var f = Focused();
-            if (act == Act.Close) { Sound("back"); CloseWith(PanelResult.None, null); return; }
+            if (act == Act.Close) { StopQuick(); Sound("back"); CloseWith(PanelResult.None, null); return; }
+            if (quick)
+            {
+                // the "Opening" card: confirm = the list instead, cancel = nothing opens; anything else lets it open
+                if (act == Act.Confirm) { StopQuick(); Sound("select"); CloseWith(PanelResult.List, focusFirst); }
+                else if (act == Act.Back) { StopQuick(); Sound("back"); CloseWith(PanelResult.None, null); }
+                return;
+            }
             if (renaming != null)
             {
                 switch (act)
@@ -955,6 +1038,24 @@ namespace KippixLinks
                     FocusLater(addRow);
                     break;
                 case RowKind.Key: PressKey(info); break;
+                case RowKind.Direct:
+                    if (settings != null)
+                    {
+                        settings.Direct = !settings.Direct;
+                        settings.Save();
+                        if (info.Detail != null) info.Detail.Text = DirectText();
+                        Sound("select");
+                    }
+                    break;
+                case RowKind.SiteIcon:
+                    if (settings != null)
+                    {
+                        settings.SiteIcon = !settings.SiteIcon;   // (the button's picture changes when the panel closes)
+                        settings.Save();
+                        if (info.Detail != null) info.Detail.Text = SiteIconText();
+                        Sound("select");
+                    }
+                    break;
             }
         }
 

@@ -99,6 +99,31 @@ namespace KippixLinks
             return host;
         }
 
+        /// <summary>The name of Kippix's own icon for the site (its Images\Streaming\&lt;name&gt;.png), or null when it has none.</summary>
+        public static string IconKey(string url)
+        {
+            switch (Site(url))
+            {
+                case "Netflix": return "netflix";
+                case "YouTube": return "youtube";
+                case "Prime Video": return "prime";
+                case "Crunchyroll": return "crunchyroll";
+                case "Disney+": return "disney";
+                case "Apple TV": return "appletv";
+                case "Paramount+": return "paramount";
+                case "Max": return "hbo";
+            }
+            return null;
+        }
+
+        /// <summary>The site's first letter or digit, as a capital ("N", "B", "5"; "L" when there is none).</summary>
+        public static char Initial(string url)
+        {
+            foreach (char c in Site(url))
+                if (char.IsLetterOrDigit(c) && c < (char)0x250) return char.ToUpperInvariant(c);
+            return 'L';
+        }
+
         // " - Mozilla Firefox", " — Google Chrome", " - Personal - Microsoft​ Edge" (Edge puts a zero-width space in its name)...
         private static readonly Regex BrowserSuffix = new Regex(
             "\\s(?:-|\u2014|\u2013)\\s(?:Mozilla Firefox Private Browsing|Mozilla Firefox|Google Chrome|Microsoft\u200B? Edge|Brave|Vivaldi|Opera|Chromium|Personal|Work|Profile \\d+)\\s*$",
