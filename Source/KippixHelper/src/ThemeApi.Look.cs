@@ -642,6 +642,7 @@ namespace KippixHelper
             try { var f = Keyboard.FocusedElement as UIElement; ambientReturnFocus = f != null ? new WeakReference(f) : null; } catch (Exception) { ambientReturnFocus = null; }
             Notify("IsAmbientOn");
             HideUnderAmbient();
+            CloseLabels();   // a label on the highlighted button (YouTube, say) would stay up over the screensaver (ThemeApi.Sound.cs)
             if (settings.ReduceMotion) ui.BeginInvoke(new Action(StillAmbient), DispatcherPriority.Loaded);
             KippixShared.SafeWork.Queue(_ =>
             {

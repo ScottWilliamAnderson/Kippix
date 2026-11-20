@@ -248,6 +248,43 @@ namespace KippixHelper
         private void OnToolTipOpening(object sender, ToolTipEventArgs e)
         {
             if (!settings.ShowTooltips) e.Handled = true;   // labels on icons switched off in General settings
+            else if (ambientOn) e.Handled = true;           // none over the screensaver
+        }
+
+        /// <summary>
+        /// Takes down any label (tooltip) that's up. Each one is a small window of its own over Playnite's, so the
+        /// screensaver, which is drawn in the main window, comes up under it and the label stays on the screen.
+        /// </summary>
+        private static void CloseLabels()
+        {
+            var open = new List<ToolTip>();   // (all found first: closing one takes its window away)
+            try
+            {
+                foreach (PresentationSource source in PresentationSource.CurrentSources)
+                {
+                    if (source == null || !source.CheckAccess()) continue;   // (a window on another thread, the overlay's)
+                    var tip = FindLabel(source.RootVisual, 4);
+                    if (tip != null && tip.IsOpen) open.Add(tip);
+                }
+            }
+            catch (Exception) { }
+            foreach (var tip in open)
+                try { tip.IsOpen = false; } catch (Exception) { }
+        }
+
+        /// <summary>The label at the top of a popup's window (popup root, its decorators, then the ToolTip).</summary>
+        private static ToolTip FindLabel(DependencyObject d, int depth)
+        {
+            if (d == null) return null;
+            var tip = d as ToolTip;
+            if (tip != null) return tip;
+            if (depth == 0 || !(d is Visual)) return null;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(d); i++)
+            {
+                tip = FindLabel(VisualTreeHelper.GetChild(d, i), depth - 1);
+                if (tip != null) return tip;
+            }
+            return null;
         }
 
         // ---------------- music ----------------
