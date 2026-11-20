@@ -199,10 +199,10 @@ namespace KippixOverlay
                 });
             }
 
-            // ---- Downloads (Steam with progress; Epic and Playnite installs without) ----
+            // ---- Downloads (the theme's list: Steam, Epic and GOG with progress where their files tell it; Playnite installs without) ----
             l.Add(Header("Downloads"));
             // What's downloading right now first, then the rest from most to least complete.
-            List<DownloadInfo> downloads = plugin.CurrentDownloads()
+            List<KippixHelper.DownloadInfo> downloads = plugin.ShownDownloads()
                 .OrderByDescending(x => x.State == "Downloading" || x.State == "Updating" || x.State == "Installing" || x.State == "Verifying")
                 .ThenByDescending(x => x.Progress)
                 .ThenByDescending(x => x.Done)
@@ -212,19 +212,19 @@ namespace KippixOverlay
                 l.Add(new MenuEntry
                 {
                     Glyph = "\uE896",
-                    TitleFunc = () => plugin.CurrentDownloads().Count > 0 ? "A download has started (reopen to see it)" : "Nothing downloading",
+                    TitleFunc = () => plugin.ShownDownloads().Count > 0 ? "A download has started (reopen to see it)" : "Nothing downloading",
                     Dim = true
                 });
             }
-            foreach (DownloadInfo d in downloads)
+            foreach (KippixHelper.DownloadInfo d in downloads)
             {
                 string key = d.Key;
-                DownloadInfo last = d;
+                KippixHelper.DownloadInfo last = d;
                 var dlBar = new Bar(theme, 8, 0);
                 dlBar.Root.Margin = new Thickness(0, 10, 0, 2);
                 Action update = () =>
                 {
-                    DownloadInfo now = plugin.CurrentDownloads().FirstOrDefault(x => x.Key == key);
+                    KippixHelper.DownloadInfo now = plugin.ShownDownloads().FirstOrDefault(x => x.Key == key);
                     if (now != null) last = now;
                     dlBar.Set(now == null ? 1 : Math.Max(0, last.Progress));
                     dlBar.Root.Visibility = last.Progress >= 0 || now == null ? Visibility.Visible : Visibility.Collapsed;
@@ -236,7 +236,7 @@ namespace KippixOverlay
                     Title = d.Name,
                     Sub = () =>
                     {
-                        DownloadInfo now = plugin.CurrentDownloads().FirstOrDefault(x => x.Key == key);
+                        KippixHelper.DownloadInfo now = plugin.ShownDownloads().FirstOrDefault(x => x.Key == key);
                         return now != null ? now.Text() : "Finished";
                     },
                     Extra = dlBar.Root,

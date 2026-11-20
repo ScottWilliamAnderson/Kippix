@@ -314,10 +314,12 @@ namespace KippixOverlay
             if (trackerTicks % 20 == 0) CheckControllerBattery();
 
             // Keep sampling downloads so live progress has a starting point when Steam saves its figures.
+            // (the theme's list, KippixHelper.Downloads: one look at the launchers' files serves both)
             if (trackerTicks % 3 == 0)
             {
-                Downloads.GameRunning = RunningGame != null;
-                try { CurrentDownloads(); } catch (Exception) { }
+                // (kept fresh while the System page has asked for them in the last 5 s)
+                long sinceShown = DateTime.UtcNow.Ticks - System.Threading.Interlocked.Read(ref downloadsShownTicks);
+                try { CurrentDownloads(sinceShown < TimeSpan.TicksPerSecond * 5); } catch (Exception) { }
             }
 
             if (RunningGame == null) return;
@@ -378,11 +380,21 @@ namespace KippixOverlay
             return "Discord";
         }
 
-        internal List<DownloadInfo> CurrentDownloads()
+        /// <summary>The downloads as last worked out, for the System page on the UI thread: no file reading or folder
+        /// measuring there (the tracker above does that, every 3 s while the page has asked in the last 5 s).</summary>
+        internal List<KippixHelper.DownloadInfo> ShownDownloads()
+        {
+            System.Threading.Interlocked.Exchange(ref downloadsShownTicks, DateTime.UtcNow.Ticks);
+            return KippixHelper.Downloads.Peek();
+        }
+        private long downloadsShownTicks;   // (written on the UI thread, read by the tracker)
+
+        /// <summary>The downloads now (watching: the list is on screen, so it's kept checked every few seconds).</summary>
+        internal List<KippixHelper.DownloadInfo> CurrentDownloads(bool watching = true)
         {
             IEnumerable<Game> games = null;
             try { games = PlayniteApi.Database.Games; } catch (Exception) { }
-            return Downloads.Get(games);
+            return KippixHelper.Downloads.Get(games, watching);
         }
 
         // ================= Next achievement =================

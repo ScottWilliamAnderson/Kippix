@@ -1718,7 +1718,7 @@ namespace KippixHelper
             if (openPanel == "page" && name != "page") LeavePages();
 
             if (name == "audio") RefreshAudio();
-            if (name == "downloads") RefreshDownloadsAsync();
+            if (name == "downloads") RefreshDownloadsAsync(true);   // (openPanel isn't set yet: the panel is about to show)
             if (name == "discord") { SetDiscordPage("main"); RefreshDiscord(); }
             if (name == "options") SetOptionsPage("", false);
 

@@ -39,23 +39,34 @@ namespace KippixHelper
             if (gb >= 1) return gb.ToString("0.0", CultureInfo.InvariantCulture) + " GB";
             return Math.Max(0, Math.Round(bytes / 1048576.0)) + " MB";
         }
+
+        public DownloadInfo Copy() { return (DownloadInfo)MemberwiseClone(); }
     }
 
     /// <summary>Game downloads and updates in progress, read from the launchers' own files. Cheap enough to call every few seconds.</summary>
     internal static class Downloads
     {
-        private static List<DownloadInfo> cache = new List<DownloadInfo>();
+        private static volatile List<DownloadInfo> cache = new List<DownloadInfo>();   // (replaced whole, never changed in place: Peek reads it without the lock)
         private static DateTime cacheAt = DateTime.MinValue;
         private static readonly object cacheLock = new object();
 
         /// <summary>Set by the plugin while a game is running (Steam suspends downloads during play by default).</summary>
         public static volatile bool GameRunning;
 
+        /// <summary>The last list worked out, with no work and no waiting: for the UI thread (the overlay's System page).</summary>
+        public static List<DownloadInfo> Peek() { return cache; }
+
         /// <summary>The next look goes to the launchers again straight away (and measures the GOG / Epic folders again).</summary>
         public static void ForceRefresh() { forceNext = true; }   // no waiting here: the next Get (under its own lock) does the work
         private static volatile bool forceNext;
 
-        public static List<DownloadInfo> Get(IEnumerable<Playnite.SDK.Models.Game> library)
+        private static string steamLog;   // Steam's content_log.txt, as found by the last look
+
+        /// <summary>
+        /// The downloads now. One list for the theme and the overlay (each asks every few seconds): it's worked out again at most
+        /// every 2.5 s. watching: the list is on screen (the downloads panel or widget, the overlay's System page).
+        /// </summary>
+        public static List<DownloadInfo> Get(IEnumerable<Playnite.SDK.Models.Game> library, bool watching = false)
         {
             // One refresh at a time (the plugin samples in the background and the Settings page reads too).
             lock (cacheLock)
@@ -66,12 +77,26 @@ namespace KippixHelper
                     cacheAt = DateTime.MinValue;
                     var keys = folderSizes.Keys.ToList();
                     foreach (var k in keys) folderSizes[k] = Tuple.Create(DateTime.MinValue, folderSizes[k].Item2);
+                    manifests.Clear();
+                    epicItems.Clear();
                 }
-                if ((DateTime.UtcNow - cacheAt).TotalSeconds < 2.5) return cache;
+                double age = (DateTime.UtcNow - cacheAt).TotalSeconds;
+                if (age < 2.5) return cache;
+                // an empty list that nobody is looking at: the launchers' files are gone through every 15 s, or straight away
+                // once Steam writes to its content log (a Steam download or update shows there first)
+                if (!watching && cache.Count == 0 && age < 15 && !KippixShared.SteamContentLog.Changed(steamLog)) return cache;
                 var list = new List<DownloadInfo>();
-                try { list.AddRange(Steam(SteamPaths.SteamPath())); } catch (Exception) { }
+                try
+                {
+                    string steamPath = SteamPaths.SteamPath();
+                    steamLog = steamPath != null ? Path.Combine(steamPath, @"logs\content_log.txt") : null;
+                    list.AddRange(Steam(steamPath));
+                }
+                catch (Exception) { }
                 try { list.AddRange(Epic()); } catch (Exception) { }
-                var games = library != null ? library.Where(g => g != null).ToList() : new List<Playnite.SDK.Models.Game>();
+                List<Playnite.SDK.Models.Game> games;
+                try { games = library != null ? library.Where(g => g != null).ToList() : new List<Playnite.SDK.Models.Game>(); }
+                catch (Exception) { games = new List<Playnite.SDK.Models.Game>(); }   // (the library changed part-way through: no GOG or Playnite rows this time)
                 try { list.AddRange(Gog(games)); } catch (Exception) { }
                 try
                 {
@@ -103,17 +128,30 @@ namespace KippixHelper
             Validating = 131072, AddingFiles = 262144, Preallocating = 524288, Downloading = 1048576,
             Staging = 2097152, Committing = 4194304;
 
+        // each appmanifest as last read: read and parsed again only once Steam has written to it
+        private class ManifestRead
+        {
+            public DateTime Time;
+            public long Length;
+            public DownloadInfo Info;   // null: installed, nothing pending
+            public bool Running;
+            public long Dl, ToDl, Staged, ToStage;
+        }
+
+        private static readonly Dictionary<string, ManifestRead> manifests = new Dictionary<string, ManifestRead>(StringComparer.OrdinalIgnoreCase);
+
         public static List<DownloadInfo> Steam(string steamPath)
         {
             var result = new List<DownloadInfo>();
             if (string.IsNullOrEmpty(steamPath) || !Directory.Exists(steamPath)) return result;
-            ulong writes = SteamDiskWrites();
-            UpdateRate(writes);
+            ulong writes = 0;
+            bool sampled = false;   // (Steam's disk writes are only asked for while one of its downloads runs)
+            string log = Path.Combine(steamPath, @"logs\content_log.txt");
             Dictionary<string, string> logState = null;
-            try { logState = SteamLogStates(Path.Combine(steamPath, @"logs\content_log.txt")); } catch (Exception) { }
+            try { logState = KippixShared.SteamContentLog.States(log); } catch (Exception) { }
             // (0.99.72) live progress from the same log (the manifest's figure is only saved when a download starts or stops)
             Dictionary<string, KippixShared.SteamLogProgress> logProgress = null;
-            try { logProgress = KippixShared.SteamContentLog.Read(Path.Combine(steamPath, @"logs\content_log.txt")); } catch (Exception) { }
+            try { logProgress = KippixShared.SteamContentLog.Read(log); } catch (Exception) { }
 
             var libraries = new List<string> { Path.Combine(steamPath, "steamapps") };
             string vdf = Path.Combine(steamPath, @"steamapps\libraryfolders.vdf");
@@ -128,16 +166,23 @@ namespace KippixHelper
 
             foreach (string lib in libraries)
             {
-                string[] files;
-                try { files = Directory.Exists(lib) ? Directory.GetFiles(lib, "appmanifest_*.acf") : new string[0]; }
+                FileInfo[] files;   // (their size and time come with the folder listing)
+                try { files = Directory.Exists(lib) ? new DirectoryInfo(lib).GetFiles("appmanifest_*.acf") : new FileInfo[0]; }
                 catch (Exception) { continue; }
-                foreach (string f in files)
+                foreach (FileInfo fi in files)
                 {
-                    DownloadInfo d = null;
-                    long staged = 0, toStage = 0, dl = 0, toDl = 0;
-                    bool running = false;
-                    try { d = ParseSteamManifest(File.ReadAllText(f), out running, out dl, out toDl, out staged, out toStage); } catch (Exception) { }
-                    if (d == null) continue;
+                    string f = fi.FullName;
+                    ManifestRead mr;
+                    if (!manifests.TryGetValue(f, out mr) || mr.Time != fi.LastWriteTimeUtc || mr.Length != fi.Length)
+                    {
+                        mr = new ManifestRead { Time = fi.LastWriteTimeUtc, Length = fi.Length };
+                        try { mr.Info = ParseSteamManifest(File.ReadAllText(f), out mr.Running, out mr.Dl, out mr.ToDl, out mr.Staged, out mr.ToStage); manifests[f] = mr; }
+                        catch (Exception) { manifests.Remove(f); }   // (tried again next time)
+                    }
+                    if (mr.Info == null) continue;
+                    DownloadInfo d = mr.Info.Copy();
+                    long staged = mr.Staged, toStage = mr.ToStage, dl = mr.Dl, toDl = mr.ToDl;
+                    bool running = mr.Running;
 
                     // The manifest's flags are only saved when a download starts or stops, so they can't tell a
                     // running download from a suspended one. Steam's content log can.
@@ -156,6 +201,7 @@ namespace KippixHelper
                             case "finished": continue;
                         }
                     }
+                    if (running && !sampled) { writes = SteamDiskWrites(); UpdateRate(writes); sampled = true; }
                     KippixShared.SteamLogProgress lp;
                     if (running && logProgress != null && logProgress.TryGetValue(appId, out lp) && lp.Active && lp.ToDownload > 0 && (toDl <= 0 || lp.ToDownload == toDl || lp.Downloaded >= dl))
                     {
@@ -228,68 +274,6 @@ namespace KippixHelper
             return v.TryGetValue(key, out s) && long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out n) ? n : 0;
         }
 
-        // ---------------- Steam content log ----------------
-
-        private static readonly Regex LogUpdateChanged = new Regex(@"AppID (\d+) App update changed : (.*)$", RegexOptions.Compiled);
-        private static readonly Regex LogCanceled = new Regex(@"AppID (\d+) update canceled : (.*)$", RegexOptions.Compiled);
-        private static readonly Regex LogStarted = new Regex(@"AppID (\d+) update started", RegexOptions.Compiled);
-        private static readonly Regex LogFinished = new Regex(@"AppID (\d+) (update finished|finished update|state changed : Fully Installed,\s*$)", RegexOptions.Compiled);
-
-        /// <summary>The latest download state per app id from the end of Steam's content_log.txt.</summary>
-        public static Dictionary<string, string> SteamLogStates(string logPath)
-        {
-            var result = new Dictionary<string, string>();
-            if (!File.Exists(logPath)) return result;
-            string text;
-            using (var fs = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-            {
-                long start = Math.Max(0, fs.Length - 256 * 1024);
-                fs.Seek(start, SeekOrigin.Begin);
-                using (var sr = new StreamReader(fs)) text = sr.ReadToEnd();
-            }
-            ParseLog(text, result);
-            return result;
-        }
-
-        public static void ParseLog(string text, Dictionary<string, string> result)
-        {
-            var canceledReason = new Dictionary<string, string>();
-            foreach (string raw in text.Split('\n'))
-            {
-                string line = raw.TrimEnd('\r');
-                Match m;
-                if ((m = LogCanceled.Match(line)).Success)
-                {
-                    string why = m.Groups[2].Value;
-                    canceledReason[m.Groups[1].Value] = why.IndexOf("Suspended", StringComparison.OrdinalIgnoreCase) >= 0 ? "suspended" : "paused";
-                    result[m.Groups[1].Value] = canceledReason[m.Groups[1].Value];
-                }
-                else if ((m = LogUpdateChanged.Match(line)).Success)
-                {
-                    string id = m.Groups[1].Value, what = m.Groups[2].Value;
-                    if (what.Trim() == "None")
-                    {
-                        string why;
-                        result[id] = canceledReason.TryGetValue(id, out why) ? why : "finished";
-                    }
-                    else if (what.Contains("Stopping")) { /* winding down; the cancel line before it says why */ }
-                    else if (what.Contains("Committing")) result[id] = "installing";
-                    else if (what.Contains("Verifying")) result[id] = "verifying";
-                    else if (what.Contains("Downloading") || what.Contains("Staging")) { result[id] = "downloading"; canceledReason.Remove(id); }
-                }
-                else if ((m = LogStarted.Match(line)).Success)
-                {
-                    result[m.Groups[1].Value] = "downloading";
-                    canceledReason.Remove(m.Groups[1].Value);
-                }
-                else if ((m = LogFinished.Match(line)).Success)
-                {
-                    result[m.Groups[1].Value] = "finished";
-                    canceledReason.Remove(m.Groups[1].Value);
-                }
-            }
-        }
-
         // ---------------- Live estimate ----------------
         // Steam only saves progress to the manifest when a download starts, pauses or finishes. While it runs,
         // the bytes Steam writes to disk track the staged data closely, so progress = saved figure + writes since.
@@ -353,29 +337,69 @@ namespace KippixHelper
 
         [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
         [DllImport("kernel32.dll")] private static extern bool GetProcessIoCounters(IntPtr process, out IoCounters counters);
+        [DllImport("kernel32.dll")] private static extern bool GetExitCodeProcess(IntPtr process, out uint code);
         [DllImport("kernel32.dll")] private static extern bool CloseHandle(IntPtr handle);
 
-        /// <summary>Total bytes Steam's processes have written to disk since they started.</summary>
+        private const uint StillActive = 259;
+
+        private class SteamProc
+        {
+            public int Pid;
+            public IntPtr Handle;
+            public ulong Last;   // its write count when last asked
+        }
+
+        private static readonly List<SteamProc> steamProcs = new List<SteamProc>();
+        private static DateTime steamProcsAt = DateTime.MinValue;
+        private static ulong steamWrites;
+
+        /// <summary>Total bytes Steam's processes have written to disk. Only goes up: a process that quits stops adding to it,
+        /// one found later adds what it writes from then on.</summary>
         private static ulong SteamDiskWrites()
         {
-            ulong total = 0;
+            // Steam's processes are looked up by name every 60 s (30 s while there's none) or when one has quit, because a
+            // lookup lists every process and thread on the PC. In between, the handles kept open are asked.
+            bool quit = false;
+            for (int i = steamProcs.Count - 1; i >= 0; i--)
+            {
+                uint code;
+                if (GetExitCodeProcess(steamProcs[i].Handle, out code) && code == StillActive) continue;
+                CloseHandle(steamProcs[i].Handle);
+                steamProcs.RemoveAt(i);
+                quit = true;
+            }
+            if (quit || (DateTime.UtcNow - steamProcsAt).TotalSeconds >= (steamProcs.Count > 0 ? 60 : 30)) FindSteamProcs();
+            foreach (var p in steamProcs)
+            {
+                IoCounters c;
+                if (!GetProcessIoCounters(p.Handle, out c)) continue;
+                if (c.WriteTransferCount > p.Last) steamWrites += c.WriteTransferCount - p.Last;
+                p.Last = c.WriteTransferCount;
+            }
+            return steamWrites;
+        }
+
+        private static void FindSteamProcs()
+        {
+            steamProcsAt = DateTime.UtcNow;
             foreach (string name in new[] { "steam", "steamservice" })
             {
                 System.Diagnostics.Process[] procs;
                 try { procs = System.Diagnostics.Process.GetProcessesByName(name); } catch (Exception) { continue; }
                 foreach (var p in procs)
                 {
-                    IntPtr h = OpenProcess(0x1000, false, p.Id); // PROCESS_QUERY_LIMITED_INFORMATION
+                    int id = p.Id;
+                    p.Dispose();
+                    if (steamProcs.Any(x => x.Pid == id)) continue;
+                    IntPtr h = OpenProcess(0x1000, false, id); // PROCESS_QUERY_LIMITED_INFORMATION
                     if (h == IntPtr.Zero) continue;
-                    try
-                    {
-                        IoCounters c;
-                        if (GetProcessIoCounters(h, out c)) total += c.WriteTransferCount;
-                    }
-                    finally { CloseHandle(h); }
+                    var sp = new SteamProc { Pid = id, Handle = h };
+                    // the first ones found count from their start (as before); one found later from now, so the total doesn't jump
+                    IoCounters c;
+                    if (steamWrites > 0 && GetProcessIoCounters(h, out c)) sp.Last = c.WriteTransferCount;
+                    steamProcs.Add(sp);
                 }
             }
-            return total;
         }
 
         // ---------------- Epic ----------------
@@ -414,6 +438,10 @@ namespace KippixHelper
             return lastGrew.TryGetValue(key, out t) && (DateTime.UtcNow - t).TotalSeconds < seconds;
         }
 
+        // each .item as last read: read and parsed again only once Epic has written to it
+        private static readonly Dictionary<string, Tuple<DateTime, long, Dictionary<string, object>>> epicItems =
+            new Dictionary<string, Tuple<DateTime, long, Dictionary<string, object>>>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>
         /// Epic marks unfinished installs; how far along it is comes from the install folder filling up
         /// against the size Epic says it will be.
@@ -423,18 +451,26 @@ namespace KippixHelper
             var result = new List<DownloadInfo>();
             string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Epic\EpicGamesLauncher\Data\Manifests");
             if (!Directory.Exists(dir)) return result;
-            var json = new JavaScriptSerializer();
+            JavaScriptSerializer json = null;
             // installs Epic is still working on sit in Manifests\Pending (the finished ones in Manifests, marked incomplete until done)
-            var files = new List<string>();
+            var files = new List<FileInfo>();
             string pendingDir = Path.Combine(dir, "Pending");
-            try { if (Directory.Exists(pendingDir)) files.AddRange(Directory.GetFiles(pendingDir, "*.item")); } catch (Exception) { }   // first: in progress wins over "not finished"
-            try { files.AddRange(Directory.GetFiles(dir, "*.item")); } catch (Exception) { }
+            try { if (Directory.Exists(pendingDir)) files.AddRange(new DirectoryInfo(pendingDir).GetFiles("*.item")); } catch (Exception) { }   // first: in progress wins over "not finished"
+            try { files.AddRange(new DirectoryInfo(dir).GetFiles("*.item")); } catch (Exception) { }
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string f in files)
+            foreach (FileInfo fi in files)
             {
+                string f = fi.FullName;
                 try
                 {
-                    var d = json.DeserializeObject(File.ReadAllText(f)) as Dictionary<string, object>;
+                    Tuple<DateTime, long, Dictionary<string, object>> item;
+                    if (!epicItems.TryGetValue(f, out item) || item.Item1 != fi.LastWriteTimeUtc || item.Item2 != fi.Length)
+                    {
+                        if (json == null) json = new JavaScriptSerializer();
+                        item = Tuple.Create(fi.LastWriteTimeUtc, fi.Length, json.DeserializeObject(File.ReadAllText(f)) as Dictionary<string, object>);
+                        epicItems[f] = item;
+                    }
+                    var d = item.Item3;
                     if (d == null) continue;
                     bool pending = f.StartsWith(pendingDir, StringComparison.OrdinalIgnoreCase);
                     object inc;

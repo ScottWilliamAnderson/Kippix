@@ -300,24 +300,29 @@ namespace KippixHelper
             RefreshDownloadsAsync();
         }
 
-        private void RefreshDownloadsAsync()
+        private List<DownloadInfo> appliedDownloads;
+
+        private void RefreshDownloadsAsync(bool panelOpening = false)
         {
             if (downloadsBusy) return;
             downloadsBusy = true;
+            // the list on screen (the panel, or the widget on the home screen) keeps it checked every few seconds even when it is empty
+            bool watching = panelOpening || openPanel == "downloads" || (settings.WidgetsOn && Widgets != null && HomeShowing && Widgets.Any(x => x.Type == "downloads"));
             KippixShared.SafeWork.Queue(_ =>
             {
                 List<DownloadInfo> list = null;
                 try
                 {
                     IEnumerable<Game> games = null;
-                    try { games = api.Database.Games.ToList(); } catch (Exception) { }
-                    list = global::KippixHelper.Downloads.Get(games);
+                    try { games = api.Database.Games; } catch (Exception) { }   // (gone through only when the list is worked out again)
+                    list = global::KippixHelper.Downloads.Get(games, watching);
                 }
                 catch (Exception ex) { logger.Error(ex, "Kippix: downloads check failed"); }
                 finally { downloadsBusy = false; }
                 if (list != null) OnUi(() =>
                 {
-                    ApplyDownloads(list);
+                    // (the same list as last time: nothing on screen to change)
+                    if (list != appliedDownloads) { ApplyDownloads(list); appliedDownloads = list; }
                     DownloadsCheckedText = string.Format(Loc("LOC_KX_DownloadsChecked", "Checked at {0} · it keeps checking while this is open"), DateTime.Now.ToString(settings.Clock24h ? "HH:mm:ss" : "h:mm:ss tt"));
                     Notify("DownloadsCheckedText");
                 });
