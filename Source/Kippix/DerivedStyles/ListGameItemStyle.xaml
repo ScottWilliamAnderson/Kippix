@@ -51,19 +51,24 @@
                                 <ScaleTransform x:Name="Scale" ScaleX="1" ScaleY="1" />
                             </Grid.RenderTransform>
 
-                            <!-- soft shadow under every cover -->
-                            <Border x:Name="KX_TileShadow" CornerRadius="{DynamicResource KX_CardCorner}" Background="#FF000000" Margin="2">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
-                                </Border.Effect>
-                            </Border>
-                            <!-- a cut card (circle, hexagon, triangle: Game cards and layout › Card shape): its shadow and ring follow
-                                 the shape; the helper sets the outline (never bound from PluginSettings) -->
-                            <Path x:Name="KX_ShapeShadow" Stretch="Fill" Fill="#FF000000" Margin="2" Visibility="Collapsed" IsHitTestVisible="False">
-                                <Path.Effect>
-                                    <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
-                                </Path.Effect>
-                            </Path>
+                            <!-- the shadows are kept as a picture: moving along the row, a new background and the highlighted cover's
+                                 zoom all repaint the cards, and each repaint would blur every shadow again -->
+                            <Grid>
+                                <Grid.CacheMode><BitmapCache /></Grid.CacheMode>
+                                <!-- soft shadow under every cover -->
+                                <Border x:Name="KX_TileShadow" CornerRadius="{DynamicResource KX_CardCorner}" Background="#FF000000" Margin="2">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
+                                    </Border.Effect>
+                                </Border>
+                                <!-- a cut card (circle, hexagon, triangle: Game cards and layout › Card shape): its shadow and ring follow
+                                     the shape; the helper sets the outline (never bound from PluginSettings) -->
+                                <Path x:Name="KX_ShapeShadow" Stretch="Fill" Fill="#FF000000" Margin="2" Visibility="Collapsed" IsHitTestVisible="False">
+                                    <Path.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
+                                    </Path.Effect>
+                                </Path>
+                            </Grid>
 
                             <ContentPresenter />
 
