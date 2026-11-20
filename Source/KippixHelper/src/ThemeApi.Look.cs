@@ -641,6 +641,7 @@ namespace KippixHelper
             ambientOn = true;
             try { var f = Keyboard.FocusedElement as UIElement; ambientReturnFocus = f != null ? new WeakReference(f) : null; } catch (Exception) { ambientReturnFocus = null; }
             Notify("IsAmbientOn");
+            HideUnderAmbient();
             if (settings.ReduceMotion) ui.BeginInvoke(new Action(StillAmbient), DispatcherPriority.Loaded);
             KippixShared.SafeWork.Queue(_ =>
             {
@@ -738,6 +739,7 @@ namespace KippixHelper
             ambientImage = null;
             ambientFiles = null;
             lastInput = DateTime.Now;
+            RestoreUnderAmbient();
             Notify("IsAmbientOn");
             Notify("AmbientImage");
             // the highlight back where it was (the "Try it now" row in the settings, a card on the home screen), if it moved
@@ -755,6 +757,32 @@ namespace KippixHelper
                     }
                     catch (Exception) { }
                 }), DispatcherPriority.Input);
+        }
+
+        // WPF draws what is under the screensaver again for every frame of its drift, though none of it shows. It skips
+        // anything at opacity 0, so the home screen and its background wait at 0 while the screensaver is up. They are not
+        // Hidden: IsVisible stays true, so the highlight and whatever watches IsVisible (the carousel, the game page) stay put.
+        private static readonly string[] AmbientCovers = { "KX_BgShift", "KX_Stage" };
+        private readonly List<UIElement> ambientCovered = new List<UIElement>();
+
+        private void HideUnderAmbient()
+        {
+            RestoreUnderAmbient();
+            var win = Application.Current != null ? Application.Current.MainWindow : null;
+            if (win == null) return;
+            foreach (string name in AmbientCovers)
+            {
+                var el = UiTools.FindByName(win, name);
+                if (el == null) continue;
+                el.SetCurrentValue(UIElement.OpacityProperty, 0.0);   // (leaves KX_Stage's binding in place)
+                ambientCovered.Add(el);
+            }
+        }
+
+        private void RestoreUnderAmbient()
+        {
+            foreach (var el in ambientCovered) el.InvalidateProperty(UIElement.OpacityProperty);   // (back to its own value or binding)
+            ambientCovered.Clear();
         }
 
         // =====================================================================

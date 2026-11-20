@@ -599,11 +599,16 @@
                                      and out (ThemeApi.HomeVideo.cs). Before the logo / info so those draw over it; never takes the highlight or a click. -->
                                 <Grid x:Name="KX_HomeVideoPip" Grid.Row="0" Grid.RowSpan="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,72,440"
                                       Width="691" Height="389" IsHitTestVisible="False" Focusable="False" Visibility="Collapsed" Opacity="0">
-                                    <Border CornerRadius="{DynamicResource KX_CardCorner}" Background="#FF000000" Margin="2">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
-                                        </Border.Effect>
-                                    </Border>
+                                    <!-- the shadow is kept as a picture: each video frame repaints what is under it, and would blur the shadow again.
+                                         The cache is on a parent because an element's own cache is taken before its effect -->
+                                    <Grid>
+                                        <Grid.CacheMode><BitmapCache /></Grid.CacheMode>
+                                        <Border CornerRadius="{DynamicResource KX_CardCorner}" Background="#FF000000" Margin="2">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.55" />
+                                            </Border.Effect>
+                                        </Border>
+                                    </Grid>
                                     <Grid x:Name="KX_HomeVideoPipHost" />
                                     <Border CornerRadius="{DynamicResource KX_CardCorner}" BorderThickness="1" BorderBrush="#24FFFFFF" />
                                 </Grid>
@@ -5021,11 +5026,19 @@
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{PluginSettings Plugin=Kippix, Path=SearchText}" Style="{StaticResource KX_Text}" FontSize="40" VerticalAlignment="Center" />
                                                     <Border Width="3" Height="42" Background="{DynamicResource KX_AccentBrush}" Margin="4,0,0,0" VerticalAlignment="Center">
-                                                        <Border.Triggers>
-                                                            <EventTrigger RoutedEvent="Loaded">
-                                                                <BeginStoryboard><Storyboard RepeatBehavior="Forever"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.55" AutoReverse="True" /></Storyboard></BeginStoryboard>
-                                                            </EventTrigger>
-                                                        </Border.Triggers>
+                                                        <!-- blinks only while Search is open: a running animation has WPF draw every frame, whether it shows or not -->
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsVisible" Value="True">
+                                                                        <Trigger.EnterActions>
+                                                                            <BeginStoryboard x:Name="KX_SearchCaretBlink"><Storyboard RepeatBehavior="Forever" Timeline.DesiredFrameRate="30"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.55" AutoReverse="True" /></Storyboard></BeginStoryboard>
+                                                                        </Trigger.EnterActions>
+                                                                        <Trigger.ExitActions><StopStoryboard BeginStoryboardName="KX_SearchCaretBlink" /></Trigger.ExitActions>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
                                                     </Border>
                                                 </StackPanel>
                                             </Grid>
@@ -7563,11 +7576,19 @@
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="{PluginSettings Plugin=Kippix, Path=KeyboardText}" Style="{StaticResource KX_Text}" FontSize="34" VerticalAlignment="Center" MaxWidth="1200" TextTrimming="CharacterEllipsis" />
                                             <Border Width="3" Height="38" Background="{DynamicResource KX_AccentBrush}" Margin="4,0,0,0" VerticalAlignment="Center">
-                                                <Border.Triggers>
-                                                    <EventTrigger RoutedEvent="Loaded">
-                                                        <BeginStoryboard><Storyboard RepeatBehavior="Forever"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.55" AutoReverse="True" /></Storyboard></BeginStoryboard>
-                                                    </EventTrigger>
-                                                </Border.Triggers>
+                                                <!-- blinks only while the keyboard is open (as the Search caret does) -->
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsVisible" Value="True">
+                                                                <Trigger.EnterActions>
+                                                                    <BeginStoryboard x:Name="KX_KbCaretBlink"><Storyboard RepeatBehavior="Forever" Timeline.DesiredFrameRate="30"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.55" AutoReverse="True" /></Storyboard></BeginStoryboard>
+                                                                </Trigger.EnterActions>
+                                                                <Trigger.ExitActions><StopStoryboard BeginStoryboardName="KX_KbCaretBlink" /></Trigger.ExitActions>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
                                             </Border>
                                         </StackPanel>
                                     </Border>
@@ -8306,8 +8327,9 @@
                                         <Style.Triggers>
                                             <Trigger Property="IsVisible" Value="True">
                                                 <Trigger.EnterActions>
+                                                    <!-- 15 frames a second: the picture's edges move about 2 px a second, and every frame redraws the whole screen -->
                                                     <BeginStoryboard x:Name="KX_AmbientDrift">
-                                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="15">
                                                             <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="1" To="1.1" Duration="0:0:40" />
                                                             <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="1" To="1.1" Duration="0:0:40" />
                                                         </Storyboard>

@@ -19,7 +19,7 @@ namespace KippixHelper
     ///     wandering), with a soft sheen of light sweeping across it every 8 s;
     ///   - the background (when "Animate the background too" is on and the background is the game's art): the art drifts and zooms
     ///     slowly (unless Background zoom already moves it) and a few soft motes of light float up through it.
-    /// All of it is WPF animations on transforms and opacity (30 fps, no per-frame code), paused while the home screen is covered,
+    /// All of it is WPF animations on transforms and opacity (20 fps, no per-frame code), paused while the home screen is covered,
     /// gone with Reduce motion or while saving battery. "Still picture" keeps the cover and the art as they are.
     /// </summary>
     public partial class ThemeApi
@@ -38,6 +38,10 @@ namespace KippixHelper
         private DependencyPropertyChangedEventHandler livingCardOnContext;
         private readonly List<AnimationClock> livingCardClocks = new List<AnimationClock>();
         private int livingCardGen;
+        private ScaleTransform livingCardZoom;
+        private double livingCardW, livingCardH;
+        private TimeSpan livingCardPlayed;   // how far the zoom had got when it last held still
+        private readonly System.Diagnostics.Stopwatch livingCardSince = new System.Diagnostics.Stopwatch();   // runs while it moves
 
         /// <summary>From AnimArtTick (home screen visible): the highlighted card's living picture, when it has no animated cover.</summary>
         private void LivingCardTick(FrameworkElement selTile, Game game, bool rested, bool cardAnimated)
@@ -105,19 +109,56 @@ namespace KippixHelper
             livingCard = host;
             livingCardTile = tile;
             livingCardGame = game.Id;
+            livingCardZoom = zoom;
+            livingCardW = w;
+            livingCardH = h;
+            livingCardPlayed = TimeSpan.Zero;
             livingCardOnContext = (s, e) => LivingCardHide(false);   // (the card handed to another game while scrolling)
             tile.DataContextChanged += livingCardOnContext;
             int gen = ++livingCardGen;
 
-            // the slow drift and zoom (the centre wanders, so it pans as it zooms; at 1.0 it matches the cover exactly)
-            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.ScaleXProperty, ScaleTransform.ScaleYProperty }, PingPong(1.0, 1.06, 14));
-            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.CenterXProperty }, PingPong(w * 0.34, w * 0.66, 19));
-            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.CenterYProperty }, PingPong(h * 0.38, h * 0.62, 23));
-            if (animPaused) foreach (var c in livingCardClocks) c.Controller.Pause();
+            if (!animPaused) LivingCardMove();
 
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
             host.BeginAnimation(UIElement.OpacityProperty, fadeIn);
             return gen == livingCardGen;
+        }
+
+        /// <summary>The slow drift and zoom starts, or moves on from where it held still.</summary>
+        private void LivingCardMove()
+        {
+            var zoom = livingCardZoom;
+            if (livingCard == null || zoom == null || livingCardClocks.Count > 0) return;
+            double w = livingCardW, h = livingCardH;
+            var at = livingCardPlayed;
+            // (the centre wanders, so it pans as it zooms; at 1.0 it matches the cover exactly)
+            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.ScaleXProperty, ScaleTransform.ScaleYProperty }, PingPong(1.0, 1.06, 14, at));
+            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.CenterXProperty }, PingPong(w * 0.34, w * 0.66, 19, at));
+            LivingRun(livingCardClocks, zoom, new[] { ScaleTransform.CenterYProperty }, PingPong(h * 0.38, h * 0.62, 23, at));
+            livingCardSince.Restart();
+        }
+
+        /// <summary>
+        /// The card can't be seen (the screensaver, the game page or a panel over it, Playnite not in front): the zoom holds where
+        /// it is. A paused clock still has WPF draw at its frame rate, so the clocks go, and LivingCardMove starts new ones from
+        /// the same point once the card is back.
+        /// </summary>
+        private void LivingCardHold()
+        {
+            if (livingCardClocks.Count == 0) return;
+            var zoom = livingCardZoom;
+            if (zoom != null)
+            {
+                // what the animation shows becomes the transform's own value, so the picture stays put without the clocks
+                zoom.ScaleX = zoom.ScaleX;
+                zoom.ScaleY = zoom.ScaleY;
+                zoom.CenterX = zoom.CenterX;
+                zoom.CenterY = zoom.CenterY;
+            }
+            livingCardPlayed += livingCardSince.Elapsed;
+            livingCardSince.Reset();
+            LivingStopClocks(livingCardClocks);
+            livingCardClocks.Clear();
         }
 
         private void LivingCardHide(bool fade)
@@ -126,6 +167,7 @@ namespace KippixHelper
             var tile = livingCardTile;
             livingCard = null;
             livingCardTile = null;
+            livingCardZoom = null;
             livingCardGame = Guid.Empty;
             livingCardGen++;
             if (tile != null && livingCardOnContext != null) { try { tile.DataContextChanged -= livingCardOnContext; } catch (Exception) { } }
@@ -320,7 +362,7 @@ namespace KippixHelper
         /// <summary>The home screen is covered (or back): everything living holds still where it is.</summary>
         private void LivingPause(bool pause)
         {
-            foreach (var c in livingCardClocks) { try { if (pause) c.Controller.Pause(); else c.Controller.Resume(); } catch (Exception) { } }
+            try { if (pause) LivingCardHold(); else LivingCardMove(); } catch (Exception) { }
             if (pause) { LivingBgPauseRaw(true); LivingMotesPause(true); }
             else
             {
@@ -342,15 +384,19 @@ namespace KippixHelper
             LivingMotesRemove();
         }
 
-        private static DoubleAnimation PingPong(double from, double to, double seconds)
+        /// <summary>Back and forth for ever (<paramref name="played"/>: started that far in).</summary>
+        private static DoubleAnimation PingPong(double from, double to, double seconds, TimeSpan played = default(TimeSpan))
         {
-            return new DoubleAnimation(from, to, TimeSpan.FromSeconds(seconds)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
+            return new DoubleAnimation(from, to, TimeSpan.FromSeconds(seconds)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, BeginTime = -played, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
         }
 
-        /// <summary>Starts an animation on a transform / element as a clock (kept, so it can be paused and stopped), at 30 fps.</summary>
+        /// <summary>
+        /// Starts an animation on a transform / element as a clock (kept, so it can be paused and stopped), at 20 fps: nothing
+        /// here moves more than about 20 px a second, and every frame redraws the whole card or background.
+        /// </summary>
         private static void LivingRun(List<AnimationClock> into, DependencyObject target, DependencyProperty[] props, AnimationTimeline a)
         {
-            Timeline.SetDesiredFrameRate(a, 30);
+            Timeline.SetDesiredFrameRate(a, 20);
             var clock = a.CreateClock();
             var an = target as IAnimatable;
             if (an == null) return;
