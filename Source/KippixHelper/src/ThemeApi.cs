@@ -272,9 +272,12 @@ namespace KippixHelper
         public void Stop()
         {
             if (timer != null) timer.Stop();
-            if (backgroundDirty) SaveSettings();
+            // the last background goes into settings.json too, where an older Kippix looks for it (saveQueued: the flush below
+            // writes it on this thread even if SaveSettings has just handed an earlier copy to a worker)
+            if (backgroundDirty || settings.LastBackground != lastBgInSettings) { SaveSettings(); saveQueued = true; }
             FlushSettings(true);   // (0.93) anything still waiting to be written
             lock (saveLock) { }    // (and a write already under way has finished)
+            SaveLastBackgroundNow();   // (so both files say the same at the next start)
         }
 
         private DateTime tickPutOffSince = DateTime.MinValue;
@@ -300,18 +303,21 @@ namespace KippixHelper
                 if ((DateTime.Now - tickPutOffSince).TotalSeconds < 6) { tickWatch = null; return; }
             }
             tickPutOffSince = DateTime.MinValue;
+            // under the screensaver or behind a game the screen can't be seen: what only keeps it in shape (the home layout, the
+            // cards, the parts' places, the top bar) waits for the first upkeep after that
+            bool unseen = ambientOn || (anyRunning && !playniteActive);
             RefreshDiscord();
             TickTime("discord");
-            ApplyHomeLayout();
+            if (!unseen) ApplyHomeLayout();
             TickTime("home layout");
             HookDetails();
-            ApplyCardLayout();
+            if (!unseen) ApplyCardLayout();
             TickTime("card layout");
             EnsurePreviewTimer();
-            if (settings.MasterOffsets.Count > 0 || masterTransforms.Count > 0 || (settings.MasterSizes != null && settings.MasterSizes.Count > 0) || HasMasterTurns) ApplyMasterOffsets();
+            if (!unseen && (settings.MasterOffsets.Count > 0 || masterTransforms.Count > 0 || (settings.MasterSizes != null && settings.MasterSizes.Count > 0) || HasMasterTurns)) ApplyMasterOffsets();
             TickTime("places");
             if (detailsOpen && settings.DetShowFriends && HasSteamKey && DateTime.Now - friendInfoAt > FriendSummaryAge) UpdateDetFriends();
-            if (settings.AutoHideTopBar || RowFullUnderBar || rowFullBarWas) { rowFullBarWas = RowFullUnderBar; UpdateTopBarFade(); }
+            if (!unseen && (settings.AutoHideTopBar || RowFullUnderBar || rowFullBarWas)) { rowFullBarWas = RowFullUnderBar; UpdateTopBarFade(); }
             RefreshDetailsDate();
             AmbientTick();
             ReminderTick();
@@ -331,6 +337,7 @@ namespace KippixHelper
             TickTime("filter/sort");
             PcStatsTick();
             if (backgroundDirty) { backgroundDirty = false; SaveSettings(); }
+            SaveLastBackground();
             TickTime("save");
             if (ticks % 2 == 1 || openPanel == "downloads") RefreshDownloadsAsync();
             TickTimeEnd();
@@ -407,6 +414,7 @@ namespace KippixHelper
                 // the next save writes the settings as they come over it: a copy of the file that couldn't be read is kept beside it
                 try { File.Copy(SettingsPath, Path.Combine(Path.GetDirectoryName(SettingsPath), "settings.unreadable-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture) + ".json"), true); } catch (Exception) { }
             }
+            LoadLastBackground();
             if (settings.SettingsVersion < 1)
             {
                 // v0.2 had one "game info position" (left / right / hidden) covering the logo and the info line.
@@ -734,12 +742,14 @@ namespace KippixHelper
             {
                 // (a list a background job is changing at that moment fails once: tried again, so the change isn't lost)
                 var js = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+                string bg = settings.LastBackground;
                 string json = null;
                 for (int i = 0; json == null; i++)
                 {
                     try { json = js.Serialize(settings); }
                     catch (InvalidOperationException) { if (i >= 2) throw; Thread.Sleep(30); }
                 }
+                lastBgInSettings = bg;
                 string path = SettingsPath;
                 long seq = Interlocked.Increment(ref saveSeq);
                 if (sync) WriteSettingsFile(path, json, seq);
@@ -769,6 +779,65 @@ namespace KippixHelper
                 }
                 catch (Exception ex) { logger.Error(ex, "Kippix: couldn't save settings"); }
             }
+        }
+
+        // The last selected game's background (shown at start-up) has a little file of its own, written on a worker when
+        // you stop on a game: saving all the settings for it means turning over 1 MB into text on the UI thread. settings.json
+        // still gets it with the next save and when Playnite closes; at start the little file wins only when it is the newer.
+        private string lastBgInSettings, lastBgInFile;
+        private volatile string lastBgWanted;
+        private readonly object lastBgLock = new object();
+
+        private string LastBackgroundPath
+        {
+            get { return Path.Combine(plugin.GetPluginUserDataPath(), "last-background.txt"); }
+        }
+
+        private void LoadLastBackground()
+        {
+            lastBgInSettings = settings.LastBackground;
+            try
+            {
+                string file = LastBackgroundPath;
+                if (File.Exists(file) && (!File.Exists(SettingsPath) || File.GetLastWriteTimeUtc(file) > File.GetLastWriteTimeUtc(SettingsPath)))
+                {
+                    string path = File.ReadAllText(file).Trim();
+                    if (path.Length > 0 && File.Exists(path)) settings.LastBackground = path;
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: last background: " + ex.Message); }
+            lastBgInFile = settings.LastBackground;
+        }
+
+        private void SaveLastBackground()
+        {
+            string path = settings.LastBackground;
+            if (path == lastBgInFile) return;
+            lastBgInFile = path;
+            lastBgWanted = path;
+            KippixShared.SafeWork.Queue(_ =>
+            {
+                lock (lastBgLock)   // (the newest one is what's written, whichever worker gets here last)
+                {
+                    try { File.WriteAllText(LastBackgroundPath, lastBgWanted ?? ""); }
+                    catch (Exception ex) { logger.Warn("Kippix: last background: " + ex.Message); }
+                }
+            });
+        }
+
+        /// <summary>Playnite closing: the little file is written there and then, with what settings.json now holds.</summary>
+        private void SaveLastBackgroundNow()
+        {
+            try
+            {
+                lock (lastBgLock)
+                {
+                    lastBgWanted = settings.LastBackground;
+                    File.WriteAllText(LastBackgroundPath, lastBgWanted ?? "");
+                    lastBgInFile = lastBgWanted;
+                }
+            }
+            catch (Exception ex) { logger.Warn("Kippix: last background: " + ex.Message); }
         }
 
         // =====================================================================

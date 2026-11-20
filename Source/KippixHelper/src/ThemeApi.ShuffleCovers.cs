@@ -286,7 +286,7 @@ namespace KippixHelper
         private void ShuffleWatchList()
         {
             var win = Application.Current != null ? Application.Current.MainWindow : null;
-            var list = win != null ? UiTools.FindByName(win, "PART_ListGameItems") as ListBox : null;
+            var list = win != null ? MasterFind(win, "PART_ListGameItems") as ListBox : null;
             if (list == null || ReferenceEquals(list, shuffleList)) return;
             shuffleList = list;
             list.ItemContainerGenerator.StatusChanged += (s, e) => ShuffleCardsSoon();

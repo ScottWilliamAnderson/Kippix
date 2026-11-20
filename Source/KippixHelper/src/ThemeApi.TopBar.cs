@@ -96,15 +96,14 @@ namespace KippixHelper
                 if (win == null) return;
                 bool hide = (settings.AutoHideTopBar || RowFullUnderBar) && !topBarActive && openPanel == null;
 
-                Fade(UiTools.FindByName(win, "KX_TopLeft"), hide ? 0 : 1);
+                Fade(MasterFind(win, "KX_TopLeft"), hide ? 0 : 1);
                 LibraryHeaderPlace();   // the library view's header: over the profile's corner while that's away, beside it otherwise
-                Fade(UiTools.FindByName(win, "KX_TopShade"), hide ? 0 : 1);
+                Fade(MasterFind(win, "KX_TopShade"), hide ? 0 : 1);
                 // right side: hidden parts also fold away, so whatever stays slides together to the right edge
-                FoldAway(UiTools.FindByName(win, "PART_ButtonNotifications"), hide, settings.ShortcutsVertical);
-                FoldAway(UiTools.FindByName(win, "PART_ButtonProgramUpdate"), hide, settings.ShortcutsVertical);
-                FoldAway(UiTools.FindByName(win, "KX_TopClock"), hide && !settings.TopBarKeepClock, settings.ShortcutsVertical);
+                FoldAway(MasterFind(win, "PART_ButtonNotifications"), hide, settings.ShortcutsVertical);
+                FoldAway(MasterFind(win, "PART_ButtonProgramUpdate"), hide, settings.ShortcutsVertical);
 
-                var list = UiTools.FindByName(win, "KX_TopShortcuts") as ItemsControl;
+                var list = MasterFind(win, "KX_TopShortcuts") as ItemsControl;
                 if (list != null)
                     foreach (var item in Shortcuts)
                     {

@@ -345,7 +345,7 @@ namespace KippixHelper
             try
             {
                 var win = Application.Current != null ? Application.Current.MainWindow : null;
-                var details = win != null ? UiTools.FindByName(win, "PART_ElemGameDetails") : null;
+                var details = win != null ? MasterFind(win, "PART_ElemGameDetails") : null;
                 var host = details != null ? UiTools.FindByName(details, "PART_ViewHost") : null;
                 double room = host != null && host.ActualWidth > 0 ? host.ActualWidth : 1728;
                 room -= 12 + Math.Max(0, MasterOffset(SimilarKey)[0]);   // (the covers' row: 6 px each side for the highlight)

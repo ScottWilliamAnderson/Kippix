@@ -458,11 +458,12 @@ namespace KippixHelper
                 if (win == null) return;
                 foreach (var el in MasterElements)
                 {
+                    if (MasterAway(el)) continue;
                     int elLayer = MasterLayer(el.Key);
                     double op = MasterOpacityOf(el.Key);
                     foreach (string name in el.Names)
                     {
-                        var fe = UiTools.FindByName(win, name);
+                        var fe = MasterFind(win, name);
                         if (fe == null) continue;
                         int layer = elLayer;
                         // the layer

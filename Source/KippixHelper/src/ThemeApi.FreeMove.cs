@@ -604,7 +604,8 @@ namespace KippixHelper
                         g = null;
                         dropped = true;
                     }
-                    FrameworkElement fe = g != null ? UiTools.FindByName(win, m.Names[0]) : null;
+                    if (MasterAway(m)) continue;   // (its placeholder stays as it is)
+                    FrameworkElement fe = g != null ? MasterFind(win, m.Names[0]) : null;
                     Panel parent = fe != null ? GapParent(fe) : null;
                     if (parent == null || !GapWouldShow(m.Key)) { DropGap(ph); continue; }
                     if (ph == null)

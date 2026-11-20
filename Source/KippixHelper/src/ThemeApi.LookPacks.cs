@@ -232,10 +232,22 @@ namespace KippixHelper
                 }
             }
             catch (Exception) { }
-            b = new SolidColorBrush(c);
+            b = LiveBrush(c);
             liveBrushes[key] = b;
             lookSigs[key] = sig;
             app.Resources[key] = b;
+        }
+
+        /// <summary>
+        /// A brush LivePut can recolour in place. WPF freezes a brush as it goes into the app's resources, and a frozen one can
+        /// only be swapped for another, which has WPF look the key up again through the whole window. A brush with an animation
+        /// on its colour can't be frozen. This one takes no time and has no From or To, so the brush shows its own colour.
+        /// </summary>
+        private static SolidColorBrush LiveBrush(Color c)
+        {
+            var b = new SolidColorBrush(c);
+            b.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation { Duration = TimeSpan.Zero });
+            return b;
         }
 
         /// <summary>The card glow's colour (0.82): KX_CardGlowBrush in Constants.xaml, which the glows bind to, recoloured in place.</summary>

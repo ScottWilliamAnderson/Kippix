@@ -150,6 +150,7 @@ namespace KippixHelper
 
             double secs = travel / Speed;
             var anim = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
+            Timeline.SetDesiredFrameRate(anim, 60);   // (under a pixel a frame at this speed; a 120 Hz screen's own rate only doubles the drawing)
             anim.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
             anim.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(StartPause))));
             anim.KeyFrames.Add(new LinearDoubleKeyFrame(-travel, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(StartPause + secs))));

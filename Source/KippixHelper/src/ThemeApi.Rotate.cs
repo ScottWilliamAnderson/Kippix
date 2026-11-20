@@ -99,7 +99,7 @@ namespace KippixHelper
         private void ApplyMasterRotations()
         {
             if (!HasMasterTurns) return;
-            foreach (var el in MasterElements) ApplyMasterRotation(el);
+            foreach (var el in MasterElements) if (!MasterAway(el)) ApplyMasterRotation(el);
         }
 
         private void ApplyMasterRotation(MasterElement el)
@@ -111,7 +111,7 @@ namespace KippixHelper
                 double a = MasterOn(el.Screen) ? MasterRotation(el.Key) : 0;
                 foreach (string name in el.Names)
                 {
-                    var fe = UiTools.FindByName(win, name);
+                    var fe = MasterFind(win, name);
                     if (fe != null) SetMasterRotate(fe, a);
                 }
             }

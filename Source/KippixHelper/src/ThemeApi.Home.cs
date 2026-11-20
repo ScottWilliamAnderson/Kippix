@@ -111,12 +111,12 @@ namespace KippixHelper
                 BoardApplyMode();
                 if (IsFullscreen && DateTime.Now >= carRetryAt && (CarouselOn != carActive || (carActive && carDesign != CarDesign))) CarouselApplyMode();   // Row's carousel (at start-up, or after a change)
                 else if (IsFullscreen) CarApplyShown();   // (the host shown exactly while the carousel is on)
-                SetScale(UiTools.FindByName(win, "KX_LogoArea"), LogoScales[settings.LogoSize]);
-                SetScale(UiTools.FindByName(win, "KX_InfoLine"), TextScales[settings.InfoSize]);
-                SetScale(UiTools.FindByName(win, "KX_HintsRow"), TextScales[settings.HintsSize]);
+                SetScale(MasterFind(win, "KX_LogoArea"), LogoScales[settings.LogoSize]);
+                SetScale(MasterFind(win, "KX_InfoLine"), TextScales[settings.InfoSize]);
+                SetScale(MasterFind(win, "KX_HintsRow"), TextScales[settings.HintsSize]);
 
-                var info = UiTools.FindByName(win, "KX_GameInfo");
-                var list = UiTools.FindByName(win, "PART_ListGameItems") as ItemsControl;
+                var info = MasterFind(win, "KX_GameInfo");
+                var list = MasterFind(win, "PART_ListGameItems") as ItemsControl;
                 var root = info != null ? VisualTreeHelper.GetParent(info) as FrameworkElement : null;
                 if (info == null || list == null || root == null || root.ActualHeight <= 0) return;
                 // Row › Tall / Full Screen: the carousel between the top bar and the logo / info / hints, which sit at the bottom
@@ -434,7 +434,7 @@ namespace KippixHelper
             Notify("StartupBackground");
         }
 
-        /// <summary>Remembers the selected game's background for next time (saved every couple of seconds, not on every move).</summary>
+        /// <summary>Remembers the selected game's background for next time (written when you stop on a game, not on every move).</summary>
         internal void GameSelected(Game game)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -471,8 +471,7 @@ namespace KippixHelper
                 if (string.IsNullOrEmpty(path)) return;
                 PreloadSelectedBackground(path);
                 if (path == settings.LastBackground) return;
-                settings.LastBackground = path;
-                backgroundDirty = true;
+                settings.LastBackground = path;   // (written by the next upkeep: SaveLastBackground)
             }
             catch (Exception) { }
         }

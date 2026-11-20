@@ -618,13 +618,14 @@ namespace KippixHelper
                 bool boxWaiting = false;
                 foreach (var el in MasterElements)
                 {
+                    if (MasterAway(el)) continue;
                     if (el.Key == SimilarKey) { ApplySimilarTileSize(); continue; }   // (its size is its covers' size)
                     if (IsBoxKey(el.Key))
                     {
                         var bs = MasterOn(el.Screen) ? MasterSize(el.Key) : new double[4];
                         for (int i = 0; i < el.Names.Length; i++)
                         {
-                            var bf = UiTools.FindByName(win, el.Names[i]);
+                            var bf = MasterFind(win, el.Names[i]);
                             if (bf != null && ApplyBoxSize(el, bf, i == 0 ? bs : new double[4], boxFresh)) boxWaiting = true;   // (the size is the first one's: the Buttons' DLC line keeps its own)
                         }
                         continue;
@@ -634,7 +635,7 @@ namespace KippixHelper
                         double sc = MasterOn(el.Screen) ? MasterScale(el.Key) : 1;
                         foreach (string name in el.Names)
                         {
-                            var sf = UiTools.FindByName(win, name);
+                            var sf = MasterFind(win, name);
                             if (sf != null) SetMasterScale(sf, sc);
                         }
                         continue;
@@ -643,7 +644,7 @@ namespace KippixHelper
                     var s = MasterSize(el.Key);
                     foreach (string name in el.Names)
                     {
-                        var fe = UiTools.FindByName(win, name);
+                        var fe = MasterFind(win, name);
                         if (fe == null) continue;
                         if (s[0] > 0) { fe.Width = s[0]; if (el.Key == "game.desc") fe.MaxWidth = Math.Max(1000, s[0]); }
                         else { fe.ClearValue(FrameworkElement.WidthProperty); if (el.Key == "game.desc") fe.MaxWidth = 1000; }

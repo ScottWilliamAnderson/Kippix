@@ -173,6 +173,7 @@ namespace KippixHelper
                 var lower = DetLowerPushes(win);
                 foreach (var el in MasterElements)
                 {
+                    if (MasterAway(el)) continue;
                     bool on = MasterOn(el.Screen);
                     var o = on ? MasterOffset(el.Key) : new double[] { 0, 0 };
                     double more;
@@ -205,6 +206,7 @@ namespace KippixHelper
             var push = new Dictionary<string, double>();
             try
             {
+                if (!detailsOpen) return push;   // (only the game page's parts are pushed)
                 var cards = MasterFind(win, "KX_SecCards");
                 var page = cards != null ? VisualTreeHelper.GetParent(cards) as FrameworkElement : null;
                 if (page == null || !page.IsVisible) return push;
@@ -250,10 +252,16 @@ namespace KippixHelper
         // (1.0.0) The parts' places are put on every 2 seconds: each part was looked for through the whole window each time
         // (~50 ms on a 4K TV, a stutter every 2 s, worse on a slower PC). Found parts are kept while they're still on screen;
         // one that isn't there is looked for again only when the screen changes (or after a few seconds).
+        // The ones that aren't there are looked for together, in one walk of the window (MasterSweep), not one walk each.
         private readonly Dictionary<string, FrameworkElement> masterFound = new Dictionary<string, FrameworkElement>();
         private readonly Dictionary<string, DateTime> masterMissed = new Dictionary<string, DateTime>();
+        private readonly HashSet<string> masterWanted = new HashSet<string>();   // every name asked for (the walk looks for all of them)
+        private HashSet<string> masterSweptNow;   // what the last walk didn't find, until the piece of work it was part of is done
         private string masterFindScreen;
         private DateTime masterFindScreenAt = DateTime.MinValue;
+
+        /// <summary>A game page part while the game page is closed: it can't be seen, and it's placed as the page opens (DetailsOpened).</summary>
+        private bool MasterAway(MasterElement el) { return el.Screen == "game" && !detailsOpen; }
 
         private FrameworkElement MasterFind(Window win, string name)
         {
@@ -267,10 +275,43 @@ namespace KippixHelper
             }
             DateTime missed;
             if (masterMissed.TryGetValue(name, out missed) && (DateTime.Now - missed).TotalSeconds < 6) return null;
-            fe = UiTools.FindByName(win, name);
-            if (fe != null) { masterFound[name] = fe; masterMissed.Remove(name); }
-            else if ((DateTime.Now - masterFindScreenAt).TotalSeconds > 5) masterMissed[name] = DateTime.Now;   // (a screen just opened may still be drawing its parts)
+            if (masterSweptNow != null && masterSweptNow.Contains(name)) return null;   // (not there a moment ago, in this same piece of work)
+            masterWanted.Add(name);
+            MasterSweep(win);
+            masterFound.TryGetValue(name, out fe);
             return fe;
+        }
+
+        /// <summary>One walk through the window for every name asked for (the first of each, as UiTools.FindByName finds it).</summary>
+        private void MasterSweep(Window win)
+        {
+            var found = new Dictionary<string, FrameworkElement>();
+            var queue = new Queue<DependencyObject>();
+            queue.Enqueue(win);
+            while (queue.Count > 0 && found.Count < masterWanted.Count)
+            {
+                var d = queue.Dequeue();
+                var fe = d as FrameworkElement;
+                string n = fe != null ? fe.Name : null;
+                if (!string.IsNullOrEmpty(n) && masterWanted.Contains(n) && !found.ContainsKey(n)) found[n] = fe;
+                int count = 0;
+                try { count = VisualTreeHelper.GetChildrenCount(d); } catch (Exception) { }
+                for (int i = 0; i < count; i++) queue.Enqueue(VisualTreeHelper.GetChild(d, i));
+            }
+            bool settled = (DateTime.Now - masterFindScreenAt).TotalSeconds > 5;   // (a screen just opened may still be drawing its parts)
+            var missing = new HashSet<string>();
+            foreach (string n in masterWanted)
+            {
+                FrameworkElement fe;
+                if (found.TryGetValue(n, out fe)) { masterFound[n] = fe; masterMissed.Remove(n); continue; }
+                masterFound.Remove(n);
+                missing.Add(n);
+                if (settled) masterMissed[n] = DateTime.Now;
+            }
+            // (the rest of this piece of work doesn't walk again for them; the next one does, while the screen is new)
+            if (ui == null) return;
+            masterSweptNow = missing;
+            ui.BeginInvoke(new Action(() => masterSweptNow = null), DispatcherPriority.Send);
         }
 
         /// <summary>Our own translate on the element, added beside any transform it already has (that one may be animated by the theme).</summary>

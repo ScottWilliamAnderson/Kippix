@@ -676,7 +676,7 @@ namespace KippixHelper
                 bool on = IsBoardMode;
                 foreach (string n in new[] { "PART_ListGameItems", "KX_GameInfo", "KX_HomeTilesCanvas" })
                 {
-                    var el = UiTools.FindByName(win, n);
+                    var el = MasterFind(win, n);
                     if (el == null) continue;
                     // (Folder: the folder tiles aren't games, so no game info / button hints under them; Row › Tall / Full Screen:
                     // the cards have the screen unless Row's "Show the logo, game info and hints" is on)
@@ -684,7 +684,7 @@ namespace KippixHelper
                     if (hide) { if (el.Visibility != Visibility.Collapsed) { el.Visibility = Visibility.Collapsed; if (on) ui.BeginInvoke(new Action(BoardFocusIfLost), DispatcherPriority.ContextIdle); } }
                     else if (el.ReadLocalValue(UIElement.VisibilityProperty) != DependencyProperty.UnsetValue) el.ClearValue(UIElement.VisibilityProperty);
                 }
-                var board = UiTools.FindByName(win, "KX_Board");
+                var board = MasterFind(win, "KX_Board");
                 if (board != null && !ReferenceEquals(board, boardHooked))
                 {
                     boardHooked = board;
