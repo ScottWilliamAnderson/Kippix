@@ -117,7 +117,8 @@ namespace KippixHelper
         private void PlaySleepGameRunning(bool running)
         {
             if (running) { HookPlaySleep(); PlaySleepSoon(); }
-            else WakeFromPlay("the game stopped");
+            else if (!AnyRunning) WakeFromPlay("the game stopped");
+            else PlaySleepSoon();   // (issue #11: one of several stopped. Behind the others the screen stays hidden, or hides as planned)
         }
 
         /// <summary>A window's picture as Windows composes it, also while other windows cover it.</summary>
